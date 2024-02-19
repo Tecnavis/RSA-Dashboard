@@ -31,6 +31,11 @@ import IconMenuUsers from '../Icon/Menu/IconMenuUsers';
 import IconMenuPages from '../Icon/Menu/IconMenuPages';
 import IconMenuAuthentication from '../Icon/Menu/IconMenuAuthentication';
 import IconMenuDocumentation from '../Icon/Menu/IconMenuDocumentation';
+import IconGoogle from '../Icon/IconGoogle';
+import IconGlobe from '../Icon/IconGlobe';
+import IconServer from '../Icon/IconServer';
+import IconDollarSign from '../Icon/IconDollarSign';
+import IconTxtFile from '../Icon/IconTxtFile';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -123,6 +128,219 @@ const Sidebar = () => {
                                 </AnimateHeight>
                             </li>
 
+
+
+                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    Users
+                                    {/* {t('user_and_pages')} */}
+                                    </span>
+                            </h2>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconMenuUsers className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('users')}</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
+                                <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/users/profile">Staff Creation</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Company Creation</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Customer Creation</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Driver Adding </NavLink>
+                                        </li>
+                     
+                                        <li>
+                                            <NavLink to="/users/profile">{t('profile')}</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/user-account-settings">{t('account_settings')}</NavLink>
+                                        </li>
+                                    </ul>
+                                </AnimateHeight>
+                            </li>
+
+
+
+                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    ShowRooms
+                                    {/* {t('user_and_pages')} */}
+                                    </span>
+                            </h2>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconGlobe className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">ShowRoom1</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                               
+                            </li>
+
+
+                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    Service
+                                    {/* {t('user_and_pages')} */}
+                                    </span>
+                            </h2>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconServer className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Service Types</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
+                                <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/users/profile">Service Types</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Tarrif Details</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile"> Adjustments</NavLink>
+                                        </li>
+                                    </ul>
+                                
+                                </AnimateHeight>
+               
+                                </li>
+
+
+
+                                <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    Reports
+                                    {/* {t('user_and_pages')} */}
+                                    </span>
+                            </h2>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconMenuTodo className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">General Reports</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
+                                <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/users/profile">Sales Summery</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">expense Summery</NavLink>
+                                        </li>
+                                      
+                                    </ul>
+                                
+                                </AnimateHeight>
+                            </li>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconMenuInvoice className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Financial Reports</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
+                                <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/users/profile">Balance Sheet</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Profit and loss Report</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Ledger Report</NavLink>
+                                        </li>
+                                        {/* <li>
+                                            <NavLink to="/users/profile">Receivable Report</NavLink>
+                                        </li> */}
+                                    </ul>
+                                
+                                </AnimateHeight>
+                            </li>
+
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                    <div className="flex items-center">
+                                        <IconTxtFile className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Receivable Report</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
+                                <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/users/profile">Invoice wise Sheet</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Company or Customer wise</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/users/profile">Compny /Customer Outstanding</NavLink>
+                                        </li>
+                                        <li>
+                                             <NavLink to="/users/profile">Payment Recieved</NavLink>
+                                        </li>
+                                    </ul>
+                                
+                                </AnimateHeight>
+                            </li>
+                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    About
+                                    {/* {t('user_and_pages')} */}
+                                    </span>
+                            </h2>
                             <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>{t('apps')}</span>
@@ -521,34 +739,7 @@ const Sidebar = () => {
                                 </AnimateHeight>
                             </li>
 
-                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
-                                <IconMinus className="w-4 h-5 flex-none hidden" />
-                                <span>{t('user_and_pages')}</span>
-                            </h2>
-
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
-                                    <div className="flex items-center">
-                                        <IconMenuUsers className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('users')}</span>
-                                    </div>
-
-                                    <div className={currentMenu !== 'users' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'users' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/users/profile">{t('profile')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/users/user-account-settings">{t('account_settings')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
+                            
 
                             <li className="menu nav-item">
                                 <button type="button" className={`${currentMenu === 'page' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('page')}>
