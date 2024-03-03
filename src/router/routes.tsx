@@ -1,4 +1,30 @@
-import { lazy } from 'react';
+import { Suspense, lazy } from 'react';
+import UserAdd from '../pages/Users/UserAdd';
+import { Navigate } from 'react-router-dom';
+import Booking from '../pages/Booking/Booking';
+import NewBooking from '../pages/Booking/NewBooking';
+import CancelledBooking from '../pages/Booking/CancelledBooking';
+import ApprovedBoking from '../pages/Booking/ApprovedBoking';
+import ClosedBooking from '../pages/Booking/ClosedBooking';
+import InvoicedBooking from '../pages/Booking/InvoicedBooking';
+import DriverAdd from '../pages/Users/DriverAdd';
+import CustomerAdd from '../pages/Users/CustomerAdd';
+import CompanyAdd from '../pages/Users/CompanyAdd';
+import ShowRoom from '../pages/ShowRooms/ShowRoom';
+import ShowRoomMap from '../pages/ShowRooms/ShowRoomMap';
+import ServiceType from '../pages/Service/ServiceType';
+import Adjustment from '../pages/Service/Adjustment';
+import Tarrif from '../pages/Service/Tarrif';
+import ExpenseSummery from '../pages/Report/generalReports/ExpenseSummery';
+import SalesSummery from '../pages/Report/generalReports/SalesSummery';
+import BalanceSheet from '../pages/Report/financialReports/BalanceSheet';
+import Ledger from '../pages/Report/financialReports/Ledger';
+import ProfitLoss from '../pages/Report/financialReports/ProfitLoss';
+import InvoiceWiseSheet from '../pages/Report/receivableReports/InvoiceWiseSheet';
+import ComCusWise from '../pages/Report/receivableReports/ComCusWise';
+import ComCusOutstanding from '../pages/Report/receivableReports/ComCusOutstanding';
+import PaymentReceived from '../pages/Report/receivableReports/PaymentReceived';
+
 const Index = lazy(() => import('../pages/Index'));
 const Analytics = lazy(() => import('../pages/Analytics'));
 const Finance = lazy(() => import('../pages/Finance'));
@@ -62,6 +88,13 @@ const RangeSearch = lazy(() => import('../pages/DataTables/RangeSearch'));
 const Export = lazy(() => import('../pages/DataTables/Export'));
 const ColumnChooser = lazy(() => import('../pages/DataTables/ColumnChooser'));
 const Profile = lazy(() => import('../pages/Users/Profile'));
+const Staff = lazy(() => import('../pages/Users/Staff'));
+
+const Company = lazy(() => import('../pages/Users/Company'));
+
+const Driver = lazy(() => import('../pages/Users/Driver'));
+const Customer = lazy(() => import('../pages/Users/Customer'));
+
 const AccountSetting = lazy(() => import('../pages/Users/AccountSetting'));
 const KnowledgeBase = lazy(() => import('../pages/Pages/KnowledgeBase'));
 const ContactUsBoxed = lazy(() => import('../pages/Pages/ContactUsBoxed'));
@@ -99,17 +132,33 @@ const QuillEditor = lazy(() => import('../pages/Forms/QuillEditor'));
 const MarkDownEditor = lazy(() => import('../pages/Forms/MarkDownEditor'));
 const DateRangePicker = lazy(() => import('../pages/Forms/DateRangePicker'));
 const Clipboard = lazy(() => import('../pages/Forms/Clipboard'));
-
+// const isAuthenticated = () => {
+//     // Implement your authentication check here
+//     return false; // This is a placeholder, return actual auth status
+//   };
 const routes = [
     // dashboard
+    // {
+    //     path: '/',
+    //     element: (
+    //       <Suspense fallback={<div>Loading...</div>}>
+    //         {isAuthenticated() ? <Index/> : <Navigate to="/login"/>}
+    //       </Suspense>
+    //     ),
+    //   },
+       
+   
     {
         path: '/',
+        element: <LoginCover />,
+        layout: 'blank',
+
+    },
+ 
+    {
+        path: '/index',
         element: <Index />,
     },
-    // {
-    //     path: '/index',
-    //     element: <Index />,
-    // },
     // analytics page
     {
         path: '/analytics',
@@ -378,10 +427,148 @@ const routes = [
         element: <Profile />,
     },
     {
+        path: '/users/staff',
+        element: <Staff />,
+    },
+    {
+        path: '/users/company',
+        element: <Company />,
+    },
+    {
+        path: '/users/driver',
+        element: <Driver />,
+    },
+    {
+        path: '/users/customer',
+        element: <Customer />,
+    },
+    {
+        path: '/users/user-add/',
+        element: <UserAdd />,
+    },
+    {
+        path: '/users/user-add/:id',
+        element: <UserAdd />,
+    },
+    {
+        path: '/users/driver-add',
+        element: <DriverAdd />,
+    },
+    {
+        path: '/users/driver-add/:id',
+        element: <DriverAdd />,
+    },
+    {
+        path: '/users/customer-add',
+        element: <CustomerAdd />,
+    },
+    {
+        path: '/users/customer-add/:id',
+        element: <CustomerAdd />,
+    },
+    {
+        path: '/users/company-add',
+        element: <CompanyAdd />,
+    },
+    {
+        path: '/users/company-add/:id',
+        element: <CompanyAdd />,
+    },
+   
+    {
         path: '/users/user-account-settings',
         element: <AccountSetting />,
     },
-    // pages
+    //Booking pages
+    {
+        path: '/bookings/booking',
+        element: <Booking />,
+    },
+    {
+        path: '/bookings/newbooking',
+        element: <NewBooking />,
+    },
+    {
+        path: '/bookings/cancelbooking',
+        element: <CancelledBooking />,
+    },
+    {
+        path: '/bookings/approvedbooking',
+        element: <ApprovedBoking />,
+    },
+    {
+        path: '/bookings/closedbooking',
+        element: <ClosedBooking />,
+    },
+    {
+        path: '/bookings/invoicedbooking',
+        element: <InvoicedBooking />,
+    },
+
+// ShowRoom
+{
+    path: 'showrooms/showroom',
+    element: <ShowRoom />,
+},
+{
+    path: 'showrooms/show-room',
+    element: <ShowRoomMap/>,
+},
+// service
+{
+    path: '/service/service-type',
+    element: <ServiceType />,
+},
+{
+    path: '/service/adjustment',
+    element: <Adjustment />,
+},
+{
+    path: '/service/tarrif',
+    element: <Tarrif />,
+},
+// Reports Page
+// General
+{
+    path: '/general/expense',
+    element: <ExpenseSummery />,
+},
+{
+    path: '/general/sales',
+    element: <SalesSummery />,
+},
+// Financial
+{
+    path: '/financial/balance',
+    element: <BalanceSheet />,
+},
+{
+    path: '/financial/ledger',
+    element: <Ledger />,
+},
+{
+    path: '/financial/profit',
+    element: <ProfitLoss />,
+},
+// Receivable
+{
+    path: '/receivable/comcusoutstanding',
+    element: <ComCusOutstanding />,
+},
+{
+    path: '/receivable/comcuswise',
+    element: <ComCusWise />,
+},
+{
+    path: '/receivable/invoicewise',
+    element: <InvoiceWiseSheet />,
+},
+{
+    path: '/receivable/payment',
+    element: <PaymentReceived />,
+},
+
+
     {
         path: '/pages/knowledge-base',
         element: <KnowledgeBase />,
