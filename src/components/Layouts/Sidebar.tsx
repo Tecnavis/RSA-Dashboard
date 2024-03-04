@@ -85,10 +85,10 @@ const Sidebar = () => {
                 className={`sidebar fixed min-h-screen h-full top-0 bottom-0 w-[260px] shadow-[5px_0_25px_0_rgba(94,92,154,0.1)] z-50 transition-all duration-300 ${semidark ? 'text-white-dark' : ''}`}
             >
                 <div className="bg-white dark:bg-black h-full">
-                    <div className="flex justify-between items-center px-4 py-3">
+                    <div className="flex justify-between items-center px-4 ">
                         <NavLink to="/" className="main-logo flex items-center shrink-0">
-                        <img className="w-24 mx-auto" src="/assets/images/auth/rsa-png.png" alt="logo" />
-                            <span className="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light">R<span className='text-danger'>S</span>A</span>
+                        <img className="w-48 mx-auto" src="/assets/images/auth/rsa-png.png" alt="logo" />
+                            {/* <span className="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light">R<span className='text-danger'>S</span>A</span> */}
                         </NavLink>
                  {/* <div className="bg-white dark:bg-black h-full">
                     <div className="flex justify-between items-center">
@@ -219,11 +219,12 @@ const Sidebar = () => {
 
                                 <AnimateHeight duration={300} height={currentMenu === 'bookings' ? 'auto' : 0}>
                                 <ul className="sub-menu text-gray-500">
-                                <li>
-                                            <NavLink to="/bookings/booking">Add Booking </NavLink>
+                                
+                                        <li>
+                                            <NavLink to="/bookings/newbooking">Bookings </NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/bookings/newbooking">New Bookings </NavLink>
+                                            <NavLink to="/bookings/booking">Add Booking </NavLink>
                                         </li>
                                         <li>
                                             <NavLink to="/bookings/approvedbooking">Approved Bookings</NavLink>
