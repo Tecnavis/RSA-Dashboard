@@ -103,64 +103,7 @@
                         </tbody>
                     </table>
                 </div>
-                {/* {editData && (
-    <div className="modal fixed inset-0 z-10 overflow-y-auto" onClick={() => setEditData(null)}>
-    <div className="modal-overlay absolute inset-0 bg-black opacity-30"></div>
-
-                           <div className="modal-container relative mx-auto my-16 p-6 bg-white w-96 rounded shadow-lg"
-                                       onClick={(e) => e.stopPropagation()}
-
-                           >
-                            <span
-                                className="absolute top-0 right-0 cursor-pointer text-gray-600 hover:text-gray-800 p-4"
-                                onClick={() => setEditData(null)}
-                            >
-                                &times;
-                            </span>
-                            <form
-                                className="flex flex-col gap-4"
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleUpdate();
-                                }}
-                            >
-                                <label className="text-lg font-semibold">Name:</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="border rounded p-2"
-                                />
-
-                                <label className="text-lg font-semibold">Email:</label>
-                                <input
-                                    type="text"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="border rounded p-2"
-                                />
-
-                                <label className="text-lg font-semibold">Phone:</label>
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="border rounded p-2"
-                                />
-
-                                <button
-                                    type="submit"
-                                    className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer"
-                                >
-                                    Update
-                                </button>
- </form>
-                        </div>
-                    </div>
-                )} */}
+               
             </div>
         </div>
     );

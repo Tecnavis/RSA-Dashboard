@@ -24,6 +24,7 @@ import InvoiceWiseSheet from '../pages/Report/receivableReports/InvoiceWiseSheet
 import ComCusWise from '../pages/Report/receivableReports/ComCusWise';
 import ComCusOutstanding from '../pages/Report/receivableReports/ComCusOutstanding';
 import PaymentReceived from '../pages/Report/receivableReports/PaymentReceived';
+import ViewMore from '../pages/Booking/ViewMore';
 
 const Index = lazy(() => import('../pages/Index'));
 const Analytics = lazy(() => import('../pages/Analytics'));
@@ -504,7 +505,10 @@ const routes = [
         path: '/bookings/invoicedbooking',
         element: <InvoicedBooking />,
     },
-
+    {
+        path: "/bookings/newbooking/viewmore/:id",
+        element: <ViewMore />,
+    },
 // ShowRoom
 {
     path: 'showrooms/showroom',
