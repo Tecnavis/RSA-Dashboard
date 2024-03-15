@@ -5,11 +5,12 @@ import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 // Assuming your record data has a type like this
 type RecordData = {
+  
   index: number;
   customerName: string;
   fileNumber: string;
   phoneNumber: string;
-  pickupLocation: string;
+  driver: string;
   id: string; // Assuming you have an 'id' property in your data
 };
 
@@ -19,11 +20,11 @@ const NewBooking = () => {
   const [pageSize, setPageSize] = useState(10);
   const PAGE_SIZES = [10, 20, 30];
   const db = getFirestore();
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'bookings'));
+
         const dataWithIndex = querySnapshot.docs.map((doc, index) => ({
           index: index + 2000,
           ...doc.data(),
@@ -36,6 +37,7 @@ const NewBooking = () => {
     };
 
     fetchData().catch(console.error);
+    
   }, [db]);
 
   return (
@@ -72,7 +74,7 @@ const NewBooking = () => {
               { accessor: 'customerName', title: 'Name' },
               { accessor: 'fileNumber', title: 'File Number' },
               { accessor: 'phoneNumber', title: 'Phone Number' },
-              { accessor: 'pickupLocation', title: 'Pickup Location' },
+              { accessor: 'driver', title: 'Driver' },
               {
                 accessor: 'viewmore',
                 title: 'ViewMore',

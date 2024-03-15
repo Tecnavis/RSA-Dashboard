@@ -5,7 +5,7 @@ import { IRootState } from '../store';
 import ReactApexChart from 'react-apexcharts';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import Dropdown from '../components/Dropdown';
-import { setPageTitle } from '../store/themeConfigSlice';
+// import { setPageTitle } from '../store/themeConfigSlice';
 import IconHorizontalDots from '../components/Icon/IconHorizontalDots';
 import IconDollarSign from '../components/Icon/IconDollarSign';
 import IconInbox from '../components/Icon/IconInbox';
@@ -22,10 +22,10 @@ import IconPlus from '../components/Icon/IconPlus';
 import IconMultipleForwardRight from '../components/Icon/IconMultipleForwardRight';
 
 const Index = () => {
-    const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(setPageTitle('Sales Admin'));
-    });
+    // const dispatch = useDispatch();
+    // useEffect(() => {
+    //     dispatch(setPageTitle('Sales Admin'));
+    // });
     const isDark = useSelector((state: IRootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 

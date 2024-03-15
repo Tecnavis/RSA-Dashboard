@@ -25,6 +25,11 @@ import ComCusWise from '../pages/Report/receivableReports/ComCusWise';
 import ComCusOutstanding from '../pages/Report/receivableReports/ComCusOutstanding';
 import PaymentReceived from '../pages/Report/receivableReports/PaymentReceived';
 import ViewMore from '../pages/Booking/ViewMore';
+import path from 'path';
+import DriverDetails from '../pages/Users/DriverDetails';
+import Boo from '../pages/Booking/DriverSalary';
+import DriverSalary from '../pages/Booking/DriverSalary';
+
 
 const Index = lazy(() => import('../pages/Index'));
 const Analytics = lazy(() => import('../pages/Analytics'));
@@ -160,6 +165,10 @@ const routes = [
         path: '/index',
         element: <Index />,
     },
+    // {
+    //     path: '/bookings/booking/driversalary',
+    //     element: <DriverSalary />,
+    // },
     // analytics page
     {
         path: '/analytics',
@@ -480,6 +489,10 @@ const routes = [
         path: '/users/user-account-settings',
         element: <AccountSetting />,
     },
+    {
+        path: "/users/driver/driverdetails/:id",
+        element: <DriverDetails />,
+    },
     //Booking pages
     {
         path: '/bookings/booking',
@@ -509,6 +522,7 @@ const routes = [
         path: "/bookings/newbooking/viewmore/:id",
         element: <ViewMore />,
     },
+ 
 // ShowRoom
 {
     path: 'showrooms/showroom',

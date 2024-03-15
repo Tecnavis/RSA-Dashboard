@@ -8,8 +8,9 @@ const DriverAdd = () => {
 
     const [phone, setPhone] = useState('');
     const [personalphone, setPersonalPhone] = useState('');
-    const [vehicle, setVehicle] = useState('');
-    const [address, setAddress] = useState('');
+    const [service, setService] = useState('');
+    const [basicSalary, setBasicSalary] = useState('');
+    const [salarykm, setSalarykm] = useState('');
     const [editData, setEditData] = useState(null);
     const navigate = useNavigate();
     const db = getFirestore();
@@ -22,9 +23,9 @@ const DriverAdd = () => {
             setIdnumber(state.editData.idnumber || '');
             setPhone(state.editData.phone || '');
             setPersonalPhone(state.editData.personalphone || '');
-            setVehicle(state.editData.vehicle || '');
-            setAddress(state.editData.address || '');
-
+            setService(state.editData.service || '');
+            setBasicSalary(state.editData.basicSalary || '');
+            setSalarykm(state.editData.salarykm || '')
 
         }
     }, [state]);
@@ -35,9 +36,9 @@ const DriverAdd = () => {
                 idnumber,
                 phone,
                 personalphone,
-                vehicle,
-                address,
-                
+                service,
+                basicSalary,
+                salarykm,
             };
 
             if (editData) {
@@ -100,21 +101,36 @@ const DriverAdd = () => {
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="vehicle">Vehicle</label>
-                                    <input
-                                        id="vehicle"
-                                        type="vehicle"
-                                        placeholder=" vehicle"
-                                        className="form-input"
-                                        value={vehicle}
-                                        onChange={(e) => setVehicle(e.target.value)}
-                                    />
+    <label htmlFor="service">Service Type</label>
+    <select
+        id="service"
+        className="form-input"
+        value={service}
+        onChange={(e) => setService(e.target.value)}
+    >
+        <option value="">Select Service Type</option>
+        <option value="Flat bed">Flat bed</option>
+        <option value="Under Lift">Under Lift</option>
+        <option value="Rsr By Car">Rsr By Car</option>
+        <option value="Rsr By Bike">Rsr By Bike</option>
+        <option value="Custody">Custody</option>
+        <option value="Hydra Crane">Hydra Crane</option>
+        <option value="Jump start">Jump start</option>
+        <option value="Tow Wheeler Fbt">Tow Wheeler Fbt</option>
+        <option value="Zero Digri Flat Bed">Zero Digri Flat Bed</option>
+        <option value="Undet Lift 407">Undet Lift 407</option>
+        <option value="S Lorry Crane Bed">S Lorry Crane Bed</option>
+    </select>
+</div>
+
+                                <div>
+                                    <label htmlFor="basicSalary">Basic Salary</label>
+                                    <input id="basicSalary" placeholder="Basic Salary" className="form-input" value={basicSalary} onChange={(e) => setBasicSalary(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="address">Address</label>
-                                    <textarea id="address" placeholder="Enter Address" className="form-input" value={address} onChange={(e) => setAddress(e.target.value)} />
+                                    <label htmlFor="salarykm">Salary (KM)</label>
+                                    <input id="salarykm" placeholder="Salary per KM" className="form-input" value={salarykm} onChange={(e) => setSalarykm(e.target.value)} />
                                 </div>
-
                                 <div className="sm:col-span-2 mt-3">
             <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}>
                 {editData ? 'Update' : 'Save'}

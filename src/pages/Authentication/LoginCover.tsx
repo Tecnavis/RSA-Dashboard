@@ -204,8 +204,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { setPageTitle, toggleRTL } from '../../store/themeConfigSlice';
 import Dropdown from '../../components/Dropdown';
 import { IRootState } from '../../store';
-import i18next from 'i18next';
-import IconCaretDown from '../../components/Icon/IconCaretDown';
+// import i18next from 'i18next';
+// import IconCaretDown from '../../components/Icon/IconCaretDown';
 import IconMail from '../../components/Icon/IconMail';
 import IconLockDots from '../../components/Icon/IconLockDots';
 import IconInstagram from '../../components/Icon/IconInstagram';
@@ -215,10 +215,10 @@ import IconGoogle from '../../components/Icon/IconGoogle';
 
 const LoginCover = () => {
     
-    const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(setPageTitle('Login Cover'));
-    });
+    // const dispatch = useDispatch();
+    // useEffect(() => {
+    //     dispatch(setPageTitle('Login Cover'));
+    // });
     const navigate = useNavigate();
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);

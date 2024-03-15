@@ -6,6 +6,7 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
 import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
+import IconMenuMore from '../../components/Icon/Menu/IconMenuMore';
 
 
 const Driver = () => {
@@ -56,10 +57,8 @@ return (
                             <th>Driver Name</th>
                             <th>ID Number</th>
                            <th>Phone Number</th>
-                           
-                           <th>Personal PhoneNumber</th>
-                            <th>Vehicle Details</th>
-                            <th>Address</th>
+                            <th>Service Type</th>
+                            <th>Basic Salary</th>
                             <th className="!text-center">Action</th>
                         </tr>
                     </thead>
@@ -73,10 +72,10 @@ return (
                                     </td>
                                     <td>{item.idnumber}</td>
                                     <td>{item.phone}</td>
-                                    <td>{item.personalphone}</td>
-                                    <td>{item.vehicle}</td>
+                                    {/* <td>{item.personalphone}</td> */}
+                                    <td>{item.service}</td>
 
-                                    <td>{item.address}</td>
+                                    <td>{item.basicSalary}</td>
 
 
                                     <td className="text-center">
@@ -93,6 +92,14 @@ return (
                                                     <button type="button" onClick={() => handleDelete(item.id)}>
                                                         <IconTrashLines className="text-danger" />
                                                     </button>
+                                                </Tippy>
+                                            </li>
+                                            <li>
+                                                <Tippy content="More">
+                                                <Link to={`/users/driver/driverdetails/${item.id}`}><button type="button">
+                                                        <IconMenuMore className="text-dark" />
+                                                        </button>
+                                                    </Link> 
                                                 </Tippy>
                                             </li>
                                         </ul>
