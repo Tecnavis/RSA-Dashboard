@@ -22,11 +22,8 @@ const Booking = () => {
         setBookingId(newBookingId);
     }, []);
     const [bookingDetails, setBookingDetails] = useState({
-        location: '',
         company: '',
-        country: '',
         fileNumber: '',
-        showroom: '',
         customerName: '',
         phoneNumber: '',
         mobileNumber: '',
@@ -43,7 +40,6 @@ const Booking = () => {
     const [modalDistance, setModalDistance] = useState([]);
     const [selectedDriver, setSelectedDriver] = useState(null); // State to store the selected driver
     const [serviceType, setServiceType] = useState('');
-    // const [selectedOption, setSelectedOption] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [distance, setDistance] = useState('');
@@ -60,7 +56,7 @@ const Booking = () => {
     const handleInputChange = (field, value) => {
         setBookingDetails({ ...bookingDetails, [field]: value });
         console.log('first', selectedDriver);
-        
+      
         if (field === 'distance') {
             openModal(value);
         } else if (field === 'serviceType') {
@@ -186,6 +182,7 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('company', e.target.value)}
+                                    
                                 >
                                     <option value="">Select Company</option>
                                     <option value="rsa">RSA</option>
@@ -304,7 +301,7 @@ const Booking = () => {
                                                 ref={(node) => setupAutocomplete(node, setPickupLocation)}
                                                 onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
                                             />
-                                            {pickupLocation && <div>{`Pickup Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
+                                            {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
                                         </div>
                                     </div>
                                     <div className="flex items-center mt-4">
@@ -328,11 +325,11 @@ const Booking = () => {
                                                 ref={(node) => setupAutocomplete(node, setDropoffLocation)}
                                                 onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
                                             />
-                                            {dropoffLocation && <div>{`Dropoff Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
+                                            {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
                                         </div>
                                     </div>
 
-                                    <GoogleMap mapContainerStyle={mapContainerStyle} center={defaultCenter} zoom={8} >
+                                    <GoogleMap mapContainerStyle={mapContainerStyle} center={defaultCenter} zoom={8}>
                                         {pickupLocation && (
                                             <Marker
                                                 position={pickupLocation}
@@ -489,7 +486,6 @@ const Booking = () => {
                                     }}
                                 >
                                     {/* Add your modal content here */}
-                                    <h2>Select Driver</h2>
                                     <p>Service Type: {serviceType}</p>
                                     <div className="grid xl:grid-cols-1 gap-6 grid-cols-1">
                                         <h2 style={{ textAlign: 'center' }}>
