@@ -70,10 +70,10 @@ const ViewMore = () => {
             <th style={thStyle}>Field</th>
             <th style={thStyle}>Value</th>
           </tr> */}
-          <tr>
+          {/* <tr>
             <td style={thStyle}>Location :</td>
             <td style={tdStyle}>{bookingDetails.location} </td>
-          </tr>
+          </tr> */}
           <tr>
             <td style={thStyle}>Company :</td>
             <td style={tdStyle}>{bookingDetails.company}</td>
@@ -82,10 +82,10 @@ const ViewMore = () => {
             <td style={thStyle}>File Number :</td>
             <td style={tdStyle}>{bookingDetails.fileNumber}</td>
           </tr>
-          <tr>
+          {/* <tr>
             <td style={thStyle}>ShowRoom :</td>
             <td style={tdStyle}>{bookingDetails.showroom}</td>
-          </tr>
+          </tr> */}
           <tr>
             <td style={thStyle}>CustomerName :</td>
             <td style={tdStyle}>{bookingDetails.customerName}</td>

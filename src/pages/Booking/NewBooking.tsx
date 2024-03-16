@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { DataTable } from 'mantine-datatable';
 import { Link } from 'react-router-dom';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID library
 
 // Assuming your record data has a type like this
 type RecordData = {
-  
   index: number;
   customerName: string;
   fileNumber: string;
@@ -15,7 +15,7 @@ type RecordData = {
 };
 
 const NewBooking = () => {
-  const [recordsData, setRecordsData] = useState<RecordData[]>([]); // Provide the type here
+  const [recordsData, setRecordsData] = useState<RecordData[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const PAGE_SIZES = [10, 20, 30];
@@ -37,8 +37,12 @@ const NewBooking = () => {
     };
 
     fetchData().catch(console.error);
-    
   }, [db]);
+
+  // Function to generate a booking ID
+  const generateBookingId = () => {
+    return uuidv4(); // Generate a UUID
+  };
 
   return (
     <div>
@@ -46,7 +50,7 @@ const NewBooking = () => {
         <h5 className="font-semibold text-lg dark:text-white-light mb-5">
           New Bookings{' '}
           <Link
-            to="/bookings/booking"
+            to={`/bookings/booking?bookingId=${generateBookingId()}`} // Pass the generated ID as a query parameter
             style={{
               display: 'inline-block',
               textDecoration: 'none',
@@ -78,8 +82,8 @@ const NewBooking = () => {
               {
                 accessor: 'viewmore',
                 title: 'ViewMore',
-                render: (rowData: RecordData) => ( // Specify the type here
-                <button className='btn btn-primary'> <Link to={`/bookings/newbooking/viewmore/${rowData.id}`}>View More</Link></button>
+                render: (rowData: RecordData) => (
+                  <button className='btn btn-primary'> <Link to={`/bookings/newbooking/viewmore/${rowData.id}`}>View More</Link></button>
                 ),
               },
             ]}
