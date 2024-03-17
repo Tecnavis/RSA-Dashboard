@@ -29,6 +29,7 @@ const Booking = () => {
         mobileNumber: '',
         pickupLocation: '',
         dropoffLocation: '',
+        totalSalary:'',
         serviceType: '',
         serviceVehicle: '',
         driver: '',
@@ -87,7 +88,14 @@ const Booking = () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-            const bookingData = { ...bookingDetails, driver: driverName };
+            const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
+    
+            const bookingData = {
+                ...bookingDetails,
+                driver: driverName,
+                totalSalary: totalSalary, // Include total salary in the booking data
+            };
+    
             const docRef = await addDoc(collection(db, 'bookings'), bookingData);
             console.log('Document written with ID: ', docRef.id);
             navigate('/bookings/newbooking');
@@ -95,6 +103,7 @@ const Booking = () => {
             console.error('Error adding document: ', error);
         }
     };
+    
 
     useEffect(() => {
         if (pickupLocation && dropoffLocation) {
@@ -461,7 +470,19 @@ const Booking = () => {
                                         outline: 'none',
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
-                                    value={selectedDriver ? drivers.find((driver) => driver.id === selectedDriver).driverName : ''} // Display selected driver's name
+                                    value={
+                                        selectedDriver
+                                            ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} - Total Salary: ${
+                                                  selectedDriver
+                                                      ? calculateTotalSalary(
+                                                            drivers.find((driver) => driver.id === selectedDriver).basicSalary,
+                                                            distanceNumeric,
+                                                            drivers.find((driver) => driver.id === selectedDriver).salarykm
+                                                        )
+                                                      : ''
+                                              }`
+                                            : ''
+                                    }
                                     onClick={() => openModal(distance)}
                                 />
 

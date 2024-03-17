@@ -70,10 +70,10 @@ const ViewMore = () => {
             <th style={thStyle}>Field</th>
             <th style={thStyle}>Value</th>
           </tr> */}
-          {/* <tr>
-            <td style={thStyle}>Location :</td>
-            <td style={tdStyle}>{bookingDetails.location} </td>
-          </tr> */}
+          <tr>
+            <td style={thStyle}>Total Salary :</td>
+            <td style={tdStyle}>{bookingDetails.totalSalary} </td>
+          </tr>
           <tr>
             <td style={thStyle}>Company :</td>
             <td style={tdStyle}>{bookingDetails.company}</td>

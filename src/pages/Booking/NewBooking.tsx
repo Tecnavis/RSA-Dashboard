@@ -11,6 +11,8 @@ type RecordData = {
   fileNumber: string;
   phoneNumber: string;
   driver: string;
+  totalSalary: string;
+
   id: string; // Assuming you have an 'id' property in your data
 };
 
@@ -79,6 +81,8 @@ const NewBooking = () => {
               { accessor: 'fileNumber', title: 'File Number' },
               { accessor: 'phoneNumber', title: 'Phone Number' },
               { accessor: 'driver', title: 'Driver' },
+              { accessor: 'totalSalary', title: 'Total Salary' },
+
               {
                 accessor: 'viewmore',
                 title: 'ViewMore',
