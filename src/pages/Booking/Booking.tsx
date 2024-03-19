@@ -27,8 +27,8 @@ const Booking = () => {
         customerName: '',
         phoneNumber: '',
         mobileNumber: '',
-        pickupLocation: '',
-        dropoffLocation: '',
+        // pickupLocation: '',
+        // dropoffLocation: '',
         totalSalary:'',
         serviceType: '',
         serviceVehicle: '',
@@ -83,9 +83,18 @@ const Booking = () => {
             }
         });
     };
-
     const handleAddBooking = async () => {
         try {
+            // Fetch placename for pickup location
+            const pickupResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${pickupLocation.lat},${pickupLocation.lng}&key=AIzaSyDCtC15ypeYqwvjn43ZVKkPsvQfPx9_BJc`);
+            const pickupData = await pickupResponse.json();
+            const pickupPlacename = pickupData.results[0].formatted_address;
+    
+            // Fetch placename for dropoff location
+            const dropoffResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${dropoffLocation.lat},${dropoffLocation.lng}&key=AIzaSyDCtC15ypeYqwvjn43ZVKkPsvQfPx9_BJc`);
+            const dropoffData = await dropoffResponse.json();
+            const dropoffPlacename = dropoffData.results[0].formatted_address;
+    
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
             const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
@@ -93,7 +102,17 @@ const Booking = () => {
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
-                totalSalary: totalSalary, // Include total salary in the booking data
+                totalSalary: totalSalary,
+                pickupLocation: {
+                    lat: pickupLocation.lat,
+                    lng: pickupLocation.lng,
+                    placename: pickupPlacename,
+                },
+                dropoffLocation: {
+                    lat: dropoffLocation.lat,
+                    lng: dropoffLocation.lng,
+                    placename: dropoffPlacename,
+                },
             };
     
             const docRef = await addDoc(collection(db, 'bookings'), bookingData);
@@ -104,7 +123,6 @@ const Booking = () => {
         }
     };
     
-
     useEffect(() => {
         if (pickupLocation && dropoffLocation) {
             const service = new window.google.maps.DistanceMatrixService();

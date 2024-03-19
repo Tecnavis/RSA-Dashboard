@@ -111,13 +111,15 @@ const ViewMore = () => {
             <td style={tdStyle}>{bookingDetails.mobileNumber}</td>
           </tr>
           <tr>
-            <td style={thStyle}>PickupLocation :</td>
-            <td style={tdStyle}>{bookingDetails.pickupLocation}</td>
-          </tr>
-          <tr>
-            <td style={thStyle}>DropOffLocation:</td>
-            <td style={tdStyle}>{bookingDetails.dropoffLocation}</td>
-          </tr>
+  <td style={thStyle}>Pickup Location:</td>
+  <td style={tdStyle}>{` ${bookingDetails.pickupLocation.placename}, Lat: ${bookingDetails.pickupLocation.lat}, Lng: ${bookingDetails.pickupLocation.lng}`}</td>
+</tr>
+<tr>
+  <td style={thStyle}>DropOff Location:</td>
+  <td style={tdStyle}>{` ${bookingDetails.dropoffLocation.placename}, Lat: ${bookingDetails.dropoffLocation.lat}, Lng: ${bookingDetails.dropoffLocation.lng}`}</td>
+</tr>
+
+
           <tr>
             <td style={thStyle}>Distance :</td>
             <td style={tdStyle}>{bookingDetails.distance}</td>
