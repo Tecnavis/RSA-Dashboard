@@ -4,7 +4,11 @@ import firebase from "firebase/compat/app";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// config.ts
+// config.ts
+
 const firebaseConfig = {
+
   apiKey: "AIzaSyAYfaaoi24oJl8dJLTqigiobeRhCpDJ8Oc",
   authDomain: "rsa-dashboard-34773.firebaseapp.com",
   projectId: "rsa-dashboard-34773",

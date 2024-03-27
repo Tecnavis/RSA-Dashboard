@@ -57,8 +57,11 @@ const InvoicedBooking = () => {
               { accessor: 'customerName', title: 'Name' },
               { accessor: 'fileNumber', title: 'File Number' },
               { accessor: 'phoneNumber', title: 'Phone Number' },
-              { accessor: 'pickupLocation', title: 'Pickup Location' },
               {
+                accessor: 'pickupLocation',
+                title: 'Pickup Location',
+                render: (rowData: RecordData) => rowData.pickupLocation.placename
+              },              {
                 accessor: 'viewmore',
                 title: 'ViewMore',
                 render: (rowData: RecordData) => ( // Specify the type here
