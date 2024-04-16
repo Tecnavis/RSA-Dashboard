@@ -16,6 +16,7 @@ import IconServer from '../Icon/IconServer';
 import IconTxtFile from '../Icon/IconTxtFile';
 import IconBook from '../Icon/IconBook';
 import IconBarChart from '../Icon/IconBarChart';
+import IconArchive from '../Icon/IconArchive';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -120,7 +121,7 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-
+                          
                             <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
@@ -161,6 +162,34 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink to="/bookings/invoicedbooking">Invoiced Bookings</NavLink>
                                         </li>
+                                    </ul>
+                                </AnimateHeight>
+                            </li>
+                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                                <IconMinus className="w-4 h-5 flex-none hidden" />
+                                <span>
+                                    Status
+                                    {/* {t('user_and_pages')} */}
+                                </span>
+                            </h2>
+                            <li className="menu nav-item">
+                                <button type="button" className={`${currentMenu === 'status' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('status')}>
+                                    <div className="flex items-center">
+                                        <IconArchive className="group-hover:!text-primary shrink-0" />
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Status</span>
+                                    </div>
+
+                                    <div className={currentMenu !== 'status' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                        <IconCaretDown />
+                                    </div>
+                                </button>
+
+                                <AnimateHeight duration={300} height={currentMenu === 'status' ? 'auto' : 0}>
+                                    <ul className="sub-menu text-gray-500">
+                                        <li>
+                                            <NavLink to="/checkstatus/status">Status</NavLink>
+                                        </li>
+                                     
                                     </ul>
                                 </AnimateHeight>
                             </li>
@@ -287,7 +316,7 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-
+                          
                             <li className="menu nav-item">
                                 <button type="button" className={`${currentMenu === 'receivable' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('receivable')}>
                                     <div className="flex items-center">

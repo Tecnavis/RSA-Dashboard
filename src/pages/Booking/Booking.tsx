@@ -5,6 +5,7 @@ import { GoogleMap, LoadScript, Marker, DistanceMatrixService } from '@react-goo
 import IconPlus from '../../components/Icon/IconPlus';
 import ReactModal from 'react-modal';
 import { v4 as uuidv4 } from 'uuid';
+import { googleMapsApiKey } from '../../config/config';
 
 const mapContainerStyle = {
     height: '400px',
@@ -27,9 +28,7 @@ const Booking = () => {
         customerName: '',
         phoneNumber: '',
         mobileNumber: '',
-        // pickupLocation: '',
-        // dropoffLocation: '',
-        totalSalary:'',
+        totalSalary: '',
         serviceType: '',
         serviceVehicle: '',
         driver: '',
@@ -39,12 +38,15 @@ const Booking = () => {
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalDistance, setModalDistance] = useState([]);
-    const [selectedDriver, setSelectedDriver] = useState(null); // State to store the selected driver
+    const [selectedDriver, setSelectedDriver] = useState(null);
+   
     const [serviceType, setServiceType] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [distance, setDistance] = useState('');
-
+    const [drivers, setDrivers] = useState([]);
+    const distanceNumeric = parseFloat(distance.replace('km', ''));
+    console.log('service', serviceType);
     const openModal = (distance) => {
         setIsModalOpen(true);
         setModalDistance(distance);
@@ -52,75 +54,41 @@ const Booking = () => {
     };
     const closeModal = () => {
         setIsModalOpen(false);
+        
     };
-
     const handleInputChange = (field, value) => {
+        console.log('Field:', field);
+        console.log('Value:', value);
         setBookingDetails({ ...bookingDetails, [field]: value });
-        console.log('first', selectedDriver);
-      
+
         if (field === 'distance') {
             openModal(value);
         } else if (field === 'serviceType') {
             setServiceType(value);
             openModal();
         } else if (field === 'selectedDriver') {
-            setSelectedDriver(value);
+            console.log('Selected Driver ID:', value); // Log the selected driver ID
+            setSelectedDriver(value); // Update selectedDriver state with the driver's id
         }
     };
-
+    
+   
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
-
+    
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-        autocomplete.setFields(['geometry']);
+        autocomplete.setFields(['geometry', 'name']); // Include name field to get the place name
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             if (place.geometry) {
-                setter({
+                const location = {
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng(),
-                });
+                    name: place.name // Get the name of the place
+                };
+                setter(location); // Update the state with the selected location
             }
         });
-    };
-    const handleAddBooking = async () => {
-        try {
-            // Fetch placename for pickup location
-            const pickupResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${pickupLocation.lat},${pickupLocation.lng}&key=AIzaSyDCtC15ypeYqwvjn43ZVKkPsvQfPx9_BJc`);
-            const pickupData = await pickupResponse.json();
-            const pickupPlacename = pickupData.results[0].formatted_address;
-    
-            // Fetch placename for dropoff location
-            const dropoffResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${dropoffLocation.lat},${dropoffLocation.lng}&key=AIzaSyDCtC15ypeYqwvjn43ZVKkPsvQfPx9_BJc`);
-            const dropoffData = await dropoffResponse.json();
-            const dropoffPlacename = dropoffData.results[0].formatted_address;
-    
-            const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
-            const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-            const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
-    
-            const bookingData = {
-                ...bookingDetails,
-                driver: driverName,
-                totalSalary: totalSalary,
-                pickupLocation: {
-                    lat: pickupLocation.lat,
-                    lng: pickupLocation.lng,
-                    placename: pickupPlacename,
-                },
-                dropoffLocation: {
-                    lat: dropoffLocation.lat,
-                    lng: dropoffLocation.lng,
-                    placename: dropoffPlacename,
-                },
-            };
-    
-            const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-            console.log('Document written with ID: ', docRef.id);
-            navigate('/bookings/newbooking');
-        } catch (error) {
-            console.error('Error adding document: ', error);
-        }
     };
     
     useEffect(() => {
@@ -144,40 +112,112 @@ const Booking = () => {
             );
         }
     }, [pickupLocation, dropoffLocation]);
-    const [drivers, setDrivers] = useState([]);
-    const distanceNumeric = parseFloat(distance.replace('km', ''));
+   // Function to calculate total salary for a driver
+   const calculateTotalSalary = (basicSalaryValue, distanceValue, kmValueNumeric, perKmValueNumeric) => {
+    console.log('Basic Salary Value:', basicSalaryValue);
+    console.log('Distance Value:', distanceValue);
+    console.log('Km Value Numeric:', kmValueNumeric);
+    console.log('Per Km Value Numeric:', perKmValueNumeric);
+    const distanceString = typeof distanceValue === 'string' ? distanceValue : '';
+    const distanceNumeric = parseFloat(distanceString.replace('km', ''));
+    console.log('Is Distance Numeric?', !isNaN(distanceNumeric));
+    const totalSalary = basicSalaryValue + (distanceNumeric - kmValueNumeric) * perKmValueNumeric;
+    console.log('Total Salary:', totalSalary);
+
+    return totalSalary;
+};
+
+
+
 
     useEffect(() => {
         const fetchDrivers = async () => {
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
-
-                const filteredDrivers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((driver) => driver.service === serviceType);
-
+    
+                const filteredDrivers = snapshot.docs
+                    .map((doc) => ({
+                        id: doc.id, // Assign the id property here
+                        ...doc.data(),
+                    }))
+                    .filter((driver) => driver.selectedServices.includes(serviceType))
+                    .map((driver) => {
+                        
+                        const basicSalary = parseFloat(driver.basicSalaries[serviceType]);
+                        const basicSalaryKm = parseFloat(driver.basicSalaryKm[serviceType]);
+                        const salaryPerKm = parseFloat(driver.salaryPerKm[serviceType]);
+                        const totalSalary = calculateTotalSalary(
+                            basicSalary,
+                            distance,
+                            basicSalaryKm,
+                            salaryPerKm
+                        );
+                    
+                        console.log('Basic Salary:', basicSalary);
+                        console.log('Distance:', distance);
+                        console.log('Basic Salary per Km:', basicSalaryKm);
+                        console.log('Salary per Km:', salaryPerKm);
+                        console.log('Total Salary:', totalSalary);
+                    
+                        return {
+                            id: driver.id,
+                            driverName: driver.driverName,
+                            idnumber: driver.idnumber,
+                            personalphone: driver.personalphone,
+                            phone: driver.phone,
+                            basicSalary: basicSalary,
+                            basicSalaryKm: basicSalaryKm,
+                            salaryPerKm: salaryPerKm,
+                            totalSalary: totalSalary
+                        };
+                    });
+                    
+                console.log('Filtered Drivers:', filteredDrivers);
+    
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-
-        if (serviceType && distance) {
+    
+        if (serviceType) {
             fetchDrivers().catch(console.error);
+        } else {
+            setDrivers([]); // Reset drivers if serviceType is not provided
         }
-    }, [db, serviceType, distance]);
-
-    const calculateTotalSalary = (basicSalary, distance, salaryPerKm) => {
-        if (distance <= 20) {
-            return basicSalary;
+    }, [db, serviceType]);
+    
+    
+    const handleAddBooking = async () => {
+        try {
+            const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
+            const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
+    
+            // Calculate total salary based on the selected driver and other factors
+            const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
+    
+            const bookingData = {
+                ...bookingDetails,
+                driver: driverName,
+                totalSalary: totalSalary, // Include totalSalary in the booking data
+                pickupLocation: pickupLocation,
+                dropoffLocation: dropoffLocation
+            };
+    
+            // Add the booking data to the Firestore collection
+            const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+    
+            // Log the ID of the newly created document
+            console.log('Document written with ID: ', docRef.id);
+    
+            // Navigate to the desired page
+            navigate('/bookings/newbooking');
+        } catch (error) {
+            console.error('Error adding document: ', error);
         }
-
-        const basicSalaryPer20Km = basicSalary;
-        const num20KmIntervals = Math.floor(distance / distance);
-        const remainingDistance = distance - 20;
-        const totalSalary = basicSalaryPer20Km * num20KmIntervals + remainingDistance * salaryPerKm;
-        return totalSalary;
     };
-   
+    
     return (
         <div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -209,7 +249,6 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('company', e.target.value)}
-                                    
                                 >
                                     <option value="">Select Company</option>
                                     <option value="rsa">RSA</option>
@@ -306,7 +345,7 @@ const Booking = () => {
                             </div>{' '}
                             <div style={{ width: '100%' }}>
                                   
-                                <LoadScript googleMapsApiKey="AIzaSyDCtC15ypeYqwvjn43ZVKkPsvQfPx9_BJc" libraries={['places']}>
+                                <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={['places']}>
                                     <div className="flex items-center mt-4">
                                         <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                             Pickup Location
@@ -404,8 +443,8 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('distance', e.target.value)}
-                                    value={distance} // Bind value to the distance state variable
-                                    readOnly // Make the input field read-only to prevent user input
+                                    value={distance}
+                                    readOnly
                                 />
                             </div>
                             <div className="flex items-center mt-4">
@@ -470,39 +509,41 @@ const Booking = () => {
                                 </Link>
                             </div>
                             <div className="flex items-center mt-4">
-                                <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Driver
-                                </label>
-                                <input
-                                    id="driver"
-                                    type="text"
-                                    name="driver"
-                                    className="form-input flex-1"
-                                    placeholder="Select your driver"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    value={
-                                        selectedDriver
-                                            ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} - Total Salary: ${
-                                                  selectedDriver
-                                                      ? calculateTotalSalary(
-                                                            drivers.find((driver) => driver.id === selectedDriver).basicSalary,
-                                                            distanceNumeric,
-                                                            drivers.find((driver) => driver.id === selectedDriver).salarykm
-                                                        )
-                                                      : ''
-                                              }`
-                                            : ''
-                                    }
-                                    onClick={() => openModal(distance)}
-                                />
+    <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Driver
+    </label>
+    <div className="form-input flex-1" style={{ position: 'relative', width: '100%' }}>
+        <input
+            id="driver"
+            type="text"
+            name="driver"
+            className="w-full"
+            placeholder="Select your driver"
+            style={{
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            value={
+                selectedDriver
+                    ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} - Total Salary: ${
+                          selectedDriver
+                              ? calculateTotalSalary(
+                                    drivers.find((driver) => driver.id === selectedDriver).basicSalary,
+                                    distance,
+                                    drivers.find((driver) => driver.id === selectedDriver).basicSalaryKm,
+                                    drivers.find((driver) => driver.id === selectedDriver).salaryPerKm
+                                )
+                              : ''
+                      }`
+                    : ''
+            }
+            onClick={() => openModal(distance)}
+        />
+    </div>
 
                                 <ReactModal
                                     isOpen={isModalOpen}
@@ -524,45 +565,44 @@ const Booking = () => {
                                         },
                                     }}
                                 >
-                                    {/* Add your modal content here */}
-                                    <p>Service Type: {serviceType}</p>
-                                    <div className="grid xl:grid-cols-1 gap-6 grid-cols-1">
-                                        <h2 style={{ textAlign: 'center' }}>
-                                            Available Drivers of {serviceType} {distance}
-                                        </h2>
-                                        {drivers.map((driver) => (
-                                            <div key={driver.id} className="panel">
-                                                <table className="panel p-4" style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Driver Name</th>
-                                                            <th>Basic Salary</th>
-                                                            <th>Salary/Km</th>
-                                                            <th>Total Salary</th>
-                                                            <th>Select</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>{driver.driverName}</td>
-                                                            <td>{driver.basicSalary}</td>
-                                                            <td>{driver.salarykm}</td>
-                                                            <td>{Number(calculateTotalSalary(driver.basicSalary, distanceNumeric, driver.salarykm))}</td>
-                                                            <td>
-                                                                <input
-                                                                    type="radio"
-                                                                    name="selectedDriver"
-                                                                    value={driver.id}
-                                                                    checked={selectedDriver === driver.id}
-                                                                    onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Available Drivers for {serviceType}</h2>
+                                    <div className="grid grid-cols-1 gap-4">
+                                    {drivers.map((driver) => {
+    console.log('Driver Object:', driver.id); // Log the driver object here
+    return (
+        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+            <table className="panel p-4" style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
+                <thead>
+                    <tr>
+                        <th>Driver Name</th>
+                        <th>Total Salary</th>
+                        <th>Select</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{driver.driverName}</td>
+                        <td>{driver.totalSalary}</td>
+                        <td>
+                            <input
+                                type="radio"
+                                name="selectedDriver"
+                                value={driver.id}
+                                checked={selectedDriver === driver.id}
+                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                            />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    );
+})}
+
+
+
+</div>
+
                                     <button onClick={closeModal}>Close</button>
                                 </ReactModal>
                             </div>
@@ -656,3 +696,71 @@ const Booking = () => {
 };
 
 export default Booking;
+// const handleAddBooking = async () => {
+//     try {
+//         const pickupResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${pickupLocation.lat},${pickupLocation.lng}&key=saaas`);
+//         const pickupData = await pickupResponse.json();
+//         const pickupPlacename = pickupData.results[0].formatted_address;
+
+//         // Fetch placename for dropoff location
+//         const dropoffResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${dropoffLocation.lat},${dropoffLocation.lng}&key=saaas`);
+//         const dropoffData = await dropoffResponse.json();
+//         const dropoffPlacename = dropoffData.results[0].formatted_address;
+
+//         const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
+//         const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
+//         const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
+
+//         const bookingData = {
+//             ...bookingDetails,
+//             driver: driverName,
+//             totalSalary: totalSalary,
+//             pickupLocation: {
+//                 lat: pickupLocation.lat,
+//                 lng: pickupLocation.lng,
+//                 placename: pickupPlacename,
+//             },
+//             dropoffLocation: {
+//                 lat: dropoffLocation.lat,
+//                 lng: dropoffLocation.lng,
+//                 placename: dropoffPlacename,
+//             },
+//         };
+
+//         const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+//         console.log('Document written with ID: ', docRef.id);
+//         navigate('/bookings/newbooking');
+//     } catch (error) {
+//         console.error('Error adding document: ', error);
+//     }
+// };
+// const handleAddBooking = async () => {
+//     try {
+//         // Assume pickupPlacename and dropoffPlacename are obtained before calling this function
+//         const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
+//         const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
+//         const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
+
+//         const bookingData = {
+//             ...bookingDetails,
+//             driver: driverName,
+//             totalSalary: totalSalary,
+//             pickupLocation: {
+//                 lat: pickupLocation.lat,
+//                 lng: pickupLocation.lng,
+//                 placename: pickupPlacename,
+//             },
+//             dropoffLocation: {
+//                 lat: dropoffLocation.lat,
+//                 lng: dropoffLocation.lng,
+//                 placename: dropoffPlacename,
+//             },
+//         };
+
+//         const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+//         console.log('Document written with ID: ', docRef.id);
+//         navigate('/bookings/newbooking');
+//     } catch (error) {
+//         console.error('Error adding document: ', error);
+//     }
+// };

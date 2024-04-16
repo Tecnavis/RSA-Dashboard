@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
+import IconUserPlus from '../../components/Icon/IconUserPlus';
+import IconPlusCircle from '../../components/Icon/IconPlusCircle';
 
 const DriverAdd = () => {
     const [driverName, setDriverName] = useState('');
@@ -8,10 +10,67 @@ const DriverAdd = () => {
 
     const [phone, setPhone] = useState('');
     const [personalphone, setPersonalPhone] = useState('');
-    const [service, setService] = useState('');
-    const [basicSalary, setBasicSalary] = useState('');
-    const [salarykm, setSalarykm] = useState('');
+    const [salaryPerKm, setSalaryPerKm] = useState({});
+    const [basicSalaryKm, setBasicSalaryKm] = useState({});
     const [editData, setEditData] = useState(null);
+    const [showTable, setShowTable] = useState(false);
+    const [selectedServices, setSelectedServices] = useState([]);
+    const [basicSalaries, setBasicSalaries] = useState({}); // Ensure basicSalaries is defined here
+
+    const serviceOptions = [
+        "", // Default empty option
+        "Flat bed",
+        "Under Lift",
+        "Rsr By Car",
+        "Rsr By Bike",
+        "Custody",
+        "Hydra Crane",
+        "Jump start",
+        "Tow Wheeler Fbt",
+        "Zero Digri Flat Bed",
+        "Undet Lift 407",
+        "S Lorry Crane Bed"
+    ];
+
+
+    const handleBasicSalaryChange = (service, e) => {
+        const updatedSalaries = { ...basicSalaries, [service]: e.target.value };
+        setBasicSalaries(updatedSalaries);
+    };
+    const handleBasicSalaryKmChange = (service, e) => {
+        const updatedKm = { ...basicSalaryKm, [service]: e.target.value };
+        setBasicSalaryKm(updatedKm);
+    };
+    const handleSalaryPerKmChange = (service, e) => {
+        const updatedsalaryPerKm = { ...salaryPerKm, [service]: e.target.value };
+        setSalaryPerKm(updatedsalaryPerKm);
+    };
+    const renderServiceOptions = () => {
+        return (
+            <div>
+                {serviceOptions.map((option, index) => (
+                    <label key={index} className="inline-flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            value={option}
+                            checked={selectedServices.includes(option)}
+                            onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
+                        />
+                        <span>{option}</span>
+                    </label>
+                ))}
+            </div>
+        );
+    };
+
+    const handleCheckboxChange = (value, isChecked) => {
+        if (isChecked) {
+            setSelectedServices([...selectedServices, value]);
+        } else {
+            setSelectedServices(selectedServices.filter(service => service !== value));
+        }
+    };
+   
     const navigate = useNavigate();
     const db = getFirestore();
     const { state } = useLocation(); // Use the useLocation hook to access location state
@@ -23,9 +82,12 @@ const DriverAdd = () => {
             setIdnumber(state.editData.idnumber || '');
             setPhone(state.editData.phone || '');
             setPersonalPhone(state.editData.personalphone || '');
-            setService(state.editData.service || '');
-            setBasicSalary(state.editData.basicSalary || '');
-            setSalarykm(state.editData.salarykm || '')
+            setSalaryPerKm(state.editData.salaryPerKm || '');
+            setBasicSalaryKm(state.editData.basicSalaryKm || '');
+
+            setSelectedServices(state.editData.selectedServices || '');
+
+            setBasicSalaries(state.editData.basicSalaries || '');
 
         }
     }, [state]);
@@ -36,9 +98,11 @@ const DriverAdd = () => {
                 idnumber,
                 phone,
                 personalphone,
-                service,
-                basicSalary,
-                salarykm,
+                salaryPerKm,
+                basicSalaryKm,
+                selectedServices,
+                basicSalaries
+               
             };
 
             if (editData) {
@@ -101,36 +165,92 @@ const DriverAdd = () => {
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
                                 </div>
                                 <div>
-    <label htmlFor="service">Service Type</label>
-    <select
-        id="service"
-        className="form-input"
-        value={service}
-        onChange={(e) => setService(e.target.value)}
+    <div>
+        <label style={{ cursor: 'pointer'}} className="flex items-center" onClick={() => setShowTable(true)}>
+            <IconPlusCircle className="me-2"/>
+            Add Service Type
+        </label>
+        {showTable && (
+  <div style={{ 
+    marginTop: '10px', 
+    padding: '10px', 
+    border: '1px solid #ccc', 
+    borderRadius: '5px', 
+    backgroundColor: '#f9f9f9',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Add box shadow for depth
+    maxWidth: '500px', // Limit maximum width for responsiveness
+    margin: 'auto' // Center the div horizontally
+}}>
+    {renderServiceOptions()}
+    <button 
+        style={{ 
+            marginTop: '10px', 
+            padding: '8px 16px', // Increase padding for button
+            backgroundColor: '#007bff', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: '5px', // Increase border radius for button
+            cursor: 'pointer', 
+            display: 'block', // Ensure button takes full width
+            margin: 'auto' // Center the button horizontally
+        }} 
+        onClick={() => setShowTable(false)}
     >
-        <option value="">Select Service Type</option>
-        <option value="Flat bed">Flat bed</option>
-        <option value="Under Lift">Under Lift</option>
-        <option value="Rsr By Car">Rsr By Car</option>
-        <option value="Rsr By Bike">Rsr By Bike</option>
-        <option value="Custody">Custody</option>
-        <option value="Hydra Crane">Hydra Crane</option>
-        <option value="Jump start">Jump start</option>
-        <option value="Tow Wheeler Fbt">Tow Wheeler Fbt</option>
-        <option value="Zero Digri Flat Bed">Zero Digri Flat Bed</option>
-        <option value="Undet Lift 407">Undet Lift 407</option>
-        <option value="S Lorry Crane Bed">S Lorry Crane Bed</option>
-    </select>
+        Done
+    </button>
 </div>
 
-                                <div>
-                                    <label htmlFor="basicSalary">Basic Salary</label>
-                                    <input id="basicSalary" placeholder="Basic Salary" className="form-input" value={basicSalary} onChange={(e) => setBasicSalary(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label htmlFor="salarykm">Salary (KM)</label>
-                                    <input id="salarykm" placeholder="Salary per KM" className="form-input" value={salarykm} onChange={(e) => setSalarykm(e.target.value)} />
-                                </div>
+)}
+</div>
+{selectedServices.length > 0 && (
+    <table style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+            <tr>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Service Type</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Salary</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>KM for Basic Salary</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>SalaryPerKm</th>
+            </tr>
+        </thead>
+        <tbody>
+            {selectedServices.map((service, index) => (
+                <tr key={index}>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{service}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                        <input 
+                            style={{ border: 'none', outline: 'none' }} // Set border and outline to none
+                            type="text"
+                            value={basicSalaries[service] || ""}
+                            placeholder='Enter Basic Salary'
+                            onChange={(e) => handleBasicSalaryChange(service, e)}
+                        />
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px', position: 'relative' }}>
+                        <input
+                            style={{ border: 'none', outline: 'none', width: 'calc(100% - 20px)' }} // Set border and outline to none, adjust width to leave space for "KM"
+                            type="text"
+                            value={basicSalaryKm[service] || ""}
+                            onChange={(e) => handleBasicSalaryKmChange(service, e)}
+                        />
+                        <span style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', color: '#555'}}>KM</span>
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px', position: 'relative' }}>
+                        <input
+                            style={{ border: 'none', outline: 'none', width: 'calc(100% - 20px)' }} // Set border and outline to none, adjust width to leave space for "KM"
+                            type="text"
+                            value={salaryPerKm[service] || ""}
+                            onChange={(e) => handleSalaryPerKmChange(service, e)}
+                        />
+                        <span style={{ position: 'absolute', right: '45px', top: '50%', transform: 'translateY(-50%)', color: '#555'}}>/km</span>
+                    </td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+)}
+
+</div>
+
                                 <div className="sm:col-span-2 mt-3">
             <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}>
                 {editData ? 'Update' : 'Save'}

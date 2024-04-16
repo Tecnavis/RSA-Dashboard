@@ -112,12 +112,25 @@ const ViewMore = () => {
           </tr>
           <tr>
   <td style={thStyle}>Pickup Location:</td>
-  <td style={tdStyle}>{` ${bookingDetails.pickupLocation.placename}, Lat: ${bookingDetails.pickupLocation.lat}, Lng: ${bookingDetails.pickupLocation.lng}`}</td>
+  <td style={tdStyle}>
+    {bookingDetails.pickupLocation ? (
+      `${bookingDetails.pickupLocation.name}, Lat: ${bookingDetails.pickupLocation.lat}, Lng: ${bookingDetails.pickupLocation.lng}`
+    ) : (
+      'Location not selected'
+    )}
+  </td>
 </tr>
 <tr>
   <td style={thStyle}>DropOff Location:</td>
-  <td style={tdStyle}>{` ${bookingDetails.dropoffLocation.placename}, Lat: ${bookingDetails.dropoffLocation.lat}, Lng: ${bookingDetails.dropoffLocation.lng}`}</td>
+  <td style={tdStyle}>
+    {bookingDetails.dropoffLocation ? (
+      `${bookingDetails.dropoffLocation.name}, Lat: ${bookingDetails.dropoffLocation.lat}, Lng: ${bookingDetails.dropoffLocation.lng}`
+    ) : (
+      'Location not selected'
+    )}
+  </td>
 </tr>
+
 
 
           <tr>

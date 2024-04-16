@@ -29,6 +29,8 @@ import path from 'path';
 import DriverDetails from '../pages/Users/DriverDetails';
 import Boo from '../pages/Booking/DriverSalary';
 import DriverSalary from '../pages/Booking/DriverSalary';
+import Status from '../pages/Status/StatusTable';
+import StatusTable from '../pages/Status/StatusTable';
 
 
 const Index = lazy(() => import('../pages/Index'));
@@ -492,6 +494,11 @@ const routes = [
     {
         path: "/users/driver/driverdetails/:id",
         element: <DriverDetails />,
+    },
+      //Status pages
+      {
+        path: '/checkstatus/status',
+        element: <StatusTable />,
     },
     //Booking pages
     {

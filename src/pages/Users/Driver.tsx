@@ -14,6 +14,7 @@ const Driver = () => {
     const [editData, setEditData] = useState(null);
     const db = getFirestore();
     const navigate = useNavigate();
+console.log("data",items)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -57,7 +58,7 @@ return (
                             <th>Driver Name</th>
                             <th>ID Number</th>
                            <th>Phone Number</th>
-                            <th>Service Type</th>
+                            <th>Service Types</th>
                             <th>Basic Salary</th>
                             <th className="!text-center">Action</th>
                         </tr>
@@ -72,10 +73,23 @@ return (
                                     </td>
                                     <td>{item.idnumber}</td>
                                     <td>{item.phone}</td>
-                                    {/* <td>{item.personalphone}</td> */}
-                                    <td>{item.service}</td>
+                                    <td>
+    <ul>
+        {Object.entries(item.selectedServices).map(([key, value]) => (
+            <li key={key}> {value}</li>
+        ))}
+    </ul>
+</td>
+<td>
+    <ul>
+        {Object.entries(item.basicSalaries).map(([key, value]) => (
+            <li key={key}>{key}: {value}</li>
+        ))}
+    </ul>
+</td>
 
-                                    <td>{item.basicSalary}</td>
+
+
 
 
                                     <td className="text-center">
