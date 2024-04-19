@@ -6,6 +6,7 @@ import IconPlus from '../../components/Icon/IconPlus';
 import ReactModal from 'react-modal';
 import { v4 as uuidv4 } from 'uuid';
 import { googleMapsApiKey } from '../../config/config';
+import {  query, where} from 'firebase/firestore';
 
 const mapContainerStyle = {
     height: '400px',
@@ -39,18 +40,18 @@ const Booking = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalDistance, setModalDistance] = useState([]);
     const [selectedDriver, setSelectedDriver] = useState(null);
-   
+    const [serviceDetails, setServiceDetails] = useState('');
+
     const [serviceType, setServiceType] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
     const distanceNumeric = parseFloat(distance.replace('km', ''));
-    console.log('service', serviceType);
-    const openModal = (distance) => {
+    console.log('service', distance);
+    const openModal = () => {
         setIsModalOpen(true);
-        setModalDistance(distance);
-        console.log(distance);
+        
     };
     const closeModal = () => {
         setIsModalOpen(false);
@@ -63,6 +64,7 @@ const Booking = () => {
 
         if (field === 'distance') {
             openModal(value);
+            
         } else if (field === 'serviceType') {
             setServiceType(value);
             openModal();
@@ -112,22 +114,113 @@ const Booking = () => {
             );
         }
     }, [pickupLocation, dropoffLocation]);
-   // Function to calculate total salary for a driver
-   const calculateTotalSalary = (basicSalaryValue, distanceValue, kmValueNumeric, perKmValueNumeric) => {
-    console.log('Basic Salary Value:', basicSalaryValue);
-    console.log('Distance Value:', distanceValue);
-    console.log('Km Value Numeric:', kmValueNumeric);
-    console.log('Per Km Value Numeric:', perKmValueNumeric);
-    const distanceString = typeof distanceValue === 'string' ? distanceValue : '';
-    const distanceNumeric = parseFloat(distanceString.replace('km', ''));
+   
+    
+    const calculateTotalSalary = (salary, distanceNumeric, kmValueNumeric, perKmValueNumeric) => {
+        console.log('Received values:', {salary, distanceNumeric, kmValueNumeric, perKmValueNumeric});
+    
+        const numericBasicSalary = Number(salary);
+      
+        const distanceString = typeof distance === 'string' ? distance : '';
+    const numericDistance = parseFloat(distanceString.replace('km', ''));
     console.log('Is Distance Numeric?', !isNaN(distanceNumeric));
-    const totalSalary = basicSalaryValue + (distanceNumeric - kmValueNumeric) * perKmValueNumeric;
-    console.log('Total Salary:', totalSalary);
-
-    return totalSalary;
-};
 
 
+        const numericBasicSalaryKM = Number(kmValueNumeric);
+        const numericSalaryPerKM = Number(perKmValueNumeric);
+    
+        console.log('Numeric values:', {numericBasicSalary, numericDistance, numericBasicSalaryKM, numericSalaryPerKM});
+    
+        // if (isNaN(numericBasicSalary) || isNaN(numericDistance) || isNaN(numericBasicSalaryKM) || isNaN(numericSalaryPerKM)) {
+        //     console.error('Invalid numeric values:', {numericBasicSalary, numericDistance, numericBasicSalaryKM, numericSalaryPerKM});
+        //     return 0;
+        // }
+    
+        if (numericDistance > numericBasicSalaryKM) {
+            return numericBasicSalary + (numericDistance - numericBasicSalaryKM) * numericSalaryPerKM;
+        } else {
+            return numericBasicSalary;
+        }
+    };
+    
+    
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            if (!serviceType || !serviceDetails) {
+                console.log("Service details not found, cannot proceed with fetching drivers.");
+                setDrivers([]);
+                return;
+            }
+    
+            try {
+                const driversCollection = collection(db, 'driver');
+                const snapshot = await getDocs(driversCollection);
+                const filteredDrivers = snapshot.docs.map(doc => {
+                    const driverData = doc.data();
+                    if (!driverData.selectedServices.includes(serviceType)) {
+                        return null;
+                    }
+    
+                    // Ensure all values are available and in the correct format before calculation
+                    const totalSalary = calculateTotalSalary(
+                        serviceDetails.salary,
+                        driverData.distance,
+                        serviceDetails.basicSalaryKM,
+                        serviceDetails.salaryPerKM
+                    );
+    
+                    return {
+                        id: doc.id,
+                        ...driverData,
+                        totalSalary
+                    };
+                }).filter(Boolean); // This will remove any null entries from the results
+    
+                console.log('Filtered Drivers:', filteredDrivers);
+                setDrivers(filteredDrivers);
+            } catch (error) {
+                console.error('Error fetching drivers:', error);
+            }
+        };
+    
+        if (serviceType && serviceDetails) {
+            fetchDrivers().catch(console.error);
+        } else {
+            setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
+        }
+    }, [db, serviceType, serviceDetails]);
+    
+   // State to store distance and total salary
+// const [distance, setDistance] = useState('');
+const [totalSalary, setTotalSalary] = useState(0);
+
+useEffect(() => {
+    const fetchServiceDetails = async () => {
+        if (!serviceType) {
+            console.log("No service type selected");
+            setServiceDetails({});
+            return;
+        }
+    
+        try {
+            const serviceQuery = query(collection(db, 'service'), where('name', '==', serviceType));
+            const snapshot = await getDocs(serviceQuery);
+            if (snapshot.empty) {
+                console.log("No matching service details found.");
+                setServiceDetails({});
+                return;
+            }
+            const details = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0];
+            console.log("Fetched service details: ", details);
+            setServiceDetails(details);
+        } catch (error) {
+            console.error("Error fetching service details:", error);
+            setServiceDetails({});
+        }
+    };
+
+    fetchServiceDetails();
+}, [db, serviceType]);
 
 
     useEffect(() => {
@@ -136,57 +229,43 @@ const Booking = () => {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
     
+                if (!serviceDetails) {
+                    console.log("Service details not found, cannot proceed with fetching drivers.");
+                    return;
+                }
+    
                 const filteredDrivers = snapshot.docs
-                    .map((doc) => ({
-                        id: doc.id, // Assign the id property here
+                    .map(doc => ({
+                        id: doc.id,
                         ...doc.data(),
                     }))
-                    .filter((driver) => driver.selectedServices.includes(serviceType))
-                    .map((driver) => {
-                        
-                        const basicSalary = parseFloat(driver.basicSalaries[serviceType]);
-                        const basicSalaryKm = parseFloat(driver.basicSalaryKm[serviceType]);
-                        const salaryPerKm = parseFloat(driver.salaryPerKm[serviceType]);
-                        const totalSalary = calculateTotalSalary(
-                            basicSalary,
-                            distance,
-                            basicSalaryKm,
-                            salaryPerKm
-                        );
-                    
-                        console.log('Basic Salary:', basicSalary);
-                        console.log('Distance:', distance);
-                        console.log('Basic Salary per Km:', basicSalaryKm);
-                        console.log('Salary per Km:', salaryPerKm);
-                        console.log('Total Salary:', totalSalary);
-                    
+                    .filter(driver => driver.selectedServices && driver.selectedServices.includes(serviceType))
+                    .map(driver => {
+                        // Assuming that serviceDetails is already fetched and contains necessary salary data
                         return {
-                            id: driver.id,
-                            driverName: driver.driverName,
-                            idnumber: driver.idnumber,
-                            personalphone: driver.personalphone,
-                            phone: driver.phone,
-                            basicSalary: basicSalary,
-                            basicSalaryKm: basicSalaryKm,
-                            salaryPerKm: salaryPerKm,
-                            totalSalary: totalSalary
+                            ...driver,
+                            totalSalary: calculateTotalSalary(
+                                serviceDetails.salary,
+                                driver.distance, // Ensure this data exists or manage it appropriately
+                                serviceDetails.basicSalaryKM,
+                                serviceDetails.salaryPerKM
+                            )
                         };
                     });
-                    
-                console.log('Filtered Drivers:', filteredDrivers);
     
+                console.log('Filtered Drivers:', filteredDrivers);
                 setDrivers(filteredDrivers);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching drivers:', error);
             }
         };
     
-        if (serviceType) {
+        if (serviceType && serviceDetails) {
             fetchDrivers().catch(console.error);
         } else {
-            setDrivers([]); // Reset drivers if serviceType is not provided
+            setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
         }
-    }, [db, serviceType]);
+    }, [db, serviceType, serviceDetails]); // Added serviceDetails as a dependency
     
     
     const handleAddBooking = async () => {
@@ -430,7 +509,7 @@ const Booking = () => {
                                 </label>
                                 <input
                                     id="distance"
-                                    type="text"
+                                    type="string"
                                     name="distance"
                                     className="form-input flex-1"
                                     style={{
@@ -480,6 +559,7 @@ const Booking = () => {
                                     <option value="S Lorry Crane Bed">S Lorry Crane Bed</option>
                                 </select>
                             </div>
+                           
                             <div className="flex items-center mt-4">
                                 <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Service Vehicle
@@ -529,16 +609,7 @@ const Booking = () => {
             }}
             value={
                 selectedDriver
-                    ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} - Total Salary: ${
-                          selectedDriver
-                              ? calculateTotalSalary(
-                                    drivers.find((driver) => driver.id === selectedDriver).basicSalary,
-                                    distance,
-                                    drivers.find((driver) => driver.id === selectedDriver).basicSalaryKm,
-                                    drivers.find((driver) => driver.id === selectedDriver).salaryPerKm
-                                )
-                              : ''
-                      }`
+                    ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} `
                     : ''
             }
             onClick={() => openModal(distance)}
@@ -571,18 +642,17 @@ const Booking = () => {
     console.log('Driver Object:', driver.id); // Log the driver object here
     return (
         <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+        
             <table className="panel p-4" style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
                 <thead>
                     <tr>
                         <th>Driver Name</th>
-                        <th>Total Salary</th>
                         <th>Select</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>{driver.driverName}</td>
-                        <td>{driver.totalSalary}</td>
                         <td>
                             <input
                                 type="radio"
@@ -606,6 +676,29 @@ const Booking = () => {
                                     <button onClick={closeModal}>Close</button>
                                 </ReactModal>
                             </div>
+
+
+                                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Total Amount for {serviceType}</h2>
+                                    <div className="grid grid-cols-1 gap-4">
+                                    {drivers.map((driver) => {
+    return (
+        <div key={driver.id} className="panel p-4 text-center text-danger " style={{ borderCollapse: 'collapse', width: '50%', maxWidth: '600px', margin: 'auto' }}>
+        
+            {driver.totalSalary}
+               
+                
+        </div>
+    );
+})}
+
+
+
+</div>
+
+                                  
+
+
+
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Vehicle Number
@@ -696,71 +789,3 @@ const Booking = () => {
 };
 
 export default Booking;
-// const handleAddBooking = async () => {
-//     try {
-//         const pickupResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${pickupLocation.lat},${pickupLocation.lng}&key=saaas`);
-//         const pickupData = await pickupResponse.json();
-//         const pickupPlacename = pickupData.results[0].formatted_address;
-
-//         // Fetch placename for dropoff location
-//         const dropoffResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${dropoffLocation.lat},${dropoffLocation.lng}&key=saaas`);
-//         const dropoffData = await dropoffResponse.json();
-//         const dropoffPlacename = dropoffData.results[0].formatted_address;
-
-//         const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
-//         const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-//         const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
-
-//         const bookingData = {
-//             ...bookingDetails,
-//             driver: driverName,
-//             totalSalary: totalSalary,
-//             pickupLocation: {
-//                 lat: pickupLocation.lat,
-//                 lng: pickupLocation.lng,
-//                 placename: pickupPlacename,
-//             },
-//             dropoffLocation: {
-//                 lat: dropoffLocation.lat,
-//                 lng: dropoffLocation.lng,
-//                 placename: dropoffPlacename,
-//             },
-//         };
-
-//         const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-//         console.log('Document written with ID: ', docRef.id);
-//         navigate('/bookings/newbooking');
-//     } catch (error) {
-//         console.error('Error adding document: ', error);
-//     }
-// };
-// const handleAddBooking = async () => {
-//     try {
-//         // Assume pickupPlacename and dropoffPlacename are obtained before calling this function
-//         const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
-//         const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-//         const totalSalary = calculateTotalSalary(selectedDriverObject.basicSalary, distanceNumeric, selectedDriverObject.salarykm);
-
-//         const bookingData = {
-//             ...bookingDetails,
-//             driver: driverName,
-//             totalSalary: totalSalary,
-//             pickupLocation: {
-//                 lat: pickupLocation.lat,
-//                 lng: pickupLocation.lng,
-//                 placename: pickupPlacename,
-//             },
-//             dropoffLocation: {
-//                 lat: dropoffLocation.lat,
-//                 lng: dropoffLocation.lng,
-//                 placename: dropoffPlacename,
-//             },
-//         };
-
-//         const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-//         console.log('Document written with ID: ', docRef.id);
-//         navigate('/bookings/newbooking');
-//     } catch (error) {
-//         console.error('Error adding document: ', error);
-//     }
-// };

@@ -12,7 +12,7 @@ type RecordData = {
   phoneNumber: string;
   driver: string;
   totalSalary: string;
-
+photo:string;
   id: string; // Assuming you have an 'id' property in your data
 };
 
@@ -33,6 +33,7 @@ const NewBooking = () => {
           id: doc.id,
         }));
         setRecordsData(dataWithIndex);
+        console.log(dataWithIndex)
       } catch (error) {
         console.error('Error fetching data: ', error);
       }
@@ -40,7 +41,7 @@ const NewBooking = () => {
 
     fetchData().catch(console.error);
   }, [db]);
-
+console.log(recordsData)
   // Function to generate a booking ID
   const generateBookingId = () => {
     return uuidv4(); // Generate a UUID
@@ -51,6 +52,7 @@ const NewBooking = () => {
       <div className="panel mt-6">
         <h5 className="font-semibold text-lg dark:text-white-light mb-5">
           New Bookings{' '}
+          
           <Link
             to={`/bookings/booking?bookingId=${generateBookingId()}`} // Pass the generated ID as a query parameter
             style={{
@@ -76,20 +78,31 @@ const NewBooking = () => {
             className="whitespace-nowrap table-hover"
             records={recordsData}
             columns={[
+              { accessor: 'id', title: 'ID' },
+
               { accessor: 'index', title: 'ID' },
               { accessor: 'customerName', title: 'Name' },
               { accessor: 'fileNumber', title: 'File Number' },
               { accessor: 'phoneNumber', title: 'Phone Number' },
               { accessor: 'driver', title: 'Driver' },
               { accessor: 'totalSalary', title: 'Total Salary' },
+              // { accessor: 'kilometer', title: 'Total Salary' },
 
               {
                 accessor: 'viewmore',
-                title: 'ViewMore',
-                render: (rowData: RecordData) => (
-                  <button className='btn btn-primary'> <Link to={`/bookings/newbooking/viewmore/${rowData.id}`}>View More</Link></button>
+                title: 'View More',
+                render: (rowData) => (
+                    <Link
+                        to={`/bookings/newbooking/viewmore/${rowData.id}`}
+                        className='btn btn-primary' // Assuming 'btn' and 'btn-primary' are your CSS classes for button styling
+                    >
+                        View More
+                    </Link>
                 ),
-              },
+            }
+            
+            
+            
             ]}
             totalRecords={recordsData.length}
             recordsPerPage={pageSize}
