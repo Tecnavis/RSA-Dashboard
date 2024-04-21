@@ -647,12 +647,14 @@ useEffect(() => {
                 <thead>
                     <tr>
                         <th>Driver Name</th>
+                        <th>Total Amount</th>
                         <th>Select</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{driver.driverName}</td>
+                        <td>{driver.driverName || 'Unknown Driver'}</td> {/* Add a null check */}
+                       <td className='text-danger'> {driver.totalSalary}</td>
                         <td>
                             <input
                                 type="radio"
@@ -678,11 +680,11 @@ useEffect(() => {
                             </div>
 
 
-                                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Total Amount for {serviceType}</h2>
+                                    {/* <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Total Amount for {serviceType}</h2>
                                     <div className="grid grid-cols-1 gap-4">
                                     {drivers.map((driver) => {
     return (
-        <div key={driver.id} className="panel p-4 text-center text-danger " style={{ borderCollapse: 'collapse', width: '50%', maxWidth: '600px', margin: 'auto' }}>
+        <div key={driver} className="panel p-4 text-center text-danger " style={{ borderCollapse: 'collapse', width: '50%', maxWidth: '600px', margin: 'auto' }}>
         
             {driver.totalSalary}
                
@@ -695,7 +697,7 @@ useEffect(() => {
 
 </div>
 
-                                  
+                                   */}
 
 
 
