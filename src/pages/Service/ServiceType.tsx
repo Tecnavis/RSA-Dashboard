@@ -59,8 +59,15 @@ function ServiceType() {
 
   const editServiceType = (service) => {
     setEditing(true);
-    setCurrentService({ id: service.id, name: service.name, salary: service.salary });
+    setCurrentService({ 
+      id: service.id, 
+      name: service.name, 
+      salary: service.salary, 
+      basicSalaryKM: service.basicSalaryKM, // Add this line
+      salaryPerKM: service.salaryPerKM // Add this line
+    });
   };
+  
 
   const updateServiceType = async () => {
     const { id, name, salary, basicSalaryKM, salaryPerKM } = currentService;
@@ -97,11 +104,11 @@ function ServiceType() {
             <tr key={index}>
 
               <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>{service.name}</td>
-              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>${service.basicSalaryKM}</td>
+              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>{service.basicSalaryKM}</td>
 
-              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>${service.salaryPerKM}</td>
+              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>{service.salaryPerKM}</td>
 
-              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>${service.salary}</td>
+              <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>{service.salary}</td>
               <td style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>
                 <button style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: 'blue', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => editServiceType(service)}>
                   Edit
@@ -156,6 +163,20 @@ function ServiceType() {
           onChange={e => setNewServiceType(e.target.value)}
           style={{ padding: '8px', marginRight: '5px' }}
         />
+              <input
+          type="text"
+          placeholder="Basic Salary KM"
+          value={newBasicSalaryKM}
+          onChange={e => setNewBasicSalaryKM(e.target.value)}
+          style={{ padding: '8px', marginRight: '5px' }}
+        />
+           <input
+          type="text"
+          placeholder="SalaryPerKM"
+          value={newSalaryPerKM}
+          onChange={e => setNewSalaryPerKM(e.target.value)}
+          style={{ padding: '8px', marginRight: '5px' }}
+        />
         <input
           type="text"
           placeholder="Salary"
@@ -163,6 +184,7 @@ function ServiceType() {
           onChange={e => setNewSalary(e.target.value)}
           style={{ padding: '8px', marginRight: '5px' }}
         />
+     
         <button
           onClick={addServiceType}
           style={{ padding: '8px 16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
