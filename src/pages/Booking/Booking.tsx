@@ -223,49 +223,54 @@ useEffect(() => {
 }, [db, serviceType]);
 
 
-    useEffect(() => {
-        const fetchDrivers = async () => {
-            try {
-                const driversCollection = collection(db, 'driver');
-                const snapshot = await getDocs(driversCollection);
-    
-                if (!serviceDetails) {
-                    console.log("Service details not found, cannot proceed with fetching drivers.");
-                    return;
-                }
-    
-                const filteredDrivers = snapshot.docs
-                    .map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }))
-                    .filter(driver => driver.selectedServices && driver.selectedServices.includes(serviceType))
-                    .map(driver => {
-                        // Assuming that serviceDetails is already fetched and contains necessary salary data
-                        return {
-                            ...driver,
-                            totalSalary: calculateTotalSalary(
-                                serviceDetails.salary,
-                                driver.distance, // Ensure this data exists or manage it appropriately
-                                serviceDetails.basicSalaryKM,
-                                serviceDetails.salaryPerKM
-                            )
-                        };
-                    });
-    
-                console.log('Filtered Drivers:', filteredDrivers);
-                setDrivers(filteredDrivers);
-            } catch (error) {
-                console.error('Error fetching drivers:', error);
+useEffect(() => {
+    const fetchDrivers = async () => {
+        try {
+            const driversCollection = collection(db, 'driver');
+            const snapshot = await getDocs(driversCollection);
+
+            if (!serviceDetails) {
+                console.log("Service details not found, cannot proceed with fetching drivers.");
+                return;
             }
-        };
-    
-        if (serviceType && serviceDetails) {
-            fetchDrivers().catch(console.error);
-        } else {
-            setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
+
+            const filteredDrivers = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }))
+                .filter(driver => driver.selectedServices && driver.selectedServices.includes(serviceType))
+                .map(driver => {
+                    // Assuming that serviceDetails is already fetched and contains necessary salary data
+                    return {
+                        ...driver,
+                        totalSalary: calculateTotalSalary(
+                            serviceDetails.salary,
+                            driver.distance, // Ensure this data exists or manage it appropriately
+                            serviceDetails.basicSalaryKM,
+                            serviceDetails.salaryPerKM
+                        )
+                    };
+                });
+
+            // Calculate total salary here
+            const total = filteredDrivers.reduce((acc, driver) => driver.totalSalary, 0);
+            setTotalSalary(total);
+
+            console.log('Filtered Drivers:', filteredDrivers);
+            setDrivers(filteredDrivers);
+        } catch (error) {
+            console.error('Error fetching drivers:', error);
         }
-    }, [db, serviceType, serviceDetails]); // Added serviceDetails as a dependency
+    };
+
+    if (serviceType && serviceDetails) {
+        fetchDrivers().catch(console.error);
+    } else {
+        setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
+    }
+}, [db, serviceType, serviceDetails]);
+// Added serviceDetails as a dependency
     
     
     const handleAddBooking = async () => {
@@ -607,11 +612,8 @@ useEffect(() => {
                 outline: 'none',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }}
-            value={
-                selectedDriver
-                    ? `${drivers.find((driver) => driver.id === selectedDriver).driverName} `
-                    : ''
-            }
+            value={selectedDriver && drivers.find(driver => driver.id === selectedDriver)?.driverName}
+
             onClick={() => openModal(distance)}
         />
     </div>
@@ -679,7 +681,31 @@ useEffect(() => {
                                 </ReactModal>
                             </div>
 
-
+                            <React.Fragment>
+                            <div className="mt-4 flex items-center">
+    <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Total Salary
+    </label>
+    <div className="form-input flex-1">
+        <input
+            id="totalSalary"
+            type="text"
+            name="totalSalary"
+            className="w-full text-danger text-bold"
+            style={{
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            value={totalSalary}
+            readOnly
+        />
+    </div>
+</div>
+        </React.Fragment>
                                     {/* <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Total Amount for {serviceType}</h2>
                                     <div className="grid grid-cols-1 gap-4">
                                     {drivers.map((driver) => {
