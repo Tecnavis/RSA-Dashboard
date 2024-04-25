@@ -20,7 +20,6 @@ const LoginCover = () => {
         const auth = getAuth();
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                // Signed in successfully
                 const user = userCredential.user;
                 console.log("User signed in:", user);
                 navigate('/index'); // Redirect to home page or any other route
@@ -29,7 +28,6 @@ const LoginCover = () => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.error("Error signing in:", errorCode, errorMessage);
-                // Handle error appropriately (e.g., display error message to user)
             });
     };
 
@@ -45,7 +43,6 @@ console.log(auth?.currentUser)
             </div>
             <div className="relative flex min-h-screen items-center justify-center bg-[url(/assets/images/auth/map.png)] bg-cover bg-center bg-no-repeat px-6 py-10 dark:bg-[#060818] sm:px-16">
                 <img src="/assets/images/auth/coming-soon-object1.png" alt="image" className="absolute left-0 top-1/2 h-full max-h-[893px] -translate-y-1/2" />
-                {/* <img src="/assets/images/auth/coming-soon-object2.png" alt="image" className="absolute left-24 top-0 h-40 md:left-[30%]" /> */}
                 <img src="/assets/images/auth/coming-soon-object3.png" alt="image" className="absolute right-0 top-0 h-[300px]" />
                 <img src="/assets/images/auth/polygon-object.svg" alt="image" className="absolute bottom-0 end-[28%]" />
                 <div className="relative flex w-full max-w-[1502px] flex-col justify-between overflow-hidden rounded-md bg-white/60 backdrop-blur-lg dark:bg-black/50 lg:min-h-[758px] lg:flex-row lg:gap-10 xl:gap-0">

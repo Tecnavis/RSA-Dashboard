@@ -132,7 +132,7 @@ const toggleDropoffDetails = () => {
       )}
     </div>
 
-    <h2 className="text-xl font-bold mt-5">Vehicle Images</h2>
+    <h2 className="text-xl font-bold mt-5">Vehicle Images(Pickup)</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {bookingDetails.vehicleImageURLs.length > 0 ? (
         bookingDetails.vehicleImageURLs.map((url, index) => (
@@ -164,7 +164,7 @@ const toggleDropoffDetails = () => {
     />
   </div>
 )}
- <h3 className="text-xl font-bold mt-5">RC Book Images</h3>
+ <h3 className="text-xl font-bold mt-5">Fuel Bill Images</h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {bookingDetails.fuelBillImageURLs.length > 0 ? (
         bookingDetails.fuelBillImageURLs.map((url, index) => (
@@ -177,7 +177,7 @@ const toggleDropoffDetails = () => {
       )}
     </div>
 
-    <h2 className="text-xl font-bold mt-5">Vehicle Images</h2>
+    <h2 className="text-xl font-bold mt-5">Vehicle Images(Dropoff)</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {bookingDetails.vehicleImgURLs.length > 0 ? (
         bookingDetails.vehicleImgURLs.map((url, index) => (
@@ -280,176 +280,3 @@ const toggleDropoffDetails = () => {
 };
 
 export default ViewMore;
-
-// import React, { useEffect, useState } from 'react';
-// import { useLocation, useParams } from 'react-router-dom';
-// import { getFirestore, doc, getDoc } from 'firebase/firestore';
-
-// const ViewMore = () => {
-//   const { id } = useParams();
-//   const location = useLocation();
-//   const queryParams = new URLSearchParams(location.search);
-//   const kilometer = queryParams.get('kilometer');
-//   const photo = queryParams.get('photo');
-//   const [bookingDetails, setBookingDetails] = useState(null);
-//   const db = getFirestore();
-// console.log("bookid",id)
-// console.log("ID:", id, "Kilometer:", kilometer, "Photo URL:", photo);
-
-// useEffect(() => {
-//   const fetchBookingDetails = async () => {
-//     console.log("Fetching data for ID:", id);  // Ensure ID is correct
-//     const docRef = doc(db, 'bookings', id);
-//     const docSnap = await getDoc(docRef);
-  
-//     if (docSnap.exists()) {
-//       console.log("Document data:", docSnap.data());  // What does the actual data look like?
-//       setBookingDetails(docSnap.data());
-//     } else {
-//       console.log(`No document found for ID ${id}`);
-//     }
-//   };
-
-//   fetchBookingDetails();
-// }, [db, id]);
-
-
-
-//   if (!bookingDetails) {
-//     return <div>Loading...</div>;
-//   }
-
-//   const containerStyle = {
-//     margin: '2rem',
-//     padding: '1rem',
-//     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-//     borderRadius: '10px',
-//   };
-
- 
-
-//   const tableStyle = {
-//     width: '100%',
-//     borderCollapse: 'collapse',
-//   };
-
-//   const thStyle = {
-//     backgroundColor: '#f2f2f2',
-//     padding: '8px',
-//     textAlign: 'left',
-//     fontWeight: 'bold',
-//   };
-
-//   const tdStyle = {
-//     padding: '8px',
-//     borderBottom: '1px solid #ddd',
-//   };
-
-//   return (
-//     <div style={containerStyle}>
-//  <h5 className="font-semibold text-lg dark:text-white-light mb-5">
-//           Booking Details {' '}
-       
-//         </h5>
-//         <div>
-     
-//     </div>
-//       <table style={tableStyle}>
-//         <tbody>
-//           {/* <tr>
-//             <th style={thStyle}>Field</th>
-//             <th style={thStyle}>Value</th>
-//           </tr> */}
-//           <tr>
-//             <td style={thStyle}>Total Salary :</td>
-//             <td style={tdStyle}>{bookingDetails.totalSalary} </td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>Company :</td>
-//             <td style={tdStyle}>{bookingDetails.company}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>File Number :</td>
-//             <td style={tdStyle}>{bookingDetails.fileNumber}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>Kilometer :</td>
-//             <td style={tdStyle}>{bookingDetails.kilometer}</td>
-//           </tr>
-//           <tr>
-//             <td style={{ backgroundColor: '#f2f2f2', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Photo :</td>
-//             <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
-//               {bookingDetails.photo ? <img src={bookingDetails.photo} alt="Booking Detail" style={{ width: '100px' }} /> : 'No photo uploaded'}
-//             </td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>CustomerName :</td>
-//             <td style={tdStyle}>{bookingDetails.customerName}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>Driver :</td>
-//             <td style={tdStyle}>{bookingDetails.driver}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>VehicleNumber :</td>
-//             <td style={tdStyle}>{bookingDetails.vehicleNumber}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>VehicleModel :</td>
-//             <td style={tdStyle}>{bookingDetails.vehicleModel}</td>
-//           </tr>  
-//           <tr>
-//             <td style={thStyle}>phoneNumber :</td>
-//             <td style={tdStyle}>{bookingDetails.phoneNumber}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>MobileNumber :</td>
-//             <td style={tdStyle}>{bookingDetails.mobileNumber}</td>
-//           </tr>
-//           <tr>
-//   <td style={thStyle}>Pickup Location:</td>
-//   <td style={tdStyle}>
-//     {bookingDetails.pickupLocation ? (
-//       `${bookingDetails.pickupLocation.name}, Lat: ${bookingDetails.pickupLocation.lat}, Lng: ${bookingDetails.pickupLocation.lng}`
-//     ) : (
-//       'Location not selected'
-//     )}
-//   </td>
-// </tr>
-// <tr>
-//   <td style={thStyle}>DropOff Location:</td>
-//   <td style={tdStyle}>
-//     {bookingDetails.dropoffLocation ? (
-//       `${bookingDetails.dropoffLocation.name}, Lat: ${bookingDetails.dropoffLocation.lat}, Lng: ${bookingDetails.dropoffLocation.lng}`
-//     ) : (
-//       'Location not selected'
-//     )}
-//   </td>
-// </tr>
-
-
-
-//           <tr>
-//             <td style={thStyle}>Distance :</td>
-//             <td style={tdStyle}>{bookingDetails.distance}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>ServiceType  :</td>
-//             <td style={tdStyle}>{bookingDetails.serviceType}</td>
-//           </tr>
-//           <tr>
-//             <td style={thStyle}>ServiceVehicle :</td>
-//             <td style={tdStyle}>{bookingDetails.serviceVehicle}</td>
-//           </tr>  
-//           <tr>
-//             <td style={thStyle}>Comments :</td>
-//             <td style={tdStyle}>{bookingDetails.comments}</td>
-//           </tr>  
-//                 </tbody>
-//       </table>
-//     </div>
-//   );
-// };
-
-// export default ViewMore;
-

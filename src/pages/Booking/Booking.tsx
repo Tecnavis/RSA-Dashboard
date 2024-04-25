@@ -286,7 +286,9 @@ useEffect(() => {
                 driver: driverName,
                 totalSalary: totalSalary, // Include totalSalary in the booking data
                 pickupLocation: pickupLocation,
-                dropoffLocation: dropoffLocation
+                dropoffLocation: dropoffLocation,
+                status: 'booking added' // Add the status field
+
             };
     
             // Add the booking data to the Firestore collection

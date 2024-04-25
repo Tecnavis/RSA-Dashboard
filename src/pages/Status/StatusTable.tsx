@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import 'tippy.js/dist/tippy.css';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../store/themeConfigSlice';
-import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { collection, getDocs, getFirestore, onSnapshot, doc, getDoc } from 'firebase/firestore';
 
 const StatusTable = () => {
     const dispatch = useDispatch();
@@ -14,28 +13,34 @@ const StatusTable = () => {
     useEffect(() => {
         dispatch(setPageTitle('Status'));
 
-        const fetchData = async () => {
-            // Fetch bookings
-            const bookingSnapshot = await getDocs(collection(db, 'bookings'));
-            const bookingsData = bookingSnapshot.docs.map(doc => ({
+        const unsubscribe = onSnapshot(collection(db, 'bookings'), (snapshot) => {
+            const updatedBookingsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
             }));
+            setRecordsData(updatedBookingsData);
+        });
 
-            // Fetch drivers
-            const driverSnapshot = await getDocs(collection(db, 'driver'));
-            const driversData = driverSnapshot.docs.reduce((acc, doc) => {
-                const data = doc.data();
-                acc[data.id] = data.phone; // Assuming 'id' and 'phone' are field names in your driver documents
-                return acc;
-            }, {});
+        return () => unsubscribe();
+    }, [db, dispatch]);
 
-            setRecordsData(bookingsData);
-            setDrivers(driversData);
+    useEffect(() => {
+        const fetchDriverData = async () => {
+            const driverData = {};
+            for (const record of recordsData) {
+                const driverId = record.selectedDriver;
+                if (driverId && !driverData[driverId]) {
+                    const driverDoc = await getDoc(doc(db, 'driver', driverId));
+                    if (driverDoc.exists()) {
+                        driverData[driverId] = driverDoc.data();
+                    }
+                }
+            }
+            setDrivers(driverData);
         };
 
-        fetchData().catch(console.error);
-    }, [db, dispatch]);
+        fetchDriverData();
+    }, [db, recordsData]);
 
     return (
         <div className="grid xl:grid-cols-1 gap-6 grid-cols-1">
@@ -57,29 +62,33 @@ const StatusTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {recordsData.map((record) => (
-                                <tr key={record.id}>
-                                    <td>{record.driver}</td>
-                                    <td>{drivers[record.driverId]}</td> {/* Use the driver ID to access the phone number */}
-                                    <td>{record.customerName}</td>
-                                    <td>{record.mobileNumber}</td>
-                                    <td>{record.pickupLocation.name}</td>
-                                    <td>{record.dropoffLocation.name}</td>
-                                    <td style={{
-                                        color: 'white', 
-                                        backgroundColor: 'RGB(40, 167, 69)', 
-                                        borderRadius: '15px',
-                                        fontWeight:'900',
-                                        cursor: 'pointer',
-                                        textAlign:'center',
-                                        animation: 'fadeIn 2s ease-in-out',
-                                        lineHeight: '1.5',
-                                        letterSpacing: '1.5px'
-                                    }}>
-                                        {record.status}
-                                    </td>
-                                </tr>
-                            ))}
+                        {recordsData.map((record) => {
+    console.log(record); // Add this line to console the current record
+    return (
+        <tr key={record.id}>
+            <td>{record.driver}</td>
+            <td>{drivers[record.selectedDriver]?.phone} / Personal No:{drivers[record.selectedDriver]?.personalphone}</td>
+            <td>{record.customerName}</td>
+            <td>{record.phoneNumber} / {record.mobileNumber}</td>
+            <td>{record.pickupLocation.name}</td>
+            <td>{record.dropoffLocation.name}</td>
+            <td style={{
+                color: 'white',
+                backgroundColor: 'RGB(40, 167, 69)',
+                borderRadius: '15px',
+                fontWeight: '900',
+                cursor: 'pointer',
+                textAlign: 'center',
+                animation: 'fadeIn 2s ease-in-out',
+                lineHeight: '1.5',
+                letterSpacing: '1.5px'
+            }}>
+                {record.status}
+            </td>
+        </tr>
+    );
+})}
+
                         </tbody>
                     </table>
                 </div>

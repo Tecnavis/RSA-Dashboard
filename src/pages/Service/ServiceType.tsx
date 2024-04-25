@@ -122,72 +122,75 @@ function ServiceType() {
         </tbody>
       </table>
       {editing && (
-        <div>
-          <input
+    <div>
+        <input
             type="text"
             value={currentService.name}
             onChange={(e) => setCurrentService({ ...currentService, name: e.target.value })}
-            style={{ padding: '8px', marginRight: '5px' }}
-          />
-          <input
-  type="text"
-  value={currentService.basicSalaryKM}
-  placeholder='KM for Basic Salary'
-  onChange={(e) => setCurrentService({ ...currentService, basicSalaryKM: e.target.value })}
-  style={{ padding: '8px', marginRight: '5px' }}
-/>
-<input
-  type="text"
-  value={currentService.salaryPerKM}
-  placeholder='Salary per KM'
-  onChange={(e) => setCurrentService({ ...currentService, salaryPerKM: e.target.value })}
-  style={{ padding: '8px', marginRight: '5px' }}
-/>
-
-          <input
+            style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
+        <input
+            type="text"
+            value={currentService.basicSalaryKM}
+            placeholder="KM for Basic Salary"
+            onChange={(e) => setCurrentService({ ...currentService, basicSalaryKM: e.target.value })}
+            style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
+        <input
+            type="text"
+            value={currentService.salaryPerKM}
+            placeholder="Salary per KM"
+            onChange={(e) => setCurrentService({ ...currentService, salaryPerKM: e.target.value })}
+            style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
+        <input
             type="text"
             value={currentService.salary}
             onChange={(e) => setCurrentService({ ...currentService, salary: e.target.value })}
-            style={{ padding: '8px', marginRight: '5px' }}
-          />
-          <button style={{ padding: '8px 16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={updateServiceType}>
+            style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
+        <button
+            style={{
+                padding: '8px 16px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginLeft:'5px'
+            }}
+            onClick={updateServiceType}
+        >
             Update
-          </button>
-        </div>
-      )}
+        </button>
+    </div>
+)}
+
       <div>
         <input
           type="text"
           placeholder="New Service Type"
           value={newServiceType}
           onChange={e => setNewServiceType(e.target.value)}
-          style={{ padding: '8px', marginRight: '5px' }}
-        />
+          style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2',marginTop:'20px' }}        />
               <input
           type="text"
           placeholder="Basic Salary KM"
           value={newBasicSalaryKM}
           onChange={e => setNewBasicSalaryKM(e.target.value)}
-          style={{ padding: '8px', marginRight: '5px' }}
-        />
+          style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
            <input
           type="text"
           placeholder="SalaryPerKM"
           value={newSalaryPerKM}
           onChange={e => setNewSalaryPerKM(e.target.value)}
-          style={{ padding: '8px', marginRight: '5px' }}
-        />
+          style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }}        />
         <input
           type="text"
           placeholder="Salary"
           value={newSalary}
           onChange={e => setNewSalary(e.target.value)}
-          style={{ padding: '8px', marginRight: '5px' }}
-        />
+          style={{ textAlign: 'left', padding: '8px', border: '3px solid #ccc', backgroundColor: '#f2f2f2' }}        />
      
         <button
           onClick={addServiceType}
-          style={{ padding: '8px 16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer',marginLeft:"5px" }}
         >
           Add Service Type
         </button>
