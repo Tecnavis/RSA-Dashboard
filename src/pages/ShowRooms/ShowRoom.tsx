@@ -1,132 +1,177 @@
-import { useEffect, useState } from 'react'
-import IconMapPin from '../../components/Icon/IconMapPin';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-const rowData = [
-  {
-      id: 1,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-      ShowRoom: 'ABC',
-     description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-      Location: 'Malappuram',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-    
-  },
-  {
-      id: 2,
-      img:'https://blog-images.carshop.co.uk/2019/06/Penske-Wynn-Ferrari-Maserati--5-.jpg',
-
-      ShowRoom: 'DDYTFYGH',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'kozhikkode',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-  },
-  {
-      id: 3,
-      img:'https://storageconcepts.co.uk/wp-content/uploads/2014/10/Redline-13-Oct14-037.jpg',
-
-      ShowRoom: 'YGHHFVHGVNB',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'idukki',
-      Map: 'https://thulasi.psc.kerala.gov.in/thulasi/',
-  },
-  {
-      id: 4,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-
-      ShowRoom: 'GYJGIUJKHI',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'kasr',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-  },
-  {
-      id: 5,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-
-      ShowRoom: 'KGYUGTY',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'Malappuram',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-      },
-  
-  {
-      id: 6,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-
-      ShowRoom: 'GHHJHU',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'Malappuram',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8 ',
-  },
-  {
-      id: 7,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-
-      ShowRoom: 'ABC',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'Malappuram',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-  },
-  {
-      id: 8,
-      img:'https://th.bing.com/th/id/R.7b225d8f7343df94f9b3c7c608805694?rik=iWYU%2fUlGD5g%2fJQ&riu=http%3a%2f%2fpaulcarrollphoto.com%2fwp-content%2fuploads%2f2013%2f08%2fslider6.jpg&ehk=AkpVVn2pVhdSW1KLuDlLOhn%2b4e3aye2BR3Is%2bxc%2btpg%3d&risl=&pid=ImgRaw&r=0',
-
-      ShowRoom: 'ABC',
-      description:' Maecenas nec mi vel lacus condimentum rhoncus dignissim egestas orci. Integer blandit porta placerat. Vestibulum in ultricies.',
-
-      Location: 'Malappuram',
-      Map: 'https://www.google.com/search?q=gmail&rlz=1C1VDKB_enIN1042IN1042&oq=g&gs_lcrp=EgZjaHJvbWUqDQgDEAAYgwEYsQMYgAQyBggAEEUYOTIGCAEQRRg7MgwIAhAjGCcYgAQYigUyDQgDEAAYgwEYsQMYgAQyEwgEEC4YgwEYxwEYsQMY0QMYgAQyDQgFEAAYgwEYsQMYgAQyDQgGEAAYgwEYsQMYgAQyDQgHEAAYgwEYsQMYgAQyDQgIEAAYgwEYsQMYgAQyBwgJEAAYjwLSAQoxNDI4NGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8',
-  },
- 
-];
+import { addDoc, collection, getFirestore, getDocs, doc, updateDoc } from 'firebase/firestore';
+import IconMapPin from '../../components/Icon/IconMapPin';
 
 const ShowRoom = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const filteredData = rowData.filter((item) =>
-    item.ShowRoom.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [showRoom, setShowRoom] = useState({
+    img: '',
+    ShowRoom: '',
+    description: '',
+    Location: '',
+    Map: '',
+  });
+  const [existingShowRooms, setExistingShowRooms] = useState([]);
+  const [editRoomId, setEditRoomId] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setShowRoom({ ...showRoom, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const db = getFirestore();
+    try {
+      if (editRoomId) {
+        // Update existing showroom
+        const roomRef = doc(db, 'showroom', editRoomId);
+        await updateDoc(roomRef, showRoom);
+        alert('Showroom updated successfully');
+        setEditRoomId(null);
+      } else {
+        // Add new showroom
+        await addDoc(collection(db, 'showroom'), showRoom);
+        alert('Showroom added successfully');
+      }
+      // Clear the form after successful submission
+      setShowRoom({
+        img: '',
+        ShowRoom: '',
+        description: '',
+        Location: '',
+        Map: '',
+      });
+      // Fetch updated list of showrooms
+      fetchShowRooms();
+    } catch (error) {
+      console.error('Error adding/updating showroom:', error);
+    }
+  };
+
+  const fetchShowRooms = async () => {
+    const db = getFirestore();
+    try {
+      const querySnapshot = await getDocs(collection(db, 'showroom'));
+      const rooms = [];
+      querySnapshot.forEach((doc) => {
+        rooms.push({ id: doc.id, ...doc.data() });
+      });
+      setExistingShowRooms(rooms);
+    } catch (error) {
+      console.error('Error fetching showrooms:', error);
+    }
+  };
+
+  const handleEdit = (roomId) => {
+    // Find the showroom by ID
+    const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
+    // Populate form fields with showroom details
+    setShowRoom(roomToEdit);
+    // Set the ID of the showroom being edited
+    setEditRoomId(roomId);
+  };
+
+  useEffect(() => {
+    // Fetch showrooms when the component mounts
+    fetchShowRooms();
+  }, []);
 
   return (
     <div className="mb-5">
       <h5 className="font-semibold text-lg dark:text-white-light mb-5">Showroom Details</h5>
-  
-      <input
-        type="text"
-        className="form-input w-full mb-3"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-  
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredData.map((item) => (
-          <div key={item.id} className="bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none p-5">
-  
-            <div className="mb-5 w-full h-32 rounded-full overflow-hidden">
-              <img src={item.img} alt={item.ShowRoom} className="w-full h-full object-cover" />
-            </div>
-  
-            <Link to={item.Map}><IconMapPin className='text-primary'/></Link>
-  
-            <div className="text-center">
-              <h5 className="text-[#3b3f5c] text-[15px] font-semibold mb-2 dark:text-white-light">{item.ShowRoom}</h5>
-              <p className="mb-2 text-white-dark">{item.Location}</p>
-              <p className="font-semibold text-white-dark mt-4">{item.description}</p>
-            </div>
-  
-            {/* Example: Adding a button with a primary style */}
-            {/* <button className='btn btn-primary'>Add</button> */}
-          </div>
-        ))}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="ShowRoom"
+          value={showRoom.ShowRoom}
+          onChange={handleChange}
+          placeholder="Showroom Name"
+          className="form-input w-full mb-3"
+          required
+        />
+        <input
+          type="text"
+          name="img"
+          value={showRoom.img}
+          onChange={handleChange}
+          placeholder="Image URL"
+          className="form-input w-full mb-3"
+          required
+        />
+        <input
+          type="text"
+          name="Location"
+          value={showRoom.Location}
+          onChange={handleChange}
+          placeholder="Location"
+          className="form-input w-full mb-3"
+          required
+        />
+        <input
+          type="text"
+          name="Map"
+          value={showRoom.Map}
+          onChange={handleChange}
+          placeholder="Map URL"
+          className="form-input w-full mb-3"
+          required
+        />
+        <textarea
+          name="description"
+          value={showRoom.description}
+          onChange={handleChange}
+          placeholder="Description"
+          className="form-textarea w-full mb-3"
+          required
+        />
+        <button type="submit" className="btn btn-primary">Add Showroom</button>
+      </form>
+
+      <div>
+        <h5 className="font-semibold text-lg dark:text-white-light mt-8">Existing Showrooms</h5>
+        <ul style={{ listStyleType: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+  {existingShowRooms.map((room) => (
+    <li key={room.id}>
+      <div style={{ 
+        border: '1px solid #ccc', 
+        borderRadius: '8px', 
+        padding: '20px', 
+        marginBottom: '20px', 
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+        transition: 'transform 0.3s ease-in-out',
+        textAlign:"center"
+        }}>
+        <p style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{room.ShowRoom}</p>
+        <img src={room.img} alt={room.ShowRoom} style={{ maxWidth: '100%', height: 'auto', marginBottom: '10px' }} />
+        <p style={{ marginBottom: '10px' }}>{room.Location}</p>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',color:"blue" }}>
+  <Link to={room.Map} className='map-pin-link'><IconMapPin className='map-pin-icon'/></Link>
+</div>
+
+        <p style={{ marginBottom: 0 }}>{room.description}</p>
+        <button 
+  className='btn btn-primary' 
+  onClick={() => handleEdit(room.id)} 
+  style={{ 
+    marginTop: '10px',
+    display: 'flex',
+    justifyContent: 'center',
+  }}
+>
+  Edit
+</button>
+
+      </div>
+    </li>
+  ))}
+</ul>
+
+
+
       </div>
     </div>
   );
-  
 };
 
-export default ShowRoom;
+export default ShowRoom;

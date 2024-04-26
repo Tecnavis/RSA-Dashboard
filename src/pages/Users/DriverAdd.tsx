@@ -64,19 +64,23 @@ const DriverAdd = () => {
     
     const renderServiceOptions = () => {
         return (
-            <div>
-                {serviceOptions.map((option, index) => (
-                    <label key={index} className="inline-flex items-center space-x-2">
-                        <input
-                            type="checkbox"
-                            value={option}
-                            checked={selectedServices.includes(option)}
-                            onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
-                        />
-                        <span>{option}</span>
-                    </label>
-                ))}
-            </div>
+            <div style={{ columnCount: 3, columnGap: '1rem', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+            {serviceOptions.slice(1).map((option, index) => (
+                <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
+                    <input
+                        type="checkbox"
+                        value={option}
+                        checked={selectedServices.includes(option)}
+                        onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
+                        style={{ marginRight: '0.5rem' }}
+                    />
+                    <span>{option}</span>
+                </label>
+            ))}
+        </div>
+        
+        
+        
         );
     };
 
