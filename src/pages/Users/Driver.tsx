@@ -7,7 +7,6 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
 import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
-import IconMenuMore from '../../components/Icon/Menu/IconMenuMore';
 
 
 const Driver = () => {
@@ -111,9 +110,10 @@ return (
                                             </li>
                                             <li>
                                                 <Tippy content="More">
-                                                <Link to={`/users/driver/driverdetails/${item.id}`}><button type="button">
-                                                        <IconMenuMore className="text-dark" />
-                                                        </button>
+                                                <Link to={`/users/driver/driverdetails/${item.id}`}>
+                                                    <button style={{background:"violet",border:"none",color:"white",padding:"15px 32px",textAlign:"center",textDecoration:"none",display:"inline-block",fontSize:"16px",margin:"4px 2px",cursor:"pointer",borderRadius:"10px"}}>ViewMore</button>
+                                                        {/* <IconMenuMore className="text-dark" /> */}
+                                                        
                                                     </Link> 
                                                 </Tippy>
                                             </li>

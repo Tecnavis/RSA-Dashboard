@@ -18,6 +18,7 @@ const db = getFirestore(app);
 const storage = getStorage(app)
 const auth = getAuth(app);
 export { googleMapsApiKey };
+export const googleMapsLibraries: string[] = ['places']; 
 
 export { auth ,storage };
 export default app;

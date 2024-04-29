@@ -4,9 +4,9 @@ import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import { GoogleMap, LoadScript, Marker, DistanceMatrixService } from '@react-google-maps/api';
 import IconPlus from '../../components/Icon/IconPlus';
 import ReactModal from 'react-modal';
-import { v4 as uuidv4 } from 'uuid';
-import { googleMapsApiKey } from '../../config/config';
-import {  query, where} from 'firebase/firestore';
+import { v4 as uuid } from 'uuid';
+import { googleMapsApiKey ,googleMapsLibraries} from '../../config/config';
+import { query, where } from 'firebase/firestore';
 
 const mapContainerStyle = {
     height: '400px',
@@ -20,9 +20,10 @@ const Booking = () => {
     const navigate = useNavigate();
     const [bookingId, setBookingId] = useState<string>('');
     useEffect(() => {
-        const newBookingId = uuidv4();
+        const newBookingId = uuid().substring(0, 6);
         setBookingId(newBookingId);
     }, []);
+
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
         fileNumber: '',
@@ -51,11 +52,9 @@ const Booking = () => {
     console.log('service', distance);
     const openModal = () => {
         setIsModalOpen(true);
-        
     };
     const closeModal = () => {
         setIsModalOpen(false);
-        
     };
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
@@ -64,7 +63,6 @@ const Booking = () => {
 
         if (field === 'distance') {
             openModal(value);
-            
         } else if (field === 'serviceType') {
             setServiceType(value);
             openModal();
@@ -73,26 +71,25 @@ const Booking = () => {
             setSelectedDriver(value); // Update selectedDriver state with the driver's id
         }
     };
-    
-   
+
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
-    
+
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-        autocomplete.setFields(['geometry', 'name']); // Include name field to get the place name
+        autocomplete.setFields(['geometry', 'name']); 
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             if (place.geometry) {
                 const location = {
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng(),
-                    name: place.name // Get the name of the place
+                    name: place.name,
                 };
-                setter(location); // Update the state with the selected location
+                setter(location);
             }
         });
     };
-    
+
     useEffect(() => {
         if (pickupLocation && dropoffLocation) {
             const service = new window.google.maps.DistanceMatrixService();
@@ -114,196 +111,170 @@ const Booking = () => {
             );
         }
     }, [pickupLocation, dropoffLocation]);
-   
-    
-    const calculateTotalSalary = (salary, distanceNumeric, kmValueNumeric, perKmValueNumeric) => {
-        console.log('Received values:', {salary, distanceNumeric, kmValueNumeric, perKmValueNumeric});
-    
-        const numericBasicSalary = Number(salary);
-      
-        const distanceString = typeof distance === 'string' ? distance : '';
-    const numericDistance = parseFloat(distanceString.replace('km', ''));
-    console.log('Is Distance Numeric?', !isNaN(distanceNumeric));
 
+    const calculateTotalSalary = (salary, distanceNumeric, kmValueNumeric, perKmValueNumeric) => {
+        console.log('Received values:', { salary, distanceNumeric, kmValueNumeric, perKmValueNumeric });
+
+        const numericBasicSalary = Number(salary);
+
+        const distanceString = typeof distance === 'string' ? distance : '';
+        const numericDistance = parseFloat(distanceString.replace('km', ''));
+        console.log('Is Distance Numeric?', !isNaN(distanceNumeric));
 
         const numericBasicSalaryKM = Number(kmValueNumeric);
         const numericSalaryPerKM = Number(perKmValueNumeric);
-    
-        console.log('Numeric values:', {numericBasicSalary, numericDistance, numericBasicSalaryKM, numericSalaryPerKM});
-    
-        // if (isNaN(numericBasicSalary) || isNaN(numericDistance) || isNaN(numericBasicSalaryKM) || isNaN(numericSalaryPerKM)) {
-        //     console.error('Invalid numeric values:', {numericBasicSalary, numericDistance, numericBasicSalaryKM, numericSalaryPerKM});
-        //     return 0;
-        // }
-    
+
+        console.log('Numeric values:', { numericBasicSalary, numericDistance, numericBasicSalaryKM, numericSalaryPerKM });
         if (numericDistance > numericBasicSalaryKM) {
             return numericBasicSalary + (numericDistance - numericBasicSalaryKM) * numericSalaryPerKM;
         } else {
             return numericBasicSalary;
         }
     };
-    
-    
+
     useEffect(() => {
         const fetchDrivers = async () => {
             if (!serviceType || !serviceDetails) {
-                console.log("Service details not found, cannot proceed with fetching drivers.");
+                console.log('Service details not found, cannot proceed with fetching drivers.');
                 setDrivers([]);
                 return;
             }
-    
+
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
-                const filteredDrivers = snapshot.docs.map(doc => {
-                    const driverData = doc.data();
-                    if (!driverData.selectedServices.includes(serviceType)) {
-                        return null;
-                    }
-    
-                    // Ensure all values are available and in the correct format before calculation
-                    const totalSalary = calculateTotalSalary(
-                        serviceDetails.salary,
-                        driverData.distance,
-                        serviceDetails.basicSalaryKM,
-                        serviceDetails.salaryPerKM
-                    );
-    
-                    return {
-                        id: doc.id,
-                        ...driverData,
-                        totalSalary
-                    };
-                }).filter(Boolean); // This will remove any null entries from the results
-    
+                const filteredDrivers = snapshot.docs
+                    .map((doc) => {
+                        const driverData = doc.data();
+                        if (!driverData.selectedServices.includes(serviceType)) {
+                            return null;
+                        }
+
+                        const totalSalary = calculateTotalSalary(serviceDetails.salary, driverData.distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM);
+
+                        return {
+                            id: doc.id,
+                            ...driverData,
+                            totalSalary,
+                        };
+                    })
+                    .filter(Boolean);
+
                 console.log('Filtered Drivers:', filteredDrivers);
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
         };
-    
+
         if (serviceType && serviceDetails) {
             fetchDrivers().catch(console.error);
         } else {
-            setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
+            setDrivers([]);
         }
     }, [db, serviceType, serviceDetails]);
-    
-   // State to store distance and total salary
-// const [distance, setDistance] = useState('');
-const [totalSalary, setTotalSalary] = useState(0);
 
-useEffect(() => {
-    const fetchServiceDetails = async () => {
-        if (!serviceType) {
-            console.log("No service type selected");
-            setServiceDetails({});
-            return;
-        }
-    
-        try {
-            const serviceQuery = query(collection(db, 'service'), where('name', '==', serviceType));
-            const snapshot = await getDocs(serviceQuery);
-            if (snapshot.empty) {
-                console.log("No matching service details found.");
+    const [totalSalary, setTotalSalary] = useState(0);
+
+    useEffect(() => {
+        const fetchServiceDetails = async () => {
+            if (!serviceType) {
+                console.log('No service type selected');
                 setServiceDetails({});
                 return;
             }
-            const details = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0];
-            console.log("Fetched service details: ", details);
-            setServiceDetails(details);
-        } catch (error) {
-            console.error("Error fetching service details:", error);
-            setServiceDetails({});
-        }
-    };
 
-    fetchServiceDetails();
-}, [db, serviceType]);
-
-
-useEffect(() => {
-    const fetchDrivers = async () => {
-        try {
-            const driversCollection = collection(db, 'driver');
-            const snapshot = await getDocs(driversCollection);
-
-            if (!serviceDetails) {
-                console.log("Service details not found, cannot proceed with fetching drivers.");
-                return;
+            try {
+                const serviceQuery = query(collection(db, 'service'), where('name', '==', serviceType));
+                const snapshot = await getDocs(serviceQuery);
+                if (snapshot.empty) {
+                    console.log('No matching service details found.');
+                    setServiceDetails({});
+                    return;
+                }
+                const details = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))[0];
+                console.log('Fetched service details: ', details);
+                setServiceDetails(details);
+            } catch (error) {
+                console.error('Error fetching service details:', error);
+                setServiceDetails({});
             }
+        };
 
-            const filteredDrivers = snapshot.docs
-                .map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }))
-                .filter(driver => driver.selectedServices && driver.selectedServices.includes(serviceType))
-                .map(driver => {
-                    // Assuming that serviceDetails is already fetched and contains necessary salary data
-                    return {
-                        ...driver,
-                        totalSalary: calculateTotalSalary(
-                            serviceDetails.salary,
-                            driver.distance, // Ensure this data exists or manage it appropriately
-                            serviceDetails.basicSalaryKM,
-                            serviceDetails.salaryPerKM
-                        )
-                    };
-                });
+        fetchServiceDetails();
+    }, [db, serviceType]);
 
-            // Calculate total salary here
-            const total = filteredDrivers.reduce((acc, driver) => driver.totalSalary, 0);
-            setTotalSalary(total);
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            try {
+                const driversCollection = collection(db, 'driver');
+                const snapshot = await getDocs(driversCollection);
 
-            console.log('Filtered Drivers:', filteredDrivers);
-            setDrivers(filteredDrivers);
-        } catch (error) {
-            console.error('Error fetching drivers:', error);
+                if (!serviceDetails) {
+                    console.log('Service details not found, cannot proceed with fetching drivers.');
+                    return;
+                }
+
+                const filteredDrivers = snapshot.docs
+                    .map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }))
+                    .filter((driver) => driver.selectedServices && driver.selectedServices.includes(serviceType))
+                    .map((driver) => {
+                        return {
+                            ...driver,
+                            totalSalary: calculateTotalSalary(serviceDetails.salary, driver.distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM),
+                        };
+                    });
+
+                const total = filteredDrivers.reduce((acc, driver) => driver.totalSalary, 0);
+                setTotalSalary(total);
+
+                console.log('Filtered Drivers:', filteredDrivers);
+                setDrivers(filteredDrivers);
+            } catch (error) {
+                console.error('Error fetching drivers:', error);
+            }
+        };
+
+        if (serviceType && serviceDetails) {
+            fetchDrivers().catch(console.error);
+        } else {
+            setDrivers([]);
         }
-    };
+    }, [db, serviceType, serviceDetails]);
 
-    if (serviceType && serviceDetails) {
-        fetchDrivers().catch(console.error);
-    } else {
-        setDrivers([]); // Reset drivers if serviceType is not provided or service details are not fetched
-    }
-}, [db, serviceType, serviceDetails]);
-// Added serviceDetails as a dependency
-    
-    
     const handleAddBooking = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-    
-            // Calculate total salary based on the selected driver and other factors
             const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
-    
+            const currentDate = new Date();
+            const dateTime = currentDate.toLocaleString();
+            const fileNumber = bookingDetails.company === 'self' ? `RSA${bookingId}` : bookingDetails.fileNumber;
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
-                totalSalary: totalSalary, // Include totalSalary in the booking data
+                totalSalary: totalSalary, 
                 pickupLocation: pickupLocation,
                 dropoffLocation: dropoffLocation,
-                status: 'booking added' // Add the status field
-
+                status: 'booking added',
+                dateTime: dateTime,
+                bookingId: `RSA${bookingId}`,
+                fileNumber: fileNumber, 
             };
-    
-            // Add the booking data to the Firestore collection
+
             const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-    
-            // Log the ID of the newly created document
+
             console.log('Document written with ID: ', docRef.id);
-    
-            // Navigate to the desired page
+
             navigate('/bookings/newbooking');
         } catch (error) {
             console.error('Error adding document: ', error);
         }
     };
-    
+
     return (
         <div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -318,51 +289,60 @@ useEffect(() => {
                             </h5>
                         </div>{' '}
                         <div style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                    Company
-                                </label>
-                                <select
-                                    id="company"
-                                    name="company"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('company', e.target.value)}
-                                >
-                                    <option value="">Select Company</option>
-                                    <option value="rsa">RSA</option>
-                                    <option value="self">Self</option>
-                                </select>
-                            </div>
-                            <div className="flex items-center mt-4">
-                                <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
-                                    File Number
-                                </label>
-                                <input
-                                    id="fileNumber"
-                                    type="text"
-                                    name="fileNumber"
-                                    className="form-input lg:w-[250px] w-2/3"
-                                    placeholder="Enter File Number"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                                />
-                            </div>
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            Company
+        </label>
+        <select
+            id="company"
+            name="company"
+            style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            onChange={(e) => handleInputChange('company', e.target.value)}
+        >
+            <option value="">Select Company</option>
+            <option value="rsa">RSA</option>
+            <option value="self">Self</option>
+        </select>
+    </div>
+    <div className="flex items-center mt-4">
+        <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
+            File Number
+        </label>
+        {bookingDetails.company === 'self' ? (
+            <h5 className="font-semibold text-lg dark:text-white-light">
+                R<span className="text-danger">S</span>A{bookingId}
+            </h5>
+        ) : (
+            <input
+                id="fileNumber"
+                type="text"
+                name="fileNumber"
+                className="form-input lg:w-[250px] w-2/3"
+                placeholder="Enter File Number"
+                style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+                value={bookingDetails.fileNumber}
+                onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+            />
+        )}
+    </div>
+{/* </div> */}
+
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -431,7 +411,7 @@ useEffect(() => {
                             </div>{' '}
                             <div style={{ width: '100%' }}>
                                   
-                                <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={['places']}>
+                            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={googleMapsLibraries}> {/* Pass libraries */}
                                     <div className="flex items-center mt-4">
                                         <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                             Pickup Location
@@ -566,7 +546,6 @@ useEffect(() => {
                                     <option value="S Lorry Crane Bed">S Lorry Crane Bed</option>
                                 </select>
                             </div>
-                           
                             <div className="flex items-center mt-4">
                                 <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Service Vehicle
@@ -596,29 +575,28 @@ useEffect(() => {
                                 </Link>
                             </div>
                             <div className="flex items-center mt-4">
-    <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Driver
-    </label>
-    <div className="form-input flex-1" style={{ position: 'relative', width: '100%' }}>
-        <input
-            id="driver"
-            type="text"
-            name="driver"
-            className="w-full"
-            placeholder="Select your driver"
-            style={{
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            value={selectedDriver && drivers.find(driver => driver.id === selectedDriver)?.driverName}
-
-            onClick={() => openModal(distance)}
-        />
-    </div>
+                                <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Driver
+                                </label>
+                                <div className="form-input flex-1" style={{ position: 'relative', width: '100%' }}>
+                                    <input
+                                        id="driver"
+                                        type="text"
+                                        name="driver"
+                                        className="w-full"
+                                        placeholder="Select your driver"
+                                        style={{
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        value={selectedDriver && drivers.find((driver) => driver.id === selectedDriver)?.driverName}
+                                        onClick={() => openModal(distance)}
+                                    />
+                                </div>
 
                                 <ReactModal
                                     isOpen={isModalOpen}
@@ -632,103 +610,78 @@ useEffect(() => {
                                             left: '50%',
                                             right: 'auto',
                                             bottom: 'auto',
-                                            marginRight: '-50%',
                                             transform: 'translate(-50%, -50%)',
                                             borderRadius: '10px',
-                                            boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+                                            maxWidth: '90vw',
+                                            maxHeight: '50vh',
+                                            border: 'none',
+                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
                                             padding: '20px',
                                         },
                                     }}
                                 >
-                                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Available Drivers for {serviceType}</h2>
+                                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
                                     <div className="grid grid-cols-1 gap-4">
-                                    {drivers.map((driver) => {
-    console.log('Driver Object:', driver.id); // Log the driver object here
-    return (
-        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-        
-            <table className="panel p-4" style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
-                <thead>
-                    <tr>
-                        <th>Driver Name</th>
-                        <th>Total Amount</th>
-                        <th>Select</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{driver.driverName || 'Unknown Driver'}</td> {/* Add a null check */}
-                       <td className='text-danger'> {driver.totalSalary}</td>
-                        <td>
-                            <input
-                                type="radio"
-                                name="selectedDriver"
-                                value={driver.id}
-                                checked={selectedDriver === driver.id}
-                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                            />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    );
-})}
+                                        {drivers.map((driver) => (
+                                            <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                                <table className="panel p-4 w-full">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Driver Name</th>
+                                                            <th>Total Amount</th>
+                                                            <th>Select</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>{driver.driverName || 'Unknown Driver'}</td>
+                                                            <td className="text-danger">{driver.totalSalary}</td>
+                                                            <td>
+                                                                <input
+                                                                    type="radio"
+                                                                    name="selectedDriver"
+                                                                    value={driver.id}
+                                                                    checked={selectedDriver === driver.id}
+                                                                    onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ))}
+                                    </div>
 
-
-
-</div>
-
-                                    <button onClick={closeModal}>Close</button>
+                                    <button onClick={closeModal} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+                                        Close
+                                    </button>
                                 </ReactModal>
                             </div>
-
                             <React.Fragment>
-                            <div className="mt-4 flex items-center">
-    <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Total Salary
-    </label>
-    <div className="form-input flex-1">
-        <input
-            id="totalSalary"
-            type="text"
-            name="totalSalary"
-            className="w-full text-danger text-bold"
-            style={{
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            value={totalSalary}
-            readOnly
-        />
-    </div>
-</div>
-        </React.Fragment>
-                                    {/* <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Total Amount for {serviceType}</h2>
-                                    <div className="grid grid-cols-1 gap-4">
-                                    {drivers.map((driver) => {
-    return (
-        <div key={driver} className="panel p-4 text-center text-danger " style={{ borderCollapse: 'collapse', width: '50%', maxWidth: '600px', margin: 'auto' }}>
-        
-            {driver.totalSalary}
-               
-                
-        </div>
-    );
-})}
-
-
-
-</div>
-
-                                   */}
-
-
-
+                                <div className="mt-4 flex items-center">
+                                    <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                        Total Salary
+                                    </label>
+                                    <div className="form-input flex-1">
+                                        <input
+                                            id="totalSalary"
+                                            type="text"
+                                            name="totalSalary"
+                                            className="w-full text-danger text-bold"
+                                            style={{
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '1rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }}
+                                            value={totalSalary}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                            </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Vehicle Number

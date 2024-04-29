@@ -195,7 +195,15 @@ const toggleDropoffDetails = () => {
 
       <table style={tableStyle}>
         <tbody>
-        
+       
+        <tr>
+            <td style={thStyle}>Date & Time :</td>
+            <td style={tdStyle}>{bookingDetails.dateTime} </td>
+          </tr>
+          <tr>
+            <td style={thStyle}>Booking ID :</td>
+            <td style={tdStyle}>{bookingDetails.bookingId} </td>
+          </tr>
           <tr>
             <td style={thStyle}>Total Salary :</td>
             <td style={tdStyle}>{bookingDetails.totalSalary} </td>

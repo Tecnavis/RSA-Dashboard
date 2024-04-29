@@ -57,6 +57,10 @@ console.log("driver",driver)
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Personal Phone Number:</td>
                         <td>{driver.personalphone}</td>
                     </tr>
+                    <tr>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Password:</td>
+                        <td>{driver.password}</td>
+                    </tr>
                     {driver && (
     <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: "0" }}>
         <thead>

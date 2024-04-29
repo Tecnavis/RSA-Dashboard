@@ -21,6 +21,9 @@ const DriverAdd = () => {
     const [selectedServices, setSelectedServices] = useState([]);
     const [basicSalaries, setBasicSalaries] = useState({}); // Ensure basicSalaries is defined here
     const [profileImage, setProfileImage] = useState(null); // State to store profile image file
+    const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const storage = getStorage();
 
     const serviceOptions = [
@@ -217,27 +220,53 @@ const DriverAdd = () => {
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
                                 </div>
                                 <div>
-                            <label htmlFor="password">Password</label>
-                            <input
-                                id="password"
-                                type="password"
-                                placeholder="Enter password"
-                                className="form-input"
-                                value={password}
-                                onChange={handlePasswordChange}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="confirmPassword">Confirm Password</label>
-                            <input
-                                id="confirmPassword"
-                                type="password"
-                                placeholder="Confirm password"
-                                className="form-input"
-                                value={confirmPassword}
-                                onChange={handleConfirmPasswordChange}
-                            />
-                        </div>
+    <label htmlFor="password">Password</label>
+    {editData ? (
+        <div>{password}</div>
+    ) : (
+        <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter password"
+            className="form-input"
+            value={password}
+            onChange={handlePasswordChange}
+        />
+    )}
+    {!editData && (
+        <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+        >
+            {showPassword ? "Hide" : "Show"} Password
+        </button>
+    )}
+</div>
+<div>
+    <label htmlFor="confirmPassword">Confirm Password</label>
+    {editData ? (
+        <div>{confirmPassword}</div>
+    ) : (
+        <input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Confirm password"
+            className="form-input"
+            value={confirmPassword}
+            onChange={handleConfirmPasswordChange}
+        />
+    )}
+    {!editData && (
+        <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+            {showConfirmPassword ? "Hide" : "Show"} Confirm Password
+        </button>
+    )}
+</div>
+
+
                                 <div>
     <div>
         <label style={{ cursor: 'pointer'}} className="flex items-center" onClick={() => setShowTable(true)}>

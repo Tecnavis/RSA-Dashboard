@@ -89,12 +89,7 @@ console.log(auth?.currentUser)
                                         </span>
                                     </div>
                                 </div>
-                                {/* <div>
-                                    <label className="flex cursor-pointer items-center">
-                                        <input type="checkbox" className="form-checkbox bg-white dark:bg-black" />
-                                        <span className="text-white-dark">Subscribe to weekly newsletter</span>
-                                    </label>
-                                </div> */}
+                               
                                 <button
   type="submit"
   className="btn !mt-6 w-full border-0 uppercase text-white shadow-[0_10px_20px_-10px_rgba(255, 0, 0, 0.44)]"
