@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DataTable } from 'mantine-datatable';
 import { Link } from 'react-router-dom';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, orderBy, query } from 'firebase/firestore';
 
 type RecordData = {
     index: number;
@@ -21,40 +21,43 @@ const NewBooking = () => {
     const [pageSize, setPageSize] = useState(10);
     const PAGE_SIZES = [10, 20, 30];
     const db = getFirestore();
+    
     useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const querySnapshot = await getDocs(collection(db, 'bookings'));
-              let data: RecordData[] = querySnapshot.docs.map((doc) => ({
-                  ...doc.data(),
-                  id: doc.id,
-              }));
-  
-              // Sort data based on dateTime field in descending order
-              data.sort((a, b) => {
-                  const dateA = new Date(a.dateTime).getTime();
-                  const dateB = new Date(b.dateTime).getTime();
-                  return dateB - dateA;
-              });
-  
-              console.log('Sorted data:', data);
-  
-              setRecordsData(data);
-          } catch (error) {
-              console.error('Error fetching data: ', error);
-          }
-      };
-  
-      fetchData().catch(console.error);
-  }, [db]);
+        const fetchData = async () => {
+            try {
+                const q = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+                let data: RecordData[] = querySnapshot.docs.map((doc) => ({
+                    ...doc.data(),
+                    id: doc.id,
+                }));
+
+                console.log('Sorted data:', data);
+
+                setRecordsData(data);
+            } catch (error) {
+                console.error('Error fetching data: ', error);
+            }
+        };
+
+        fetchData().catch(console.error);
+    }, [db]);
   
     return (
         <div>
-            <div className="panel mt-6">
-                <h5 className="font-semibold text-lg dark:text-white-light mb-5">
+            <div className="flex justify-between items-center mb-6">
+                <h5 className="font-semibold text-lg dark:text-white-light">
                     New Bookings
                 </h5>
+                <Link
+                    to="/bookings/booking"
+                    className="btn btn-success"
+                >
+                    Add Booking
+                </Link>
+            </div>
 
+            <div className="panel">
                 <div className="datatables">
                     <DataTable
                         noRecordsText="No results match your search query"

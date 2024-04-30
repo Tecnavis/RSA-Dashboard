@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import { GoogleMap, LoadScript, Marker, DistanceMatrixService } from '@react-google-maps/api';
-import IconPlus from '../../components/Icon/IconPlus';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
 import { googleMapsApiKey ,googleMapsLibraries} from '../../config/config';
 import { query, where } from 'firebase/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 
 const mapContainerStyle = {
     height: '400px',
@@ -17,6 +17,9 @@ const defaultCenter = { lat: 10.8505, lng: 76.2711 };
 
 const Booking = () => {
     const db = getFirestore();
+    const location = useLocation();
+    const bookId = location.state.id;
+console.log("bookId",bookId)
     const navigate = useNavigate();
     const [bookingId, setBookingId] = useState<string>('');
     useEffect(() => {
@@ -245,6 +248,7 @@ const Booking = () => {
         }
     }, [db, serviceType, serviceDetails]);
 
+
     const handleAddBooking = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -253,27 +257,30 @@ const Booking = () => {
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
             const fileNumber = bookingDetails.company === 'self' ? `RSA${bookingId}` : bookingDetails.fileNumber;
+    
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
-                totalSalary: totalSalary, 
+                totalSalary: totalSalary,
                 pickupLocation: pickupLocation,
                 dropoffLocation: dropoffLocation,
                 status: 'booking added',
                 dateTime: dateTime,
                 bookingId: `RSA${bookingId}`,
-                fileNumber: fileNumber, 
+                fileNumber: fileNumber,
+                createdAt: serverTimestamp() 
             };
-
+    
             const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-
+    
             console.log('Document written with ID: ', docRef.id);
-
+    
             navigate('/bookings/newbooking');
         } catch (error) {
             console.error('Error adding document: ', error);
         }
     };
+    
 
     return (
         <div>
@@ -411,7 +418,7 @@ const Booking = () => {
                             </div>{' '}
                             <div style={{ width: '100%' }}>
                                   
-                            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={googleMapsLibraries}> {/* Pass libraries */}
+                            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={googleMapsLibraries}> 
                                     <div className="flex items-center mt-4">
                                         <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                             Pickup Location
@@ -547,33 +554,28 @@ const Booking = () => {
                                 </select>
                             </div>
                             <div className="flex items-center mt-4">
-                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Service Vehicle
-                                </label>
-                                <select
-                                    id="serviceVehicle"
-                                    name="serviceVehicle"
-                                    className="form-select flex-1"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                                >
-                                    <option value=""></option>
-                                    <option value="United States">United States</option>
-                                    <option value="United Kingdom">United Kingdom</option>
-                                    <option value="Zimbabwe">Zimbabwe</option>
-                                </select>
-                                <Link to="/showrooms/showroom" className="bg-success text-white p-2 ml-2" style={{ borderRadius: '20px' }}>
-                                    <IconPlus />
-                                </Link>
-                            </div>
+    <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Service Vehicle Number
+    </label>
+    <input
+        id="serviceVehicle"
+        type="text"
+        name="serviceVehicle"
+        className="form-input flex-1"
+        placeholder="Enter Service Vehicle Number"
+        style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '5px',
+            fontSize: '1rem',
+            outline: 'none',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }}
+        onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+    />
+</div>
+
                             <div className="flex items-center mt-4">
                                 <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Driver
@@ -684,7 +686,7 @@ const Booking = () => {
                             </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Vehicle Number
+                                   Customer Vehicle Number
                                 </label>
                                 <input
                                     id="vehicleNumber"
@@ -706,12 +708,12 @@ const Booking = () => {
                             </div>
                             <div className="flex items-center mt-4">
                                 <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Vehicle Model
+                                    Brand Name
                                 </label>
-                                <select
+                                <input
                                     id="vehicleModel"
                                     name="vehicleModel"
-                                    className="form-select flex-1"
+                                    className="form-input flex-1"
                                     style={{
                                         width: '100%',
                                         padding: '0.5rem',
@@ -722,11 +724,9 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
-                                >
-                                    <option value=""></option>
-                                    <option value="United States">United States</option>
-                                    <option value="Zimbabwe">Zimbabwe</option>
-                                </select>
+                                />
+                                    
+                                
                             </div>
                             <div className="mt-4 flex items-center">
                                 <textarea

@@ -25,14 +25,18 @@ console.log("data",items)
     }, []);
 
     const handleDelete = async (userId: string) => {
-        try {
-            const userRef = doc(db, 'driver', userId);
-            await deleteDoc(userRef);
-            setItems((prevItems: any) => prevItems.filter((item: any) => item.id !== userId));
-        } catch (error) {
-            console.error('Error deleting document: ', error);
+        const confirmDelete = window.confirm('Are you sure you want to delete this user?');
+        if (confirmDelete) {
+            try {
+                const userRef = doc(db, 'driver', userId);
+                await deleteDoc(userRef);
+                setItems((prevItems: any) => prevItems.filter((item: any) => item.id !== userId));
+            } catch (error) {
+                console.error('Error deleting document: ', error);
+            }
         }
     };
+    
 
     const handleEdit = (item) => {
         navigate(`/users/driver-add/${item.id}`, { state: { editData: item } });
