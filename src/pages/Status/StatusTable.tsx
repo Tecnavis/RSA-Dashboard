@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const StatusTable = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate(); // Access the history object
+    const navigate = useNavigate(); 
 
     const [recordsData, setRecordsData] = useState([]);
     const [drivers, setDrivers] = useState({});
