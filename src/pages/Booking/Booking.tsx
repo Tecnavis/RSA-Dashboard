@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getFirestore, collection, addDoc, getDocs, updateDoc, getDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import { GoogleMap, LoadScript, Marker, DistanceMatrixService } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
-import { googleMapsApiKey, googleMapsLibraries } from '../../config/config';
+import { googleMapsApiKey ,googleMapsLibraries} from '../../config/config';
 import { query, where } from 'firebase/firestore';
 import { serverTimestamp } from 'firebase/firestore';
 
@@ -18,8 +18,8 @@ const defaultCenter = { lat: 10.8505, lng: 76.2711 };
 const Booking = () => {
     const db = getFirestore();
     const location = useLocation();
-    const bookId = location.state.id;
-    console.log('bookId', bookId);
+    // const bookId = location.state.id;
+// console.log("bookId",bookId)
     const navigate = useNavigate();
     const [bookingId, setBookingId] = useState<string>('');
     useEffect(() => {
@@ -42,6 +42,7 @@ const Booking = () => {
         comments: '',
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalDistance, setModalDistance] = useState([]);
     const [selectedDriver, setSelectedDriver] = useState(null);
     const [serviceDetails, setServiceDetails] = useState('');
 
@@ -78,7 +79,7 @@ const Booking = () => {
         if (!inputRef) return;
 
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-        autocomplete.setFields(['geometry', 'name']);
+        autocomplete.setFields(['geometry', 'name']); 
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             if (place.geometry) {
@@ -246,17 +247,17 @@ const Booking = () => {
             setDrivers([]);
         }
     }, [db, serviceType, serviceDetails]);
-    const [operationMode, setOperationMode] = useState('add'); 
+
+
     const handleAddBooking = async () => {
         try {
-            // Add booking operation...
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
             const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
             const fileNumber = bookingDetails.company === 'self' ? `RSA${bookingId}` : bookingDetails.fileNumber;
-
+    
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
@@ -267,42 +268,20 @@ const Booking = () => {
                 dateTime: dateTime,
                 bookingId: `RSA${bookingId}`,
                 fileNumber: fileNumber,
-                createdAt: serverTimestamp(),
+                createdAt: serverTimestamp() 
             };
-
+    
             const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-
+    
             console.log('Document written with ID: ', docRef.id);
-
+    
             navigate('/bookings/newbooking');
-            setOperationMode('update'); // Change mode to "update" after adding
         } catch (error) {
             console.error('Error adding document: ', error);
         }
     };
-
-    const handleUpdateBooking = async () => {
-        try {
-            const bookingDocRef = doc(db, 'bookings', bookId);
-            const bookingDocSnap = await getDoc(bookingDocRef);
-            if (bookingDocSnap.exists()) {
-                const existingBookingData = bookingDocSnap.data();
-                    const updatedBookingData = {
-                    ...existingBookingData,
-                    serviceType: bookingDetails.serviceType,
-                    serviceVehicle: bookingDetails.serviceVehicle,
-                    driver: bookingDetails.driver,
-                };
     
-                await updateDoc(bookingDocRef, updatedBookingData);
-                console.log('Booking updated successfully!');
-            } else {
-                console.log('No booking found with the specified ID:', bookId);
-            }
-        } catch (error) {
-            console.error('Error updating booking:', error);
-        }
-    };
+
     return (
         <div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -317,59 +296,60 @@ const Booking = () => {
                             </h5>
                         </div>{' '}
                         <div style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                    Company
-                                </label>
-                                <select
-                                    id="company"
-                                    name="company"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('company', e.target.value)}
-                                >
-                                    <option value="">Select Company</option>
-                                    <option value="rsa">RSA</option>
-                                    <option value="self">Self</option>
-                                </select>
-                            </div>
-                            <div className="flex items-center mt-4">
-                                <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
-                                    File Number
-                                </label>
-                                {bookingDetails.company === 'self' ? (
-                                    <h5 className="font-semibold text-lg dark:text-white-light">
-                                        R<span className="text-danger">S</span>A{bookingId}
-                                    </h5>
-                                ) : (
-                                    <input
-                                        id="fileNumber"
-                                        type="text"
-                                        name="fileNumber"
-                                        className="form-input lg:w-[250px] w-2/3"
-                                        placeholder="Enter File Number"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        value={bookingDetails.fileNumber}
-                                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                                    />
-                                )}
-                            </div>
-                            {/* </div> */}
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            Company
+        </label>
+        <select
+            id="company"
+            name="company"
+            style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            onChange={(e) => handleInputChange('company', e.target.value)}
+        >
+            <option value="">Select Company</option>
+            <option value="rsa">RSA</option>
+            <option value="self">Self</option>
+        </select>
+    </div>
+    <div className="flex items-center mt-4">
+        <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
+            File Number
+        </label>
+        {bookingDetails.company === 'self' ? (
+            <h5 className="font-semibold text-lg dark:text-white-light">
+                R<span className="text-danger">S</span>A{bookingId}
+            </h5>
+        ) : (
+            <input
+                id="fileNumber"
+                type="text"
+                name="fileNumber"
+                className="form-input lg:w-[250px] w-2/3"
+                placeholder="Enter File Number"
+                style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+                value={bookingDetails.fileNumber}
+                onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+            />
+        )}
+    </div>
+{/* </div> */}
+
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -438,7 +418,7 @@ const Booking = () => {
                             </div>{' '}
                             <div style={{ width: '100%' }}>
                                   
-                                <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={googleMapsLibraries}>
+                            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={googleMapsLibraries}> 
                                     <div className="flex items-center mt-4">
                                         <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                             Pickup Location
@@ -574,27 +554,28 @@ const Booking = () => {
                                 </select>
                             </div>
                             <div className="flex items-center mt-4">
-                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Service Vehicle Number
-                                </label>
-                                <input
-                                    id="serviceVehicle"
-                                    type="text"
-                                    name="serviceVehicle"
-                                    className="form-input flex-1"
-                                    placeholder="Enter Service Vehicle Number"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                                />
-                            </div>
+    <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Service Vehicle Number
+    </label>
+    <input
+        id="serviceVehicle"
+        type="text"
+        name="serviceVehicle"
+        className="form-input flex-1"
+        placeholder="Enter Service Vehicle Number"
+        style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '5px',
+            fontSize: '1rem',
+            outline: 'none',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }}
+        onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+    />
+</div>
+
                             <div className="flex items-center mt-4">
                                 <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Driver
@@ -705,7 +686,7 @@ const Booking = () => {
                             </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Customer Vehicle Number
+                                   Customer Vehicle Number
                                 </label>
                                 <input
                                     id="vehicleNumber"
@@ -744,6 +725,8 @@ const Booking = () => {
                                     }}
                                     onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
                                 />
+                                    
+                                
                             </div>
                             <div className="mt-4 flex items-center">
                                 <textarea
@@ -764,7 +747,7 @@ const Booking = () => {
                                 />
                             </div>
                             <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                                {/* <button
+                                <button
                                     type="button"
                                     onClick={handleAddBooking}
                                     style={{
@@ -778,34 +761,7 @@ const Booking = () => {
                                     }}
                                 >
                                     Save
-                                </button> */}
-                                 {operationMode === 'add' && (
-                <button onClick={handleAddBooking}  style={{
-                    backgroundColor: '#28a745',
-                    color: '#fff',
-                    padding: '0.5rem',
-                    width: '100%',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                }}>
-                    Save
-                </button>
-            )}
-
-            {operationMode === 'update' && (
-                <button onClick={handleUpdateBooking}  style={{
-                    backgroundColor: '#28a745',
-                    color: '#fff',
-                    padding: '0.5rem',
-                    width: '100%',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                }}>
-                    Update
-                </button>
-            )}
+                                </button>
                             </div>
                         </div>
                     </div>
