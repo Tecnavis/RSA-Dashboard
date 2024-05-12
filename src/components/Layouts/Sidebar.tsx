@@ -121,7 +121,7 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-                          
+
                             <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
@@ -189,7 +189,6 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink to="/checkstatus/status">Status</NavLink>
                                         </li>
-                                     
                                     </ul>
                                 </AnimateHeight>
                             </li>
@@ -216,6 +215,9 @@ const Sidebar = () => {
                                     <ul className="sub-menu text-gray-500">
                                         <li>
                                             <NavLink to="/showrooms/showroom">ShowRoom Details</NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink to="/showrooms/showrm">ShowRooms</NavLink>
                                         </li>
                                     </ul>
                                 </AnimateHeight>
@@ -316,7 +318,7 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-                          
+
                             <li className="menu nav-item">
                                 <button type="button" className={`${currentMenu === 'receivable' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('receivable')}>
                                     <div className="flex items-center">

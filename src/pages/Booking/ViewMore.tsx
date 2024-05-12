@@ -212,7 +212,7 @@ const ViewMore = () => {
                         <td style={tdStyle}>{bookingDetails.bookingId} </td>
                     </tr>
                     <tr>
-                        <td style={thStyle}>Total Salary :</td>
+                        <td style={thStyle}>Payable Amount :</td>
                         <td style={tdStyle}>{bookingDetails.totalSalary} </td>
                     </tr>
                     <tr>
@@ -264,7 +264,7 @@ const ViewMore = () => {
                                 : 'Location not selected'}
                         </td>
                     </tr>
-
+                   
                     <tr>
                         <td style={thStyle}>Distance :</td>
                         <td style={tdStyle}>{bookingDetails.distance}</td>

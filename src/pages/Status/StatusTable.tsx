@@ -8,10 +8,13 @@ import { useNavigate } from 'react-router-dom';
 const StatusTable = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate(); 
+    const [editData, setEditData] = useState(null);
 
     const [recordsData, setRecordsData] = useState([]);
     const [drivers, setDrivers] = useState({});
     const db = getFirestore();
+
+console.log("first",drivers)
 
     useEffect(() => {
         dispatch(setPageTitle('Status'));
@@ -29,6 +32,7 @@ const StatusTable = () => {
             const driverData = {};
             for (const record of updatedBookingsData) {
                 const driverId = record.selectedDriver;
+                
                 if (driverId && !driverData[driverId]) {
                     const driverDoc = await getDoc(doc(db, 'driver', driverId));
                     if (driverDoc.exists()) {
@@ -45,14 +49,11 @@ const StatusTable = () => {
 
         return () => unsubscribe();
     }, [db, dispatch]);
-    const handleReassignClick = (id) => {
-        console.log("Reassign button clicked for booking ID:", id);
-        navigate(`/bookings/booking`, { state: { id} });
+  
+    const handleReassignClick = (record) => {
+            navigate(`/bookings/booking/${record.id}`, { state: { editData: record } });
     };
     
-    
-    
-
     const sortedRecordsData = recordsData.slice().sort((a, b) => {
         const dateA = new Date(a.dateTime);
         const dateB = new Date(b.dateTime);
@@ -84,34 +85,42 @@ const StatusTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {ongoingBookings.map((record) => (
-                                <tr key={record.id}>
-                                    <td>{record.dateTime}</td>
-                                    <td>{record.driver}</td>
-                                    <td>{drivers[record.selectedDriver]?.phone} / Personal No:{drivers[record.selectedDriver]?.personalphone}</td>
-                                    <td>{record.customerName}</td>
-                                    <td>{record.phoneNumber} / {record.mobileNumber}</td>
-                                    <td>{record.pickupLocation.name}</td>
-                                    <td>{record.dropoffLocation.name}</td>
-                                    <td style={{
-                                        color: record.status === 'Rejected' ? 'white' : 'black',
-                                        backgroundColor: record.status === 'Rejected' ? 'red' : 'orange',
-                                        borderRadius: '15px',
-                                        fontWeight: '900',
-                                        cursor: 'pointer',
-                                        textAlign: 'center',
-                                        animation: 'fadeIn 2s ease-in-out',
-                                        lineHeight: '1.5',
-                                        letterSpacing: '1.5px'
-                                    }}>
-                                        {record.status}
-                                        {record.status === 'Rejected' && (
-                                            <button className='btn btn-danger' onClick={() => handleReassignClick(record.id)}>Reassign Booking</button>
-                                        )}
-                                    </td>
+                        {ongoingBookings.map((record) => (
+    <tr key={record.id}>
+        <td>{record.dateTime}</td>
+        <td>{record.driver}</td>
+        
+        <td>{drivers[record.selectedDriver]?.phone} / Personal No:{drivers[record.selectedDriver]?.personalphone}</td>
+<td>{record.customerName}</td>
+        <td>{record.phoneNumber} / {record.mobileNumber}</td>
+        <td>{record.pickupLocation.name}</td>
+        <td>{record.dropoffLocation.name}</td>
+        <td
+            style={{
+                color: record.status === 'Rejected' ? 'white' : 'black',
+                backgroundColor: record.status === 'Rejected' ? 'red' : 'orange',
+                borderRadius: '15px',
+                fontWeight: '900',
+                cursor: 'pointer',
+                textAlign: 'center',
+                animation: 'fadeIn 2s ease-in-out',
+                lineHeight: '1.5',
+                letterSpacing: '1.5px'
+            }}
+        >
+            {record.status}
+            {record.status === 'Rejected' && (
+                <button
+                    className="btn btn-danger rounded-full px-4 py-2 text-white font-semibold shadow-md hover:shadow-lg"
+                    onClick={() => handleReassignClick(record)}
+                >              
+                    Reassign
+                </button>
+            )}
+        </td>
+    </tr>
+))}
 
-                                </tr>
-                            ))}
                         </tbody>
                     </table>
                 </div>

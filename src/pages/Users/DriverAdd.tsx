@@ -2,9 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
-import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconPlusCircle from '../../components/Icon/IconPlusCircle';
-import { storage } from '../../config/config';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const DriverAdd = () => {

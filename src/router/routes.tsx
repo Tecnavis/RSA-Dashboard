@@ -10,8 +10,6 @@ import InvoicedBooking from '../pages/Booking/InvoicedBooking';
 import DriverAdd from '../pages/Users/DriverAdd';
 import CustomerAdd from '../pages/Users/CustomerAdd';
 import CompanyAdd from '../pages/Users/CompanyAdd';
-import ShowRoom from '../pages/ShowRooms/ShowRoom';
-import ShowRoomMap from '../pages/ShowRooms/ShowRoomMap';
 import ServiceType from '../pages/Service/ServiceType';
 import Adjustment from '../pages/Service/Adjustment';
 import Tarrif from '../pages/Service/Tarrif';
@@ -31,6 +29,11 @@ import Boo from '../pages/Booking/DriverSalary';
 import DriverSalary from '../pages/Booking/DriverSalary';
 import Status from '../pages/Status/StatusTable';
 import StatusTable from '../pages/Status/StatusTable';
+import UpdateBooking from '../pages/Booking/UpdateBooking';
+import ShowRoom from '../pages/ShowRooms/ShowRoom';
+import ShowRoomss from '../pages/ShowRooms/ShowRoomss';
+import ShowRm from '../pages/ShowRooms/ShowRm';
+
 
 
 const Index = lazy(() => import('../pages/Index'));
@@ -470,6 +473,7 @@ const routes = [
         path: '/users/driver-add/:id',
         element: <DriverAdd />,
     },
+   
     {
         path: '/users/customer-add',
         element: <CustomerAdd />,
@@ -506,6 +510,10 @@ const routes = [
         element: <Booking />,
     },
     {
+        path: '/bookings/booking/:id',
+        element: <Booking />,
+    },
+    {
         path: '/bookings/newbooking',
         element: <NewBooking />,
     },
@@ -526,6 +534,10 @@ const routes = [
         element: <InvoicedBooking />,
     },
     {
+        path: '/updatebooking',
+        element: <UpdateBooking />,
+    },
+    {
         path: "/bookings/newbooking/viewmore/:id",
         element: <ViewMore />,
     },
@@ -536,8 +548,12 @@ const routes = [
     element: <ShowRoom />,
 },
 {
-    path: 'showrooms/show-room',
-    element: <ShowRoomMap/>,
+    path: 'showrooms/showroomss',
+    element: <ShowRoomss/>,
+},
+{
+    path: 'showrooms/showrm',
+    element: <ShowRm/>,
 },
 // service
 {
