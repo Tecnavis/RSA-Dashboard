@@ -33,6 +33,7 @@ import UpdateBooking from '../pages/Booking/UpdateBooking';
 import ShowRoom from '../pages/ShowRooms/ShowRoom';
 import ShowRoomss from '../pages/ShowRooms/ShowRoomss';
 import ShowRm from '../pages/ShowRooms/ShowRm';
+import PendingBookings from '../pages/Booking/PendingBookings';
 
 
 
@@ -530,6 +531,10 @@ const routes = [
         element: <ClosedBooking />,
     },
     {
+        path: '/bookings/pendingbookings',
+        element: <PendingBookings />,
+    },
+    {
         path: '/bookings/invoicedbooking',
         element: <InvoicedBooking />,
     },
@@ -547,14 +552,8 @@ const routes = [
     path: 'showrooms/showroom',
     element: <ShowRoom />,
 },
-{
-    path: 'showrooms/showroomss',
-    element: <ShowRoomss/>,
-},
-{
-    path: 'showrooms/showrm',
-    element: <ShowRm/>,
-},
+
+
 // service
 {
     path: '/service/service-type',

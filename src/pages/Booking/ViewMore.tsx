@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const ViewMore = () => {
     const { id } = useParams();
@@ -66,19 +65,12 @@ const ViewMore = () => {
         }
     };
     const handleUpdateBooking = async () => {
-      try {
-          // Perform the update operation here
-          // Example:
-          await updateDoc(doc(db, 'bookings', id), {
-              // Update fields here
-          });
-          console.log('Document successfully updated!');
-          // You can also navigate to another page after updating
-          // navigate('/bookings'); // Example navigation
-      } catch (error) {
-          console.error('Error updating document:', error);
-      }
-  };
+        try {
+           
+        } catch (error) {
+            console.error('Error updating document:', error);
+        }
+    };
     if (!bookingDetails) {
         return <div>Loading...</div>;
     }
@@ -108,16 +100,33 @@ const ViewMore = () => {
     };
 
     return (
+        // <div style={containerStyle}>
+        //     <h5 className="font-semibold text-lg dark:text-white-light mb-5">Booking Details </h5>
+        //     <div className="flex mb-5">
+        //         <button onClick={togglePickupDetails} className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        //             {showPickupDetails ? 'Close' : 'Show Pickup Details'}
+        //         </button>
+        //         <button onClick={toggleDropoffDetails} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+        //             {showDropoffDetails ? 'Close' : 'Show Dropoff Details'}
+        //         </button>
+        //     </div>
         <div style={containerStyle}>
-            <h5 className="font-semibold text-lg dark:text-white-light mb-5">Booking Details </h5>
-            <div className="flex mb-5">
-                <button onClick={togglePickupDetails} className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    {showPickupDetails ? 'Close' : 'Show Pickup Details'}
-                </button>
-                <button onClick={toggleDropoffDetails} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                    {showDropoffDetails ? 'Close' : 'Show Dropoff Details'}
-                </button>
-            </div>
+        <h5 className="font-semibold text-lg dark:text-white-light mb-5">Booking Details </h5>
+        <div className="flex mb-5">
+            <button onClick={togglePickupDetails} className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                {showPickupDetails ? 'Close' : 'Show Pickup Details'}
+            </button>
+            <button onClick={toggleDropoffDetails} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                {showDropoffDetails ? 'Close' : 'Show Dropoff Details'}
+            </button>
+        </div>
+{/* 
+        <button onClick={handleDeleteBooking} className="btn btn-danger">
+            Delete Booking
+        </button>
+        <button onClick={handleUpdateBooking} className="btn btn-primary">Update</button>
+   */}
+
             {showPickupDetails && (
                 <div>
                     {bookingDetails.kilometer && (

@@ -1,21 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { GoogleMap, LoadScript, Marker, DistanceMatrixService } from '@react-google-maps/api';
+import { GoogleMap } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
-import { googleMapsApiKey ,googleMapsLibraries} from '../../config/config';
 import { query, where } from 'firebase/firestore';
 import { serverTimestamp } from 'firebase/firestore';
 import useGoogleMaps from './GoogleMaps';
 import MyMapComponent from './MyMapComponent';
-
-const mapContainerStyle = {
-    height: '400px',
-    width: '100%',
-};
-
-const defaultCenter = { lat: 10.8505, lng: 76.2711 };
 
 const Booking = () => {
     const db = getFirestore();
@@ -25,7 +17,7 @@ const Booking = () => {
         const newBookingId = uuid().substring(0, 6);
         setBookingId(newBookingId);
     }, []);
-    const googleMapsLoaded = useGoogleMaps(googleMapsApiKey);
+    const googleMapsLoaded = useGoogleMaps();
 
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
@@ -44,7 +36,6 @@ const Booking = () => {
     const { state } = useLocation();
     const [map, setMap] = useState(null); // Initialize map state
 
-    const [idnumber, setIdnumber] = useState('');
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -83,11 +74,10 @@ const Booking = () => {
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
             setDropoffLocation(state.editData.dropoffLocation || '');
-
         }
     }, [state]);
 
-    console.log("sgy",)
+    console.log('sgy');
     const openModal = () => {
         setIsModalOpen(true);
     };
@@ -97,79 +87,88 @@ const Booking = () => {
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
-        
-    switch (field) {
-        case 'customerName':
-            setCustomerName(value);
-            break;
-        case 'fileNumber':
-            setFileNumber(value);
-            break;
-            case 'company':
-                setCompany(value);
-                console.log('Company:', value); // Add this line for debugging
-                if (value === 'self') {
-                    setFileNumber(`RSA${bookingId}`);
-                    console.log('File Number:', `RSA${bookingId}`); // Add this line for debugging
-                    setBookingDetails({ ...bookingDetails, fileNumber: `RSA${bookingId}` });
-                } else if (value === 'RSA') {
-                    setBookingDetails({ ...bookingDetails }); // You can omit fileNumber from updating
-                }
+
+        switch (field) {
+            case 'customerName':
+                setCustomerName(value || '');
                 break;
-            
+                case 'company':
+                    setCompany(value);
+                    setFileNumber(value === 'self' ? bookingId : '');
+                    break;
+                case 'fileNumber':
+                    setFileNumber(value || '');
+                    break;
             case 'bookingId':
-                setBookingId(value);
+                setBookingId(value || '');
                 break;
             case 'comments':
-                setComments(value);
+                setComments(value || '');
                 break;
             case 'distance':
-                setDistance(value);
+                setDistance(value || '');
+                openModal();
                 break;
             case 'serviceVehicle':
-                setServiceVehicle(value);
+                setServiceVehicle(value || '');
                 break;
             case 'dropoffLocation':
-                setDropoffLocation(value);
+                setDropoffLocation(value || '');
                 break;
             case 'mobileNumber':
-                setMobileNumber(value);
+                setMobileNumber(value || '');
                 break;
             case 'phoneNumber':
-                setPhoneNumber(value);
+                setPhoneNumber(value || '');
                 break;
             case 'pickupLocation':
-                setPickupLocation(value);
+                setPickupLocation(value || '');
                 break;
             case 'totalSalary':
-                setTotalSalary(value);
+                setTotalSalary(value || '');
                 break;
             case 'vehicleModel':
-                setVehicleModel(value);
+                setVehicleModel(value || '');
                 break;
+            case 'selectedDriver':
+                console.log('Selected Driver ID:', value);
+                setSelectedDriver(value);
+                // Calculate total salary for the selected driver
+                const selectedDriverTotalSalary = calculateTotalSalary(
+                    serviceDetails.salary,
+                    totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0,
+                    serviceDetails.basicSalaryKM,
+                    serviceDetails.salaryPerKM
+                );
+                // Update the Total Salary field with the calculated total salary
+                setTotalSalary(selectedDriverTotalSalary);
+                const selectedDriverTotalDistance = totalDistances.find(dist => dist.driverId === value)?.totalDistance || 0;
+                setTotalDistance(selectedDriverTotalDistance);
+                break;
+           
             case 'vehicleNumber':
-                setVehicleNumber(value);
+                setVehicleNumber(value || '');
                 break;
             default:
                 break;
         }
-        
+
         if (field === 'distance') {
             openModal(value);
         } else if (field === 'serviceType') {
-            setServiceType(value);
+            setServiceType(value || '');
             openModal();
         } else if (field === 'selectedDriver') {
             console.log('Selected Driver ID:', value);
-            setSelectedDriver(value);
+            setSelectedDriver(value || '');
         }
     };
-    
+
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
 
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-        autocomplete.setFields(['geometry', 'name']); 
+        autocomplete.setFields(['geometry', 'name']);
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             if (place.geometry) {
@@ -205,9 +204,6 @@ const Booking = () => {
         }
     }, [pickupLocation, dropoffLocation]);
 
-   
-    
-
     useEffect(() => {
         const fetchDrivers = async () => {
             if (!serviceType || !serviceDetails) {
@@ -226,12 +222,9 @@ const Booking = () => {
                             return null;
                         }
 
-                        const totalSalary = calculateTotalSalary(serviceDetails.salary, driverData.distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM);
-
                         return {
                             id: doc.id,
                             ...driverData,
-                            totalSalary,
                         };
                     })
                     .filter(Boolean);
@@ -250,7 +243,7 @@ const Booking = () => {
         }
     }, [db, serviceType, serviceDetails]);
 
-    const [totalSalary, setTotalSalary] = useState(0);
+    const [totalSalary, setTotalSalary] = useState([]);
 
     useEffect(() => {
         const fetchServiceDetails = async () => {
@@ -281,18 +274,23 @@ const Booking = () => {
     }, [db, serviceType]);
 
     const [pickupDistances, setPickupDistances] = useState([]);
-    console.log("first",pickupDistances)
+    console.log('first', pickupDistances);
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
         const R = 6371; // Radius of the Earth in kilometers
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c;
         return distance;
     };
+    const driversWithDistances = drivers.map((driver, index) => ({
+        driver,
+        pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
+    }));
+    driversWithDistances.sort((a, b) => a.pickupDistance - b.pickupDistance);
+    const [totalDistance, setTotalDistance] = useState([]);
+    const [totalDistances, setTotalDistances] = useState([]);
 
     useEffect(() => {
         const fetchDrivers = async () => {
@@ -309,36 +307,30 @@ const Booking = () => {
                     .map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
-                        distanceNumeric: doc.data().distance, // Assuming distance is stored in the Firestore document
                     }))
                     .filter((driver) => driver.selectedServices && driver.selectedServices.includes(serviceType))
-                    .map((driver) => ({
-                        ...driver,
-                        totalSalary: calculateTotalSalary(serviceDetails.salary, driver.distanceNumeric, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM),
-                    }));
+                    .map((driver) => {
+                        console.log('dist', distanceNumeric);
+                        console.log('Driverrrrr ID:', driver.id);
 
-                const total = filteredDrivers.reduce((acc, driver) => acc + driver.totalSalary, 0);
-                setTotalSalary(total);
-
-                console.log('Filtered Drivers:', filteredDrivers);
-
-                // Find current location data from the filtered drivers
-                const currentLocationDriver = filteredDrivers.find(driver => driver.currentLocation);
-                if (currentLocationDriver && currentLocationDriver.currentLocation.latitude && currentLocationDriver.currentLocation.longitude) {
-                    const lat1 = currentLocationDriver.currentLocation.latitude;
-                    const lng1 = currentLocationDriver.currentLocation.longitude;
-
-                    const pickupDistances = filteredDrivers.map(driver => {
-                        return calculateDistance(pickupLocation.lat, pickupLocation.lng, lat1, lng1);
+                        return {
+                            ...driver,
+                            totalSalary: calculateTotalSalary(serviceDetails.salary, distanceNumeric, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM),
+                        };
                     });
 
-                    console.log('Pickup Distances:', pickupDistances);
+                const pickupDistances = filteredDrivers.map((driver) => {
+                    if (driver.currentLocation && driver.currentLocation.latitude && driver.currentLocation.longitude) {
+                        const lat1 = driver.currentLocation.latitude;
+                        const lng1 = driver.currentLocation.longitude;
+                        return calculateDistance(pickupLocation.lat, pickupLocation.lng, lat1, lng1);
+                    } else {
+                        return null;
+                    }
+                });
 
-                    setPickupDistances(pickupDistances);
-                } else {
-                    console.log('Current location data not found or incomplete in the drivers collection.');
-                }
-
+                console.log('Pickup Distances:', pickupDistances);
+                setPickupDistances(pickupDistances);
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
@@ -351,52 +343,61 @@ const Booking = () => {
             setDrivers([]);
         }
     }, [serviceType, serviceDetails, pickupLocation]);
+    useEffect(() => {
+        if (pickupDistances.length > 0 && drivers.length > 0) {
+            const totalDistances = drivers.map((driver, index) => {
+                const numericPickupDistance = pickupDistances[index] || 0; // Default to 0 if pickupDistance is not available
+                const totalDistance = distanceNumeric + numericPickupDistance;
+                return { driverId: driver.id, totalDistance };
+            });
+            console.log('Total Distances:', totalDistances);
+            setTotalDistances(totalDistances); // Set totalDistances state
+        }
+    }, [pickupDistances, drivers, distanceNumeric]);
 
     useEffect(() => {
         if (pickupDistances.length > 0) {
             // Calculate total salary using pickup distances
             const totalSalaries = drivers.map((driver, index) => {
                 const numericPickupDistance = pickupDistances[index];
-                console.log(distanceNumeric);
+
+                console.log('distanceNumericcc', distanceNumeric);
+
+                console.log('numericPickupDistance', numericPickupDistance);
 
                 return calculateTotalSalary(
                     serviceDetails.salary,
-                    distanceNumeric,
+                    totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
                     serviceDetails.basicSalaryKM,
                     serviceDetails.salaryPerKM,
                     numericPickupDistance
                 );
             });
-            // Sum up the total salaries
-            const total = totalSalaries.reduce((acc, salary) =>  salary, 0);
-            setTotalSalary(total);
+            console.log('total amount array', totalSalaries);
+            // Calculate total salary for all drivers
+            const totalSalary = totalSalaries.reduce((acc, salary) => acc + salary, 0);
+            setTotalSalary(totalSalary);
         }
-    }, [pickupDistances, drivers, serviceDetails]);
-    const [totalDistance, setTotalDistance] = useState(0);
-    const calculateTotalSalary = (salary, distanceNumeric, kmValueNumeric, perKmValueNumeric, pickupDistance) => {
-        const numericBasicSalary = Number(salary);
-    
-        // Ensure distanceNumeric and pickupDistance are valid numbers
-        if (isNaN(distanceNumeric) || isNaN(pickupDistance)) {
-            console.error('Invalid distance or pickupDistance:', { distanceNumeric, pickupDistance });
-            return numericBasicSalary;
-        }
-    
-        // Adding the pickupDistance to the numericDistance
-        const numericDistanceWithPickup = distanceNumeric + pickupDistance;
-        console.log("Numeric Distance with Pickup:", numericDistanceWithPickup);
-        setTotalDistance(numericDistanceWithPickup);
+    }, [pickupDistances, drivers, serviceDetails, totalDistances]);
 
-        const numericBasicSalaryKM = Number(kmValueNumeric);
-        const numericSalaryPerKM = Number(perKmValueNumeric);
-    
-        if (numericDistanceWithPickup > numericBasicSalaryKM) {
-            return numericBasicSalary + (numericDistanceWithPickup - numericBasicSalaryKM) * numericSalaryPerKM;
+    console.log('totalDistancetotalDistance', totalDistance);
+
+    const calculateTotalSalary = (salary, totalDistances, kmValueNumeric, perKmValueNumeric) => {
+        const numericBasicSalary = Number(salary);
+        const numericDistanceNumeric = Number(distanceNumeric);
+        const numericKmValueNumeric = Number(kmValueNumeric);
+        const numericPerKmValueNumeric = Number(perKmValueNumeric);
+        const numericTotalDistances = Number(totalDistances);
+
+        console.log('Total Distance with Pickup:', numericTotalDistances);
+
+        if (numericTotalDistances > numericKmValueNumeric) {
+            return numericBasicSalary + (numericTotalDistances - numericKmValueNumeric) * numericPerKmValueNumeric;
         } else {
             return numericBasicSalary;
         }
     };
-    
+
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -404,14 +405,11 @@ const Booking = () => {
             // const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
-            let fileNumber;
+            let fileNumber = ''; // Initialize fileNumber variable
 
+        // Conditionally set fileNumber based on the value of company
         if (company === 'self') {
-            fileNumber = `RSA${bookingId}`;
-        } else if (company === 'rsa') {
-            fileNumber = bookingDetails.fileNumber || ''; // Use the existing fileNumber if available, otherwise set to empty string
-        } else {
-            fileNumber = ''; // Reset file number if the company is neither 'self' nor 'rsa'
+            fileNumber = bookingId; // Set fileNumber to bookingId when company is self
         }
             const bookingData = {
                 ...bookingDetails,
@@ -422,42 +420,39 @@ const Booking = () => {
                 status: 'booking added',
                 dateTime: dateTime,
                 bookingId: `RSA${bookingId}`,
-                createdAt: serverTimestamp() ,
-                comments: comments,
+                createdAt: serverTimestamp(),
+                comments: comments || '',
                 totalDistance: totalDistance, // Add total distance here
 
-                company: company,
-                customerName: customerName,
-                mobileNumber:mobileNumber,
-                phoneNumber:phoneNumber,
-                serviceType:serviceType,
-                serviceVehicle:serviceVehicle,
-                vehicleModel:vehicleModel,
-                vehicleNumber:vehicleNumber,
-                fileNumber:fileNumber,
-                selectedDriver: selectedDriver,
-                
+                company: company || '',
+                customerName: customerName || '',
+                mobileNumber: mobileNumber || '',
+                phoneNumber: phoneNumber || '',
+                serviceType: serviceType || '',
+                serviceVehicle: serviceVehicle || '',
+                vehicleModel: vehicleModel || '',
+                vehicleNumber: vehicleNumber || '',
+                fileNumber: fileNumber || '',
+                selectedDriver: selectedDriver || '',
             };
-    
+
             console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
-    
-            const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-            console.log('Document written with ID: ', docRef.id); // Log the document ID after it's added
-    
+
             if (editData) {
                 const docRef = doc(db, 'bookings', editData.id);
                 await updateDoc(docRef, bookingData);
                 console.log('Document updated');
             } else {
+                const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+                console.log('Document written with ID: ', docRef.id);
                 console.log('Document added');
             }
-    
+
             navigate('/bookings/newbooking');
         } catch (e) {
             console.error('Error adding/updating document: ', e);
         }
     };
-    
 
     return (
         <div>
@@ -465,76 +460,79 @@ const Booking = () => {
                 <h5 className="font-semibold text-lg dark:text-white-light">Add Bookings</h5>
 
                 <div style={{ padding: '6px', flex: 1, marginTop: '2rem', marginRight: '6rem', marginLeft: '6rem', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '10px' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
-                <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
-                <div style={{ padding: '1rem' }}>
-                    <h5 className="font-semibold text-lg dark:text-white-light">
-                        R<span className="text-danger">S</span>A{bookingId}
-                    </h5>
-                </div>{' '}
-                <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                        <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                            Company
-                        </label>
-                        <select
-                            id="company"
-                            name="company"
-                            value={company}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('company', e.target.value)}
-                        >
-                            <option value="">Select Company</option>
-                            <option value="rsa">RSA</option>
-                            <option value="self">Self</option>
-                        </select>
-                    </div>
-                    {company === 'self' && (
-                        <div className="flex items-center mt-4">
-                            <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
-                                File Number
-                            </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
+                        <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
+                        <div style={{ padding: '1rem' }}>
                             <h5 className="font-semibold text-lg dark:text-white-light">
                                 R<span className="text-danger">S</span>A{bookingId}
                             </h5>
-                        </div>
-                    )}
-                    {company !== 'self' && (
-                        <div className="flex items-center mt-4">
-                            <label htmlFor="fileNumber" className="ltr:mr-3 rtl:ml-2 w-1/3 mb-0">
-                                File Number
-                            </label>
-                            <input
-                                id="fileNumber"
-                                type="text"
-                                name="fileNumber"
-                                className="form-input lg:w-[250px] w-2/3"
-                                placeholder="Enter File Number"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '5px',
-                                    fontSize: '1rem',
-                                    outline: 'none',
-                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                }}
-                                value={fileNumber}
-                                onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                            />
-                        </div>
-                    )}
+                        </div>{' '}
+                        <div style={{ width: '100%' }}>
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            Company
+        </label>
+        <select
+            id="company"
+            name="company"
+            value={company}
+            style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            onChange={(e) => handleInputChange('company', e.target.value)}
+        >
+            <option value="">Select Company</option>
+            <option value="rsa">RSA</option>
+            <option value="self">Self</option>
+        </select>
+    </div>
+    {company === 'self' ? (
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            File Number
+        </label>
+        <input
+            id="fileNumber"
+            type="text"
+            name="fileNumber"
+            placeholder="Enter File Number"
+            className="form-input lg:w-[250px] w-2/3"
+            value={bookingId}
+            readOnly
+        />
+    </div>
+) : (
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            File Number
+        </label>
+        <input
+            id="fileNumber"
+            type="text"
+            name="fileNumber"
+            className="form-input lg:w-[250px] w-2/3"
+            placeholder="Enter File Number"
+            style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            value={fileNumber}
+            onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+        />
+    </div>
+)}
 
-
-{/* </div> */}
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -607,66 +605,63 @@ const Booking = () => {
                             </div>{' '}
                             <div style={{ width: '100%' }}>
                                   
-                            {googleMapsLoaded && (
-    <div>
-        <div className="flex items-center mt-4">
-            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                Pickup Location
-            </label>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Pickup Location"
-                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
-                    onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                    value={pickupLocation ? pickupLocation.name : ''}
-                />
-                {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
-            </div>
-        </div>
-        <div className="flex items-center mt-4">
-            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                Drop off Location
-            </label>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Drop off Location"
-                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                    onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                    value={dropoffLocation ? dropoffLocation.name : ''}
-                />
-                {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
-            </div>
-        </div>
-        {/* Your Google Maps components */}
-        <GoogleMap mapContainerStyle={mapContainerStyle} center={defaultCenter} onLoad={(map) => setMap(map)}>
-            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} />
-        </GoogleMap>
-    </div>
-)}
-
-
+                                {googleMapsLoaded && (
+                                    <div>
+                                        <div className="flex items-center mt-4">
+                                            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Pickup Location
+                                            </label>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Pickup Location"
+                                                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
+                                                    onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
+                                                    value={pickupLocation ? pickupLocation.name : ''}
+                                                />
+                                                {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center mt-4">
+                                            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Drop off Location
+                                            </label>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Drop off Location"
+                                                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
+                                                    onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
+                                                    value={dropoffLocation ? dropoffLocation.name : ''}
+                                                />
+                                                {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
+                                            </div>
+                                        </div>
+                                        <GoogleMap>
+                                            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} />
+                                        </GoogleMap>
+                                    </div>
+                                )}
                             </div>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="distance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -726,29 +721,28 @@ const Booking = () => {
                                 </select>
                             </div>
                             <div className="flex items-center mt-4">
-    <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Service Vehicle Number
-    </label>
-    <input
-        id="serviceVehicle"
-        type="text"
-        name="serviceVehicle"
-        className="form-input flex-1"
-        placeholder="Enter Service Vehicle Number"
-        value={serviceVehicle}
-        style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            outline: 'none',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}
-        onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-    />
-</div>
-
+                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Service Vehicle Number
+                                </label>
+                                <input
+                                    id="serviceVehicle"
+                                    type="text"
+                                    name="serviceVehicle"
+                                    className="form-input flex-1"
+                                    placeholder="Enter Service Vehicle Number"
+                                    value={serviceVehicle}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+                                />
+                            </div>
                             <div className="flex items-center mt-4">
                                 <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Driver
@@ -774,75 +768,89 @@ const Booking = () => {
                                 </div>
 
                                 <ReactModal
-    isOpen={isModalOpen}
-    onRequestClose={closeModal}
-    style={{
-        overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '10px',
-            maxWidth: '90vw',
-            maxHeight: '80vh', 
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-            padding: '20px',
-            overflow: 'auto', 
-        },
-    }}
->
-    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-        <button onClick={closeModal} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1" style={{ marginLeft: 'auto', marginRight: '20px' }}>
-            OK
-        </button>
-    </div>
+                                    isOpen={isModalOpen}
+                                    onRequestClose={closeModal}
+                                    style={{
+                                        overlay: {
+                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                        },
+                                        content: {
+                                            top: '50%',
+                                            left: '50%',
+                                            right: 'auto',
+                                            bottom: 'auto',
+                                            transform: 'translate(-50%, -50%)',
+                                            borderRadius: '10px',
+                                            maxWidth: '90vw',
+                                            maxHeight: '80vh',
+                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                                            padding: '20px',
+                                            overflow: 'auto',
+                                        },
+                                    }}
+                                >
+                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                                        <button
+                                            onClick={closeModal}
+                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
+                                        >
+                                            OK
+                                        </button>
+                                    </div>
 
-    <div style={{ marginTop: '10px' }}>
-    <div className="grid grid-cols-1 gap-4">
-    {drivers.map((driver, index) => (
-                <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                    <table className="panel p-4 w-full">
-                        <thead>
-                            <tr>
-                                <th>Driver Name</th>
-                                <th>Total Amount</th>
-                                <th>Distance to Pickup (km)</th>
-                                <th>Select</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{driver.driverName || 'Unknown Driver'}</td>
-                                <td className="text-danger">{totalSalary}</td>
-                                <td>{pickupDistances[index]} km</td> {/* Display pickup distance in km */}
-                                <td>
-                                    <input
-                                        type="radio"
-                                        name="selectedDriver"
-                                        value={driver.id}
-                                        checked={selectedDriver === driver.id}
-                                        onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                    />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            ))}
-    </div>
-</div>
-
-
-
-</ReactModal>
-
+                                    <div style={{ marginTop: '10px' }}>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {driversWithDistances.map(({ driver, pickupDistance }) => {
+                                                console.log('Driver ID:', driver.id);
+                                                console.log('Total Distances:', totalDistances);
+                                                const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
+                                                const driverTotalSalary = calculateTotalSalary(
+                                                    serviceDetails.salary,
+                                                    totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
+                                                    serviceDetails.basicSalaryKM,
+                                                    serviceDetails.salaryPerKM
+                                                );
+                                                return (
+                                                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                                        <table className="panel p-4 w-full">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Driver Name</th>
+                                                                    <th>Total Amount</th>
+                                                                    <th>Distance to Pickup (km)</th> 
+           
+                                                                    <th>Total Distance (km)</th>
+                                                                    <th>Select</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>{driver.driverName || 'Unknown Driver'}</td>
+                                                                    <td className="text-danger">{driverTotalSalary}</td>
+                                                                    <td>{pickupDistance}</td>
+            
+                                                                    <td>{totalDistance || 'N/A'}</td>
+                                                                    <td>
+                                                                        <input
+                                                                            type="radio"
+                                                                            name="selectedDriver"
+                                                                            value={driver.id}
+                                                                            checked={selectedDriver === driver.id}
+                                                                            onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </ReactModal>
                             </div>
-                            
                             <React.Fragment>
                                 <div className="mt-4 flex items-center">
                                     <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -868,33 +876,32 @@ const Booking = () => {
                                     </div>
                                 </div>
                                 <div className="mt-4 flex items-center">
-        <label htmlFor="totalDistance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            Total Distance
-        </label>
-        <div className="form-input flex-1">
-            <input
-                id="totalDistance"
-                type="text"
-                name="totalDistance"
-                className="w-full text-danger text-bold"
-                style={{
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                value={totalDistance} // Bind value to totalDistance state
-                readOnly
-            />
-        </div>
-    </div>
-
+                                    <label htmlFor="totalDistance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                        Total Distance
+                                    </label>
+                                    <div className="form-input flex-1">
+                                        <input
+                                            id="totalDistance"
+                                            type="text"
+                                            name="totalDistance"
+                                            className="w-full text-danger text-bold"
+                                            style={{
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '1rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }}
+                                            value={totalDistance}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
                             </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                   Customer Vehicle Number
+                                    Customer Vehicle Number
                                 </label>
                                 <input
                                     id="vehicleNumber"
@@ -935,8 +942,6 @@ const Booking = () => {
                                     }}
                                     onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
                                 />
-                                    
-                                
                             </div>
                             <div className="mt-4 flex items-center">
                                 <textarea
@@ -958,9 +963,11 @@ const Booking = () => {
                                 />
                             </div>
                             <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                                {/* <button
+                              
+                                <button
                                     type="button"
-                                    onClick={handleAddBooking}
+                                    className="btn btn-primary"
+                                    onClick={addOrUpdateItem}
                                     style={{
                                         backgroundColor: '#28a745',
                                         color: '#fff',
@@ -971,19 +978,8 @@ const Booking = () => {
                                         cursor: 'pointer',
                                     }}
                                 >
-                                    Save
-                                </button> */}
-                                 <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}   style={{
-                                        backgroundColor: '#28a745',
-                                        color: '#fff',
-                                        padding: '0.5rem',
-                                        width: '100%',
-                                        border: 'none',
-                                        borderRadius: '5px',
-                                        cursor: 'pointer',
-                                    }}>
-                {editData ? 'Update' : 'Save'}
-            </button>
+                                    {editData ? 'Update' : 'Save'}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -994,4 +990,3 @@ const Booking = () => {
 };
 
 export default Booking;
-

@@ -151,6 +151,9 @@ const Sidebar = () => {
                                             <NavLink to="/bookings/booking">Add Booking </NavLink>
                                         </li>
                                         <li>
+                                            <NavLink to="/bookings/pendingbookings">Pending Bookings</NavLink>
+                                        </li>
+                                        <li>
                                             <NavLink to="/bookings/approvedbooking">Approved Bookings</NavLink>
                                         </li>
                                         <li>
@@ -216,9 +219,9 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink to="/showrooms/showroom">ShowRoom Details</NavLink>
                                         </li>
-                                        <li>
+                                        {/* <li>
                                             <NavLink to="/showrooms/showrm">ShowRooms</NavLink>
-                                        </li>
+                                        </li> */}
                                     </ul>
                                 </AnimateHeight>
                             </li>

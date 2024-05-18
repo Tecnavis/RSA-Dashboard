@@ -13,6 +13,7 @@ type RecordData = {
     photo: string;
     id: string; 
     dateTime: string; 
+    status: string; // Add the status field to your type
 };
 
 const NewBooking = () => {
@@ -30,7 +31,7 @@ const NewBooking = () => {
                 let data: RecordData[] = querySnapshot.docs.map((doc) => ({
                     ...doc.data(),
                     id: doc.id,
-                }));
+                })) as RecordData[];
 
                 console.log('Sorted data:', data);
 
@@ -42,7 +43,7 @@ const NewBooking = () => {
 
         fetchData().catch(console.error);
     }, [db]);
-  
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -91,6 +92,9 @@ const NewBooking = () => {
                         recordsPerPageOptions={PAGE_SIZES}
                         onRecordsPerPageChange={setPageSize}
                         minHeight={200}
+                        rowStyle={(record) => 
+                            record.status === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}
+                        }
                         paginationText={({ from, to, totalRecords }) =>
                             `Showing  ${from} to ${to} of ${totalRecords} entries`
                         }

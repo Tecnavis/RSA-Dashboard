@@ -12,6 +12,11 @@ const ShowRoom = () => {
         userName: '',
         password: '',
         Map: '',
+        tollfree: '',
+
+        showroomId: '', // New field
+        phoneNumber: '', // New field
+        availableServices: '' // New field
     });
     const [existingShowRooms, setExistingShowRooms] = useState([]);
     const [editRoomId, setEditRoomId] = useState(null);
@@ -45,6 +50,10 @@ const ShowRoom = () => {
                 userName: '',
                 password: '',
                 Map: '',
+                  tollfree: '',
+                                 showroomId: '', // Reset new fields
+                phoneNumber: '', // Reset new fields
+                availableServices: '' // Reset new fields
             });
             // Fetch updated list of showrooms
             fetchShowRooms();
@@ -96,23 +105,31 @@ const ShowRoom = () => {
         <div className="mb-5">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">Showroom Details</h5>
             <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <input type="text" name="ShowRoom" value={showRoom.ShowRoom} onChange={handleChange} placeholder="Showroom Name" className="form-input w-full mb-2 mr-2" required />
-        <input type="text" name="img" value={showRoom.img} onChange={handleChange} placeholder="Image URL" className="form-input w-full mb-2" required />
-    </div>
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <input type="text" name="Location" value={showRoom.Location} onChange={handleChange} placeholder="Location" className="form-input w-full mb-2" required />
-        <input type="text" name="Map" value={showRoom.Map} onChange={handleChange} placeholder="Map URL" className="form-input w-full mb-2 ml-2" required />
-    </div>
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <input type="text" name="userName" value={showRoom.userName} onChange={handleChange} placeholder="User Name" className="form-input w-5/12 mb-2 " required />
-        <input type="text" name="password" value={showRoom.password} onChange={handleChange} placeholder="Password" className="form-input w-5/12 mb-2 " required />
-    </div>
-    <textarea name="description" value={showRoom.description} onChange={handleChange} placeholder="Description" className="form-textarea w-full mb-2" required />
-    <button type="submit" className="btn btn-primary w-full">
-        {editRoomId ? 'Update Showroom' : 'Add Showroom'}
-    </button>
-</form>
+                <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+                    <input type="text" name="ShowRoom" value={showRoom.ShowRoom} onChange={handleChange} placeholder="Showroom Name" className="form-input w-full mb-2 mr-2" required />
+                    <input type="text" name="img" value={showRoom.img} onChange={handleChange} placeholder="Image URL" className="form-input w-full mb-2" required />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <input type="text" name="Location" value={showRoom.Location} onChange={handleChange} placeholder="Location" className="form-input w-full mb-2" required />
+                    <input type="text" name="Map" value={showRoom.Map} onChange={handleChange} placeholder="Map URL" className="form-input w-full mb-2 ml-2" required />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <input type="text" name="userName" value={showRoom.userName} onChange={handleChange} placeholder="User Name" className="form-input w-5/12 mb-2 " required />
+                    <input type="text" name="password" value={showRoom.password} onChange={handleChange} placeholder="Password" className="form-input w-5/12 mb-2 " required />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <input type="text" name="showroomId" value={showRoom.showroomId} onChange={handleChange} placeholder="Showroom ID" className="form-input w-5/12 mb-2 " required />
+                    <input type="text" name="phoneNumber" value={showRoom.phoneNumber} onChange={handleChange} placeholder="Phone Number" className="form-input w-5/12 mb-2 " required />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <input type="text" name="tollfree" value={showRoom.tollfree} onChange={handleChange} placeholder="Toll-Free Number" className="form-input w-5/12 mb-2 " required />
+                </div>
+                <textarea name="description" value={showRoom.description} onChange={handleChange} placeholder="Description" className="form-textarea w-full mb-2" required />
+                <input type="text" name="availableServices" value={showRoom.availableServices} onChange={handleChange} placeholder="Available Services" className="form-input w-full mb-2" required />
+                <button type="submit" className="btn btn-primary w-full">
+                    {editRoomId ? 'Update Showroom' : 'Add Showroom'}
+                </button>
+            </form>
 
             <div>
                 <h5 className="font-semibold text-lg dark:text-white-light mt-8">Existing Showrooms</h5>
@@ -120,43 +137,45 @@ const ShowRoom = () => {
                     {existingShowRooms.map((room) => (
                         <li key={room.id}>
                             <div
-    style={{
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        padding: '20px',
-        marginBottom: '20px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'transform 0.3s ease-in-out',
-        textAlign: 'center',
-        maxWidth: '300px', // Adjust maximum width as needed
-        margin: '0 auto', // Center the card horizontally
-    }}
->
-    <p style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{room.ShowRoom}</p>
-    <img src={room.img} alt={room.ShowRoom} style={{ maxWidth: '100%', height: 'auto', marginBottom: '10px' }} />
-    <p style={{ marginBottom: '10px' }}>Location : {room.Location}</p>
-    <p style={{ marginBottom: '10px' }}>User Name : {room.userName}</p>
-    <p style={{ marginBottom: '10px' }}>Password : {room.password}</p>
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'blue' }}>
-        <Link to={room.Map} className="map-pin-link">
-            <IconMapPin className="map-pin-icon" />
-        </Link>
-    </div>
+                                style={{
+                                    border: '1px solid #ccc',
+                                    borderRadius: '8px',
+                                    padding: '20px',
+                                    marginBottom: '20px',
+                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                                    transition: 'transform 0.3s ease-in-out',
+                                    textAlign: 'center',
+                                    maxWidth: '300px', // Adjust maximum width as needed
+                                    margin: '0 auto', // Center the card horizontally
+                                }}
+                            >
+                                <p style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{room.ShowRoom}</p>
+                                <img src={room.img} alt={room.ShowRoom} style={{ maxWidth: '100%', height: 'auto', marginBottom: '10px' }} />
+                                <p style={{ marginBottom: '10px' }}>Location : {room.Location}</p>
+                                <p style={{ marginBottom: '10px' }}>User Name : {room.userName}</p>
+                                <p style={{ marginBottom: '10px' }}>Password : {room.password}</p>
+                                <p style={{ marginBottom: '10px' }}>Showroom ID : {room.showroomId}</p>
+                                <p style={{ marginBottom: '10px' }}>Phone Number : {room.phoneNumber}</p>
+                                <p style={{ marginBottom: '10px' }}>Toll Free Number : {room.tollfree}</p>
 
-    <p style={{ marginBottom: 0, wordWrap: 'break-word' }}>
-    <span style={{ fontWeight: 'bold' }}>{room.ShowRoom}</span> : {room.description}
-</p>
-
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-        <button className="btn btn-primary" onClick={() => handleEdit(room.id)}>
-            Edit
-        </button>
-        <button className="btn btn-danger" onClick={() => handleDelete(room.id)}>
-            Delete
-        </button>
-    </div>
-</div>
-
+                                <p style={{ marginBottom: '10px' }}>Available Services : {room.availableServices}</p>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'blue' }}>
+                                    <Link to={room.Map} className="map-pin-link">
+                                        <IconMapPin className="map-pin-icon" />
+                                    </Link>
+                                </div>
+                                <p style={{ marginBottom: 0, wordWrap: 'break-word' }}>
+                                    <span style={{ fontWeight: 'bold' }}>{room.ShowRoom}</span> : {room.description}
+                                </p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                                    <button className="btn btn-primary" onClick={() => handleEdit(room.id)}>
+                                        Edit
+                                    </button>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(room.id)}>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
                         </li>
                     ))}
                 </ul>
