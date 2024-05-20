@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DataTable } from 'mantine-datatable';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getFirestore, collection, getDocs, orderBy, query } from 'firebase/firestore';
 
 type RecordData = {
@@ -13,7 +13,9 @@ type RecordData = {
     photo: string;
     id: string; 
     dateTime: string; 
-    status: string; // Add the status field to your type
+    status: string;
+    bookingStatus:string;
+    createdAt: any;
 };
 
 const NewBooking = () => {
@@ -22,6 +24,7 @@ const NewBooking = () => {
     const [pageSize, setPageSize] = useState(10);
     const PAGE_SIZES = [10, 20, 30];
     const db = getFirestore();
+    const navigate = useNavigate();
     
     useEffect(() => {
         const fetchData = async () => {
@@ -43,6 +46,10 @@ const NewBooking = () => {
 
         fetchData().catch(console.error);
     }, [db]);
+
+    const handleEdit = (rowData: RecordData) => {
+        navigate(`/bookings/booking/${rowData.id}`, { state: { editData: rowData } });
+    };
 
     return (
         <div>
@@ -84,6 +91,18 @@ const NewBooking = () => {
                                     </Link>
                                 ),
                             },
+                            {
+                                accessor: 'edit',
+                                title: 'Edit',
+                                render: (rowData) => (
+                                    <button
+                                        onClick={() => handleEdit(rowData)}
+                                        className="btn btn-warning"
+                                    >
+                                        Edit
+                                    </button>
+                                ),
+                            },
                         ]}
                         totalRecords={recordsData.length}
                         recordsPerPage={pageSize}
@@ -93,7 +112,7 @@ const NewBooking = () => {
                         onRecordsPerPageChange={setPageSize}
                         minHeight={200}
                         rowStyle={(record) => 
-                            record.status === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}
+                            record.bookingStatus === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}
                         }
                         paginationText={({ from, to, totalRecords }) =>
                             `Showing  ${from} to ${to} of ${totalRecords} entries`

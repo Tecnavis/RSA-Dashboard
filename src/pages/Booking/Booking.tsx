@@ -14,7 +14,7 @@ const Booking = () => {
     const navigate = useNavigate();
     const [bookingId, setBookingId] = useState<string>('');
     useEffect(() => {
-        const newBookingId = uuid().substring(0, 6);
+        const newBookingId = uuid().substring(0, 8);
         setBookingId(newBookingId);
     }, []);
     const googleMapsLoaded = useGoogleMaps();
@@ -92,11 +92,11 @@ const Booking = () => {
             case 'customerName':
                 setCustomerName(value || '');
                 break;
-                case 'company':
+        case 'company':
                     setCompany(value);
                     setFileNumber(value === 'self' ? bookingId : '');
                     break;
-                case 'fileNumber':
+         case 'fileNumber':
                     setFileNumber(value || '');
                     break;
             case 'bookingId':
@@ -192,10 +192,17 @@ const Booking = () => {
                     travelMode: 'DRIVING',
                 },
                 (response, status) => {
+                    console.log('Response:', response);
+                    console.log('Status:', status);
                     if (status === 'OK') {
-                        const distance = response.rows[0].elements[0].distance.text;
-                        setDistance(distance);
-                        setBookingDetails({ ...bookingDetails, distance: distance });
+                        if (response.rows && response.rows.length > 0 && response.rows[0].elements && response.rows[0].elements.length > 0) {
+                            const distance = response.rows[0].elements[0].distance.text;
+                            console.log('Distance:', distance);
+                            setDistance(distance);
+                            setBookingDetails({ ...bookingDetails, distance: distance });
+                        } else {
+                            console.error('Invalid response structure:', response);
+                        }
                     } else {
                         console.error('Error calculating distance:', status);
                     }
@@ -203,6 +210,7 @@ const Booking = () => {
             );
         }
     }, [pickupLocation, dropoffLocation]);
+    
 
     useEffect(() => {
         const fetchDrivers = async () => {
@@ -405,12 +413,15 @@ const Booking = () => {
             // const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
-            let fileNumber = ''; // Initialize fileNumber variable
+            let finalFileNumber = ''; // Initialize finalFileNumber variable
 
-        // Conditionally set fileNumber based on the value of company
-        if (company === 'self') {
-            fileNumber = bookingId; // Set fileNumber to bookingId when company is self
-        }
+            // Conditionally set finalFileNumber based on the value of company
+            if (company === 'self') {
+                finalFileNumber = bookingId; // Set finalFileNumber to bookingId when company is self
+            } else if (company === 'rsa') {
+                finalFileNumber = fileNumber; // Set finalFileNumber to entered fileNumber when company is RSA
+            }
+    
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
@@ -432,7 +443,7 @@ const Booking = () => {
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
                 vehicleNumber: vehicleNumber || '',
-                fileNumber: fileNumber || '',
+                fileNumber: finalFileNumber, // Use finalFileNumber here
                 selectedDriver: selectedDriver || '',
             };
 
@@ -464,75 +475,84 @@ const Booking = () => {
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
                         <div style={{ padding: '1rem' }}>
                             <h5 className="font-semibold text-lg dark:text-white-light">
-                                R<span className="text-danger">S</span>A{bookingId}
+                                {bookingId}
                             </h5>
                         </div>{' '}
                         <div style={{ width: '100%' }}>
-    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-        <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-            Company
-        </label>
-        <select
-            id="company"
-            name="company"
-            value={company}
-            style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            onChange={(e) => handleInputChange('company', e.target.value)}
-        >
-            <option value="">Select Company</option>
-            <option value="rsa">RSA</option>
-            <option value="self">Self</option>
-        </select>
-    </div>
-    {company === 'self' ? (
-    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-            File Number
-        </label>
-        <input
-            id="fileNumber"
-            type="text"
-            name="fileNumber"
-            placeholder="Enter File Number"
-            className="form-input lg:w-[250px] w-2/3"
-            value={bookingId}
-            readOnly
-        />
-    </div>
-) : (
-    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-            File Number
-        </label>
-        <input
-            id="fileNumber"
-            type="text"
-            name="fileNumber"
-            className="form-input lg:w-[250px] w-2/3"
-            placeholder="Enter File Number"
-            style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            value={fileNumber}
-            onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-        />
-    </div>
-)}
-
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                    <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                        Company
+                    </label>
+                    <select
+                        id="company"
+                        name="company"
+                        value={company}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('company', e.target.value)}
+                    >
+                        <option value="">Select Company</option>
+                        <option value="rsa">RSA</option>
+                        <option value="self">Self</option>
+                    </select>
+                </div>
+                {company === 'self' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                            File Number
+                        </label>
+                        <input
+                            id="fileNumber"
+                            type="text"
+                            name="fileNumber"
+                            placeholder="Enter File Number"
+                            className="form-input lg:w-[250px] w-2/3"
+                            value={bookingId}
+                            readOnly
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                backgroundColor: '#f1f1f1', // read-only background color
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                            File Number
+                        </label>
+                        <input
+                            id="fileNumber"
+                            type="text"
+                            name="fileNumber"
+                            className="form-input lg:w-[250px] w-2/3"
+                            placeholder="Enter File Number"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            }}
+                            value={fileNumber}
+                            onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                        />
+                    </div>
+                )}
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -741,6 +761,7 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+                                required
                                 />
                             </div>
                             <div className="flex items-center mt-4">

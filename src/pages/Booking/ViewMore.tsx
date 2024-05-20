@@ -12,6 +12,8 @@ const ViewMore = () => {
     const [showPickupDetails, setShowPickupDetails] = useState(false);
     const [showDropoffDetails, setShowDropoffDetails] = useState(false);
     const queryParams = new URLSearchParams(search);
+    const [editData, setEditData] = useState(null);
+
     console.log('first', bookingDetails);
     useEffect(() => {
         const fetchBookingDetails = async () => {
@@ -64,13 +66,13 @@ const ViewMore = () => {
             }
         }
     };
-    const handleUpdateBooking = async () => {
-        try {
-           
-        } catch (error) {
-            console.error('Error updating document:', error);
-        }
+    const handleUpdateBooking =  (bookingDetails) => {
+                 navigate(`/bookings/booking/${bookingDetails.id}`, { state: { editData: bookingDetails } });
+
     };
+//     const handleReassignClick = (record) => {
+//         navigate(`/bookings/booking/${record.id}`, { state: { editData: record } });
+// };
     if (!bookingDetails) {
         return <div>Loading...</div>;
     }

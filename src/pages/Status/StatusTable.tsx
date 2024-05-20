@@ -85,7 +85,7 @@ console.log("first",drivers)
                             </tr>
                         </thead>
                         <tbody>
-                        {ongoingBookings.map((record) => (
+                        {/* {ongoingBookings.map((record) => (
     <tr key={record.id}>
         <td>{record.dateTime}</td>
         <td>{record.driver}</td>
@@ -119,7 +119,42 @@ console.log("first",drivers)
             )}
         </td>
     </tr>
+))} */}
+{ongoingBookings.map((record) => (
+    <tr key={record.id}>
+        <td>{record.dateTime}</td>
+        <td>{record.driver}</td>
+        <td>{drivers[record.selectedDriver]?.phone} / Personal No:{drivers[record.selectedDriver]?.personalphone}</td>
+        <td>{record.customerName}</td>
+        <td>{record.phoneNumber} / {record.mobileNumber}</td>
+        <td>{record.pickupLocation ? record.pickupLocation.name : 'N/A'}</td>
+        <td>{record.dropoffLocation ? record.dropoffLocation.name : 'N/A'}</td>
+        <td
+            style={{
+                color: record.status === 'Rejected' ? 'white' : 'black',
+                backgroundColor: record.status === 'Rejected' ? 'red' : 'orange',
+                borderRadius: '15px',
+                fontWeight: '900',
+                cursor: 'pointer',
+                textAlign: 'center',
+                animation: 'fadeIn 2s ease-in-out',
+                lineHeight: '1.5',
+                letterSpacing: '1.5px'
+            }}
+        >
+            {record.status}
+            {record.status === 'Rejected' && (
+                <button
+                    className="btn btn-danger rounded-full px-4 py-2 text-white font-semibold shadow-md hover:shadow-lg"
+                    onClick={() => handleReassignClick(record)}
+                >              
+                    Reassign
+                </button>
+            )}
+        </td>
+    </tr>
 ))}
+
 
                         </tbody>
                     </table>

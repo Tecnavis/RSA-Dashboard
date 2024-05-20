@@ -1,27 +1,34 @@
 import { useState, useEffect } from 'react';
-import { googleMapsApiKey } from '../../config/config';
+
+declare global {
+    interface Window {
+        googleMapsInitialized: boolean;
+        initMap: () => void;
+    }
+}
 
 const useGoogleMaps = () => {
     const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
 
     useEffect(() => {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initMap`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
+        // Check if Google Maps is already initialized
+        if (window.googleMapsInitialized) {
             setGoogleMapsLoaded(true);
-        };
-        document.body.appendChild(script);
-        window.initMap = () => {
-            // Initialize the Google Map instance here
-            console.log('Google Maps API loaded successfully');
-        };
-        return () => {
-            document.body.removeChild(script);
-            delete window.initMap;
+            return;
+        }
 
+        // Define the initMap function
+        window.initMap = () => {
+            console.log('Google Maps API loaded successfully');
+            setGoogleMapsLoaded(true);
+            window.googleMapsInitialized = true;
         };
+
+        // Add a listener to check if Google Maps API is already loaded
+        if (window.google && window.google.maps) {
+            window.initMap();
+        }
+
     }, []);
 
     return googleMapsLoaded;

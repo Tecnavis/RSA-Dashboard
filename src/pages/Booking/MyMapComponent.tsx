@@ -30,16 +30,19 @@ const MyMapComponent = ({ pickupLocation, dropoffLocation }) => {
                     zoom={8}
                     onLoad={(map) => setMap(map)}
                 >
-                    {pickupLocation && (
-                        <Marker
-                            position={pickupLocation}
-                            icon={{
-                                url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                                scaledSize: new window.google.maps.Size(40, 40),
-                            }}
-                        />
-                    )}
-                    {dropoffLocation && <Marker position={dropoffLocation} />}
+               {pickupLocation && typeof pickupLocation.lat === 'number' && typeof pickupLocation.lng === 'number' && (
+    <Marker
+        position={pickupLocation}
+        icon={{
+            url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            scaledSize: new window.google.maps.Size(40, 40),
+        }}
+    />
+)}
+{dropoffLocation && typeof dropoffLocation.lat === 'number' && typeof dropoffLocation.lng === 'number' && (
+    <Marker position={dropoffLocation} />
+)}
+
                 </GoogleMap>
             )}
         </div>

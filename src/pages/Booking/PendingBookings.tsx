@@ -13,11 +13,14 @@ type RecordData = {
     vehicleNumber: string;
     vehicleModel: string;
     comments: string;
-    id: string; // Assuming you have an 'id' property in your data
+    id: string; 
+    status: string; 
+    bookingStatus:string;
+    dateTime: string;
 };
 
 const PendingBookings = () => {
-    const [recordsData, setRecordsData] = useState<RecordData[]>([]); // Provide the type here
+    const [recordsData, setRecordsData] = useState<RecordData[]>([]);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const PAGE_SIZES = [10, 20, 30];
@@ -26,14 +29,15 @@ const PendingBookings = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Create a query to filter documents with status "ShowRoom Booking"
-                const q = query(collection(db, 'bookings'), where('status', '==', 'ShowRoom Booking'));
+                const q = query(collection(db, 'bookings'), where('status', '==', 'booking added'));
                 const querySnapshot = await getDocs(q);
-                const dataWithIndex = querySnapshot.docs.map((doc, index) => ({
-                    index: index + 2000,
-                    ...doc.data(),
-                    id: doc.id,
-                }));
+                const dataWithIndex = querySnapshot.docs
+                    .map((doc) => ({
+                        ...doc.data(),
+                        id: doc.id,
+                    }))
+                    .filter((record) => record.status !== 'Order Completed'); // Filter out 'Order Completed'
+                
                 setRecordsData(dataWithIndex);
             } catch (error) {
                 console.error('Error fetching data: ', error);
@@ -57,21 +61,29 @@ const PendingBookings = () => {
                         className="whitespace-nowrap table-hover"
                         records={recordsData}
                         columns={[
-                            { accessor: 'id', title: 'ID' },
-                            { accessor: 'fileNumber', title: 'File Number' },
+                            { accessor: 'dateTime', title: 'Booking Date & Time' },                            { accessor: 'fileNumber', title: 'File Number' },
                             { accessor: 'customerName', title: 'Customer Name' },
                             { accessor: 'phoneNumber', title: 'Phone Number' },
-                            { accessor: 'serviceType', title: 'Service Type' },
-                            { accessor: 'vehicleNumber', title: 'Vehicle Number (Customer)' },
-                            { accessor: 'vehicleModel', title: 'Brand Name' },
-                            { accessor: 'comments', title: 'Comments' },
                             {
                                 accessor: 'viewMore',
                                 title: 'View More',
                                 render: (rowData: RecordData) => (
-                                    <button className='btn btn-primary'>
-                                        <Link to={`/bookings/newbooking/viewmore/${rowData.id}`}>View More</Link>
-                                    </button>
+                                    <Link to={`/bookings/newbooking/viewmore/${rowData.id}`}>
+                                        <button
+                                            style={{
+                                                backgroundColor: '#ffc107',
+                                                color: '#212529',
+                                                border: 'none',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '5px',
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.3s',
+                                                animation: 'pulse 1.5s infinite', 
+                                            }}
+                                        >
+                                            Pending
+                                        </button>
+                                    </Link>
                                 ),
                             },
                         ]}
@@ -82,6 +94,9 @@ const PendingBookings = () => {
                         recordsPerPageOptions={PAGE_SIZES}
                         onRecordsPerPageChange={setPageSize}
                         minHeight={200}
+                        rowStyle={(record) => 
+                            record.bookingStatus === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}
+                        }
                         paginationText={({ from, to, totalRecords }) =>
                             `Showing ${from} to ${to} of ${totalRecords} entries`
                         }
