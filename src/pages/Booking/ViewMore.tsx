@@ -66,13 +66,7 @@ const ViewMore = () => {
             }
         }
     };
-    const handleUpdateBooking =  (bookingDetails) => {
-                 navigate(`/bookings/booking/${bookingDetails.id}`, { state: { editData: bookingDetails } });
-
-    };
-//     const handleReassignClick = (record) => {
-//         navigate(`/bookings/booking/${record.id}`, { state: { editData: record } });
-// };
+  
     if (!bookingDetails) {
         return <div>Loading...</div>;
     }
@@ -296,7 +290,7 @@ const ViewMore = () => {
                 <button onClick={handleDeleteBooking} className="btn btn-danger">
                     Delete Booking
                 </button>
-                <button onClick={handleUpdateBooking} className="btn btn-primary">Update</button>
+                {/* <button onClick={handleUpdateBooking} className="btn btn-primary">Update</button> */}
 
             </table>
         </div>

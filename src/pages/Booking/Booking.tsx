@@ -832,7 +832,7 @@ const Booking = () => {
                                                     totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
                                                     serviceDetails.basicSalaryKM,
                                                     serviceDetails.salaryPerKM
-                                                );
+                                                ).toFixed(2); ;
                                                 return (
                                                     <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
                                                         <table className="panel p-4 w-full">
@@ -853,6 +853,10 @@ const Booking = () => {
                                                                     <td>{pickupDistance}</td>
             
                                                                     <td>{totalDistance || 'N/A'}</td>
+                                                                    {/* <td className="text-danger">{driverTotalSalary}</td>
+                        <td>{pickupDistance !== null ? pickupDistance.toFixed(1) : 'N/A'}</td>
+            
+                        <td>{totalDistance !== null ? totalDistance.toFixed(1) : 'N/A'}</td> */}
                                                                     <td>
                                                                         <input
                                                                             type="radio"

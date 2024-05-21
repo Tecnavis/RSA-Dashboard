@@ -121,8 +121,12 @@ console.log("first",drivers)
     </tr>
 ))} */}
 {ongoingBookings.map((record) => (
-    <tr key={record.id}>
-        <td>{record.dateTime}</td>
+    <tr
+    key={record.id}
+    style={{
+        backgroundColor: record.bookingStatus === 'ShowRoom Booking' ? 'lightblue' : 'inherit',
+    }}
+>        <td>{record.dateTime}</td>
         <td>{record.driver}</td>
         <td>{drivers[record.selectedDriver]?.phone} / Personal No:{drivers[record.selectedDriver]?.personalphone}</td>
         <td>{record.customerName}</td>
@@ -144,12 +148,20 @@ console.log("first",drivers)
         >
             {record.status}
             {record.status === 'Rejected' && (
+                // <button
+                //     className="btn btn-danger rounded-full px-4 py-2 text-white font-semibold shadow-md hover:shadow-lg"
+                //     onClick={() => handleReassignClick(record)}
+                // >              
+                //     Reassign
+                // </button>
+                <div className="flex justify-center mt-2">
                 <button
-                    className="btn btn-danger rounded-full px-4 py-2 text-white font-semibold shadow-md hover:shadow-lg"
+                    className="btn btn-danger rounded-full px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm md:text-base text-white font-semibold shadow-md hover:shadow-lg"
                     onClick={() => handleReassignClick(record)}
                 >              
                     Reassign
                 </button>
+            </div>
             )}
         </td>
     </tr>

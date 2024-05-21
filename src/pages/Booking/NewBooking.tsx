@@ -74,7 +74,7 @@ const NewBooking = () => {
                         records={recordsData}
                         columns={[
                             { accessor: 'dateTime', title: 'Date & Time' },
-                            { accessor: 'bookingId', title: 'Booking ID' },
+                            // { accessor: 'bookingId', title: 'Booking ID' },
                             { accessor: 'customerName', title: 'Name' },
                             { accessor: 'fileNumber', title: 'File Number' },
                             { accessor: 'phoneNumber', title: 'Phone Number' },
