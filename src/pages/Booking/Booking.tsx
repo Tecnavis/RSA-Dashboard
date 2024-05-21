@@ -852,9 +852,8 @@ const Booking = () => {
                                                                     <td className="text-danger">{driverTotalSalary}</td>
                                                                     <td>{pickupDistance}</td>
             
-                                                                    <td>{totalDistance || 'N/A'}</td>
-                                                                    {/* <td className="text-danger">{driverTotalSalary}</td>
-                        <td>{pickupDistance !== null ? pickupDistance.toFixed(1) : 'N/A'}</td>
+            <td>{totalDistance || 'N/A'}</td>
+                        {/* <td>{pickupDistance !== null ? pickupDistance.toFixed(1) : 'N/A'}</td>
             
                         <td>{totalDistance !== null ? totalDistance.toFixed(1) : 'N/A'}</td> */}
                                                                     <td>
