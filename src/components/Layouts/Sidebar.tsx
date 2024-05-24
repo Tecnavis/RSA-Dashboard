@@ -84,16 +84,15 @@ const Sidebar = () => {
                                 </h2>
                             </li>
 
-                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                            {/* <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
                                     Users
-                                    {/* {t('user_and_pages')} */}
                                 </span>
-                            </h2>
+                            </h2> */}
 
                             <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('users')}>
+                                <button type="button" className={`${currentMenu === 'users' ? 'active' : ''} nav-link group w-full  py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1`} onClick={() => toggleMenu('users')}>
                                     <div className="flex items-center">
                                         <IconMenuUsers className="group-hover:!text-primary shrink-0" />
                                         <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('users')}</span>
@@ -122,16 +121,15 @@ const Sidebar = () => {
                                 </AnimateHeight>
                             </li>
 
-                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                            {/* <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
                                     Bookings
-                                    {/* {t('user_and_pages')} */}
                                 </span>
-                            </h2>
+                            </h2> */}
 
                             <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'bookings' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('bookings')}>
+                                <button type="button" className={`${currentMenu === 'bookings' ? 'active' : ''} nav-link group w-full py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1`} onClick={() => toggleMenu('bookings')}>
                                     <div className="flex items-center">
                                         <IconBook className="group-hover:!text-primary shrink-0" />
                                         <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Bookings</span>
@@ -168,18 +166,17 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                            {/* <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
                                     Status
-                                    {/* {t('user_and_pages')} */}
                                 </span>
-                            </h2>
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'status' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('status')}>
+                            </h2> */}
+                            <li className="menu nav-item ">
+                                <button type="button" className={`${currentMenu === 'status' ? 'active' : ''} nav-link group w-full py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1`} onClick={() => toggleMenu('status')}>
                                     <div className="flex items-center">
                                         <IconArchive className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Status</span>
+                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark"> &nbsp;  Status &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>
                                     </div>
 
                                     <div className={currentMenu !== 'status' ? 'rtl:rotate-90 -rotate-90' : ''}>
@@ -195,16 +192,15 @@ const Sidebar = () => {
                                     </ul>
                                 </AnimateHeight>
                             </li>
-                            <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
+                            {/* <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
                                     ShowRooms
-                                    {/* {t('user_and_pages')} */}
                                 </span>
-                            </h2>
+                            </h2> */}
 
                             <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'showrooms' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('showrooms')}>
+                                <button type="button" className={`${currentMenu === 'showrooms' ? 'active' : ''} nav-link group w-full  py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1`} onClick={() => toggleMenu('showrooms')}>
                                     <div className="flex items-center">
                                         <IconGlobe className="group-hover:!text-primary shrink-0" />
                                         <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">ShowRoom</span>
@@ -230,7 +226,6 @@ const Sidebar = () => {
                                 <IconMinus className="w-4 h-5 flex-none hidden" />
                                 <span>
                                     Service
-                                    {/* {t('user_and_pages')} */}
                                 </span>
                             </h2>
 
