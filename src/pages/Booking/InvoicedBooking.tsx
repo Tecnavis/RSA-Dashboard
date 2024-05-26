@@ -26,7 +26,7 @@ const InvoicedBooking = () => {
     return (
         <div className="panel mt-6">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">
-                Closed Bookings
+                Invoiced Bookings
             </h5>
             <div className="datatables">
                 {completedBookings.length === 0 ? (

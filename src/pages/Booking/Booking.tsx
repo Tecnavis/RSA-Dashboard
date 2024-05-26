@@ -74,7 +74,12 @@ const Booking = () => {
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
             setDropoffLocation(state.editData.dropoffLocation || '');
+        if (state.editData.bookingStatus === "ShowRoom Booking" && state.editData.fileNumber) {
+            setFileNumber(state.editData.fileNumber); 
+        } else {
+            setFileNumber(state.editData.fileNumber || '');
         }
+    }
     }, [state]);
 
     console.log('sgy');
@@ -410,16 +415,14 @@ const Booking = () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-            // const totalSalary = selectedDriverObject ? selectedDriverObject.totalSalary : '';
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
-            let finalFileNumber = ''; // Initialize finalFileNumber variable
+            let finalFileNumber = ''; 
 
-            // Conditionally set finalFileNumber based on the value of company
             if (company === 'self') {
-                finalFileNumber = bookingId; // Set finalFileNumber to bookingId when company is self
+                finalFileNumber = bookingId; 
             } else if (company === 'rsa') {
-                finalFileNumber = fileNumber; // Set finalFileNumber to entered fileNumber when company is RSA
+                finalFileNumber = fileNumber; 
             }
     
             const bookingData = {
@@ -430,10 +433,10 @@ const Booking = () => {
                 dropoffLocation: dropoffLocation,
                 status: 'booking added',
                 dateTime: dateTime,
-                bookingId: `RSA${bookingId}`,
+                bookingId: `${bookingId}`,
                 createdAt: serverTimestamp(),
                 comments: comments || '',
-                totalDistance: totalDistance, // Add total distance here
+                totalDistance: totalDistance, 
 
                 company: company || '',
                 customerName: customerName || '',
@@ -878,7 +881,7 @@ const Booking = () => {
                             <React.Fragment>
                                 <div className="mt-4 flex items-center">
                                     <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Total Salary
+                                        Payable Amount
                                     </label>
                                     <div className="form-input flex-1">
                                         <input

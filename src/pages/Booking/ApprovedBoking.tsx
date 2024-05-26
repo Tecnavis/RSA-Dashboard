@@ -1,36 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 const ApprovedBooking = () => {
-    const [completedBookings, setCompletedBookings] = useState([]);
+    const [approvedBookings, setApprovedBookings] = useState([]);
 
     useEffect(() => {
-        const fetchCompletedBookings = async () => {
+        const fetchApprovedBookings = async () => {
             try {
                 const db = getFirestore();
-                const q = query(collection(db, 'bookings'), where('status', '==', 'Rejected'));
-                const querySnapshot = await getDocs(q);
-                const bookingsData = querySnapshot.docs.map((doc) => ({
+                const approvedBookingsCollection = collection(db, 'approvedbookings');
+                const querySnapshot = await getDocs(approvedBookingsCollection);
+                const approvedBookingsData = querySnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
-                setCompletedBookings(bookingsData);
+                setApprovedBookings(approvedBookingsData);
             } catch (error) {
-                console.error('Error fetching completed bookings:', error);
+                console.error('Error fetching approved bookings:', error);
             }
         };
 
-        fetchCompletedBookings();
+        fetchApprovedBookings();
     }, []);
 
     return (
         <div className="panel mt-6">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">
-                Closed Bookings
+                Approved Bookings
             </h5>
             <div className="datatables">
-                {completedBookings.length === 0 ? (
-                    <p>No completed bookings found.</p>
+                {approvedBookings.length === 0 ? (
+                    <p>No approved bookings found.</p>
                 ) : (
                     <table className="table-hover">
                         <thead>
@@ -44,7 +44,7 @@ const ApprovedBooking = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {completedBookings.map((booking) => (
+                            {approvedBookings.map((booking) => (
                                 <tr key={booking.id}>
                                     <td>{booking.dateTime}</td>
                                     <td>{booking.customerName}</td>

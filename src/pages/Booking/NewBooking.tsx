@@ -11,21 +11,23 @@ type RecordData = {
     driver: string;
     totalSalary: string;
     photo: string;
-    id: string; 
-    dateTime: string; 
+    id: string;
+    dateTime: string;
     status: string;
-    bookingStatus:string;
+    bookingStatus: string;
     createdAt: any;
 };
 
 const NewBooking = () => {
     const [recordsData, setRecordsData] = useState<RecordData[]>([]);
+    const [filteredRecords, setFilteredRecords] = useState<RecordData[]>([]);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
     const PAGE_SIZES = [10, 20, 30];
     const db = getFirestore();
     const navigate = useNavigate();
-    
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -39,6 +41,7 @@ const NewBooking = () => {
                 console.log('Sorted data:', data);
 
                 setRecordsData(data);
+                setFilteredRecords(data);
             } catch (error) {
                 console.error('Error fetching data: ', error);
             }
@@ -47,31 +50,96 @@ const NewBooking = () => {
         fetchData().catch(console.error);
     }, [db]);
 
+    useEffect(() => {
+        const term = searchTerm.toLowerCase();
+        const filtered = recordsData.filter(record =>
+            (record.customerName?.toLowerCase().includes(term) ?? false) ||
+            (record.fileNumber?.toLowerCase().includes(term) ?? false) ||
+            (record.phoneNumber?.toLowerCase().includes(term) ?? false) ||
+            (record.driver?.toLowerCase().includes(term) ?? false) ||
+            (record.dateTime?.toLowerCase().includes(term) ?? false) ||
+            (record.bookingStatus?.toLowerCase().includes(term) ?? false)
+        );
+        setFilteredRecords(filtered);
+    }, [searchTerm, recordsData]);
+
     const handleEdit = (rowData: RecordData) => {
         navigate(`/bookings/booking/${rowData.id}`, { state: { editData: rowData } });
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h5 className="font-semibold text-lg dark:text-white-light">
+        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', color: '#333' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h5 style={{ fontSize: '24px', fontWeight: '600', color: '#333' }}>
                     New Bookings
                 </h5>
-                <Link
-                    to="/bookings/booking"
-                    className="btn btn-success"
-                >
-                    Add Booking
+
+                <Link to="/bookings/booking" style={{ textDecoration: 'none' }}>
+                    <button style={{
+                        padding: '10px 20px',
+                        color: '#fff',
+                        backgroundColor: '#28a745',
+                        border: 'none',
+                        borderRadius: '7px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                        transition: 'background-color 0.3s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                        Add Booking
+                    </button>
                 </Link>
             </div>
 
-            <div className="panel">
-                <div className="datatables">
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
+                    style={{
+                        padding: '10px',
+                        borderRadius: '5px',
+                        border: '1px solid #ccc',
+                        width: '300px',
+                        marginRight: '10px',
+                        fontSize: '16px'
+                    }}
+                />
+                <button
+                    onClick={() => setSearchTerm(searchTerm)}
+                    style={{
+                        padding: '10px 20px',
+                        color: '#fff',
+                        backgroundColor: '#007bff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                        transition: 'background-color 0.3s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                    Search
+                </button>
+            </div>
+
+            <div style={{
+                padding: '20px',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                borderRadius: '10px',
+                backgroundColor: '#fff',
+                overflowX: 'auto'
+            }}>
+                <div>
                     <DataTable
                         noRecordsText="No results match your search query"
                         highlightOnHover
                         className="whitespace-nowrap table-hover"
-                        records={recordsData}
+                        records={filteredRecords}
                         columns={[
                             { accessor: 'dateTime', title: 'Date & Time' },
                             // { accessor: 'bookingId', title: 'Booking ID' },
@@ -85,8 +153,17 @@ const NewBooking = () => {
                                 render: (rowData) => (
                                     <Link
                                         to={`/bookings/newbooking/viewmore/${rowData.id}`}
-                                        className="btn btn-primary"
-                                    >
+                                        style={{
+                                            padding: '5px 10px',
+                                            color: '#fff',
+                                            backgroundColor: '#007bff',
+                                            borderRadius: '5px',
+                                            textDecoration: 'none',
+                                            display: 'inline-block',
+                                            transition: 'background-color 0.3s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
                                         View More
                                     </Link>
                                 ),
@@ -97,25 +174,34 @@ const NewBooking = () => {
                                 render: (rowData) => (
                                     <button
                                         onClick={() => handleEdit(rowData)}
-                                        className="btn btn-warning"
-                                    >
+                                        style={{
+                                            padding: '5px 10px',
+                                            color: '#fff',
+                                            backgroundColor: '#ffc107',
+                                            border: 'none',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.3s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0a800'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffc107'}>
                                         Edit
                                     </button>
                                 ),
                             },
                         ]}
-                        totalRecords={recordsData.length}
+                        totalRecords={filteredRecords.length}
                         recordsPerPage={pageSize}
                         page={page}
                         onPageChange={(p) => setPage(p)}
                         recordsPerPageOptions={PAGE_SIZES}
                         onRecordsPerPageChange={setPageSize}
                         minHeight={200}
-                        rowStyle={(record) => 
+                        rowStyle={(record) =>
                             record.bookingStatus === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}
                         }
                         paginationText={({ from, to, totalRecords }) =>
-                            `Showing  ${from} to ${to} of ${totalRecords} entries`
+                            `Showing ${from} to ${to} of ${totalRecords} entries`
                         }
                     />
                 </div>

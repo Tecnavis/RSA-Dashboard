@@ -152,11 +152,12 @@ const Sidebar = () => {
                                             <NavLink to="/bookings/pendingbookings">Pending Bookings</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/bookings/approvedbooking">Approved Bookings</NavLink>
-                                        </li>
-                                        <li>
                                             <NavLink to="/bookings/closedbooking">Closed Bookings</NavLink>
                                         </li>
+                                        <li>
+                                            <NavLink to="/bookings/approvedbooking">Approved Bookings</NavLink>
+                                        </li>
+                                       
                                         <li>
                                             <NavLink to="/bookings/cancelbooking">Canceled Bookings</NavLink>
                                         </li>
