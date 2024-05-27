@@ -74,15 +74,10 @@ const Booking = () => {
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
             setDropoffLocation(state.editData.dropoffLocation || '');
-        if (state.editData.bookingStatus === "ShowRoom Booking" && state.editData.fileNumber) {
-            setFileNumber(state.editData.fileNumber); 
-        } else {
-            setFileNumber(state.editData.fileNumber || '');
-        }
+      
     }
     }, [state]);
 
-    console.log('sgy');
     const openModal = () => {
         setIsModalOpen(true);
     };
@@ -502,8 +497,8 @@ const Booking = () => {
                         onChange={(e) => handleInputChange('company', e.target.value)}
                     >
                         <option value="">Select Company</option>
-                        <option value="rsa">RSA</option>
-                        <option value="self">Self</option>
+                        <option value="rsa">RSA Work</option>
+                        <option value="self">Payment Work</option>
                     </select>
                 </div>
                 {company === 'self' ? (

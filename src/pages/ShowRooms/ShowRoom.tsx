@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addDoc, collection, getFirestore, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const setupAutocomplete = (inputRef, setter) => {
@@ -62,6 +62,7 @@ const ShowRoom = () => {
     const [existingShowRooms, setExistingShowRooms] = useState([]);
     const [editRoomId, setEditRoomId] = useState(null);
     const locationInputRef = useRef(null);
+    
     const formRef = useRef(null);
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -111,16 +112,20 @@ const ShowRoom = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const db = getFirestore();
+        const timestamp = serverTimestamp(); // Get server timestamp
+        const newShowRoom = { ...showRoom, createdAt: timestamp }; // Include createdAt field
+    
         try {
             if (editRoomId) {
                 const roomRef = doc(db, 'showroom', editRoomId);
-                await updateDoc(roomRef, showRoom);
+                await updateDoc(roomRef, newShowRoom);
                 alert('Showroom updated successfully');
                 setEditRoomId(null);
             } else {
-                await addDoc(collection(db, 'showroom'), showRoom);
+                await addDoc(collection(db, 'showroom'), newShowRoom);
                 alert('Showroom added successfully');
             }
+            // Reset state
             setShowRoom({
                 img: '',
                 ShowRoom: '',
@@ -128,7 +133,6 @@ const ShowRoom = () => {
                 Location: '',
                 userName: '',
                 password: '',
-                // Map: '',
                 tollfree: '',
                 showroomId: '',
                 phoneNumber: '',
@@ -137,7 +141,6 @@ const ShowRoom = () => {
                 locationLatLng: { lat: '', lng: '' },
                 state: '',
                 district: '',
-
                 hasInsurance: '',
                 insuranceAmount: '',
                 hasInsuranceBody: '',
@@ -148,20 +151,21 @@ const ShowRoom = () => {
             console.error('Error adding/updating showroom:', error);
         }
     };
+    
+   const fetchShowRooms = async () => {
+    const db = getFirestore();
+    try {
+        const querySnapshot = await getDocs(query(collection(db, 'showroom'), orderBy('createdAt', 'desc'))); // Query with orderBy createdAt
+        const rooms = [];
+        querySnapshot.forEach((doc) => {
+            rooms.push({ id: doc.id, ...doc.data() });
+        });
+        setExistingShowRooms(rooms);
+    } catch (error) {
+        console.error('Error fetching showrooms:', error);
+    }
+};
 
-    const fetchShowRooms = async () => {
-        const db = getFirestore();
-        try {
-            const querySnapshot = await getDocs(collection(db, 'showroom'));
-            const rooms = [];
-            querySnapshot.forEach((doc) => {
-                rooms.push({ id: doc.id, ...doc.data() });
-            });
-            setExistingShowRooms(rooms);
-        } catch (error) {
-            console.error('Error fetching showrooms:', error);
-        }
-    };
 
     const handleEdit = (roomId) => {
         const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
@@ -543,7 +547,7 @@ const ShowRoom = () => {
             </form>
 
             <h3 className="text-lg font-semibold mb-4" style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '16px' }}>
-                Existing ShowRooms
+                ShowRooms List
             </h3>
             <div className="overflow-x-auto" style={{ overflowX: 'auto' }}>
                 <table className="w-full whitespace-nowrap text-black dark:text-white" style={{ width: '100%', whiteSpace: 'nowrap', color: '#000', backgroundColor: '#fff' }}>
@@ -662,7 +666,7 @@ const ShowRoom = () => {
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.description}
                                 </td>
-                                <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px',alignItems: 'center' }}>
                                     <button
                                         onClick={() => handleEdit(room.id)}
                                         style={{

@@ -3,6 +3,7 @@ import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 const ApprovedBooking = () => {
     const [approvedBookings, setApprovedBookings] = useState([]);
+    const [searchQuery, setSearchQuery] = useState(''); // State for search query
 
     useEffect(() => {
         const fetchApprovedBookings = async () => {
@@ -23,13 +24,34 @@ const ApprovedBooking = () => {
         fetchApprovedBookings();
     }, []);
 
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const filteredBookings = approvedBookings.filter((booking) =>
+        Object.values(booking).some(
+            (value) =>
+                value &&
+                value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     return (
         <div className="panel mt-6">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">
                 Approved Bookings
             </h5>
+            <div className="mb-5">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search..."
+                    className="w-full p-2 border border-gray-300 rounded"
+                />
+            </div>
             <div className="datatables">
-                {approvedBookings.length === 0 ? (
+                {filteredBookings.length === 0 ? (
                     <p>No approved bookings found.</p>
                 ) : (
                     <table className="table-hover">
@@ -44,7 +66,7 @@ const ApprovedBooking = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {approvedBookings.map((booking) => (
+                            {filteredBookings.map((booking) => (
                                 <tr key={booking.id}>
                                     <td>{booking.dateTime}</td>
                                     <td>{booking.customerName}</td>

@@ -3,6 +3,7 @@ import { getFirestore, collection, getDocs, query, where, doc, setDoc, deleteDoc
 
 const ClosedBooking = () => {
     const [completedBookings, setCompletedBookings] = useState([]);
+    const [searchQuery, setSearchQuery] = useState(''); // State for search query
 
     useEffect(() => {
         const fetchCompletedBookings = async () => {
@@ -45,13 +46,34 @@ const ClosedBooking = () => {
         );
     };
 
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const filteredBookings = completedBookings.filter((booking) =>
+        Object.values(booking).some(
+            (value) =>
+                value &&
+                value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     return (
         <div className="panel mt-6">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">
                 Closed Bookings
             </h5>
+            <div className="mb-5">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search..."
+                    className="w-full p-2 border border-gray-300 rounded"
+                />
+            </div>
             <div className="datatables">
-                {completedBookings.length === 0 ? (
+                {filteredBookings.length === 0 ? (
                     <p>No completed bookings found.</p>
                 ) : (
                     <table className="table-hover">
@@ -67,7 +89,7 @@ const ClosedBooking = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {completedBookings.map((booking) => (
+                            {filteredBookings.map((booking) => (
                                 <tr key={booking.id}>
                                     <td>{booking.dateTime}</td>
                                     <td>{booking.customerName}</td>
