@@ -13,6 +13,7 @@ const ViewMore = () => {
     const [showDropoffDetails, setShowDropoffDetails] = useState(false);
     const queryParams = new URLSearchParams(search);
     const [editData, setEditData] = useState(null);
+    const [staffName, setStaffName] = useState('Admin');
 
     console.log('first', bookingDetails);
     useEffect(() => {
@@ -35,6 +36,9 @@ const ViewMore = () => {
                         vehicleImgURLs: data.vehicleImgURLs || [],
                         fuelBillImageURLs: data.fuelBillImageURLs || [],
                     });
+                      if (data.staffId) {
+                        fetchStaffName(data.staffId);
+                    }
                 } else {
                     console.log(`Document with ID ${id} does not exist!`);
                 }
@@ -43,17 +47,34 @@ const ViewMore = () => {
             }
         };
 
-        fetchBookingDetails().catch(console.error);
-    }, [db, id]); 
+        const fetchStaffName = async (staffId) => {
+            try {
+                const staffDocRef = doc(db, 'users', staffId);
+                const staffDocSnap = await getDoc(staffDocRef);
+
+                if (staffDocSnap.exists()) {
+                    setStaffName(staffDocSnap.data().name);
+                } else {
+                    console.log(`Staff with ID ${staffId} does not exist!`);
+                }
+            } catch (error) {
+                console.error('Error fetching staff data:', error);
+            }
+        };
+
+        fetchBookingDetails();
+    }, [db, id]);
+
     const togglePickupDetails = () => {
         setShowPickupDetails(!showPickupDetails);
-        setShowDropoffDetails(false); 
+        setShowDropoffDetails(false);
     };
 
     const toggleDropoffDetails = () => {
         setShowDropoffDetails(!showDropoffDetails);
         setShowPickupDetails(false);
     };
+
     const handleDeleteBooking = async () => {
         const confirmDelete = window.confirm('Are you sure you want to delete this booking?');
         if (confirmDelete) {
@@ -217,12 +238,21 @@ const ViewMore = () => {
                         <td style={tdStyle}>{bookingDetails.bookingId} </td>
                     </tr>
                     <tr>
+                        <td style={thStyle}>Staff Name</td>
+                        <td style={thStyle}>{staffName}</td>
+                    </tr>
+                    <tr>
                         <td style={thStyle}>Payable Amount :</td>
                         <td style={tdStyle}>{bookingDetails.totalSalary} </td>
                     </tr>
                     <tr>
                         <td style={thStyle}>Company :</td>
                         <td style={tdStyle}>{bookingDetails.company}</td>
+                    </tr>
+                    
+                    <tr>
+                        <td style={thStyle}>Showroom :</td>
+                        <td style={tdStyle}>{bookingDetails.showroom}</td>
                     </tr>
                     <tr>
                         <td style={thStyle}>File Number :</td>

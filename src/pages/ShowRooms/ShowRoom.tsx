@@ -62,8 +62,32 @@ const ShowRoom = () => {
     const [existingShowRooms, setExistingShowRooms] = useState([]);
     const [editRoomId, setEditRoomId] = useState(null);
     const locationInputRef = useRef(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredRecords, setFilteredRecords] = useState([]);
     
     const formRef = useRef(null);
+    useEffect(() => {
+        const term = searchTerm.toLowerCase();
+        const filtered = existingShowRooms.filter(record =>
+            (record.availableServices?.join(', ').toLowerCase().includes(term) ?? false) ||
+            (record.hasInsurance?.toLowerCase().includes(term) ?? false) ||
+            (record.insuranceAmount?.toLowerCase().includes(term) ?? false) ||
+            (record.hasInsuranceBody?.toLowerCase().includes(term) ?? false) ||
+            (record.insuranceAmountBody?.toLowerCase().includes(term) ?? false) ||
+            (record.ShowRoom?.toLowerCase().includes(term) ?? false) ||
+            (record.showroomId?.toLowerCase().includes(term) ?? false) ||
+            (record.description?.toLowerCase().includes(term) ?? false) ||
+            (record.Location?.toLowerCase().includes(term) ?? false) ||
+            (record.userName?.toLowerCase().includes(term) ?? false) ||
+            (record.password?.toLowerCase().includes(term) ?? false) ||
+            (record.tollfree?.toLowerCase().includes(term) ?? false) ||
+            (record.phoneNumber?.toLowerCase().includes(term) ?? false) ||
+            (record.mobileNumber?.toLowerCase().includes(term) ?? false) ||
+            (record.state?.toLowerCase().includes(term) ?? false) ||
+            (record.district?.toLowerCase().includes(term) ?? false)
+        );
+        setFilteredRecords(filtered);
+    }, [searchTerm, existingShowRooms]);
     const handleChange = (e) => {
         const { name, value } = e.target;
         setShowRoom({ ...showRoom, [name]: value });
@@ -105,6 +129,8 @@ const ShowRoom = () => {
         const storageRef = ref(storage, `showroomImages/${file.name}`);
         await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(storageRef);
+
+        console.log('Image uploaded, URL:', downloadURL); // Debugging line
 
         setShowRoom({ ...showRoom, img: downloadURL });
     };
@@ -174,7 +200,7 @@ const ShowRoom = () => {
         formRef.current.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleDelete = async (roomId) => {
+    const handleDelete = async (roomId: string) => {
         const roomToDelete = existingShowRooms.find((room) => room.id === roomId);
         const shouldDelete = window.confirm('Are you sure you want to delete this showroom?');
         if (!shouldDelete) return;
@@ -185,14 +211,9 @@ const ShowRoom = () => {
             return;
         }
 
-        const db = getFirestore();
-        try {
-            await deleteDoc(doc(db, 'showroom', roomId));
-            alert('Showroom deleted successfully');
-            fetchShowRooms();
-        } catch (error) {
-            console.error('Error deleting showroom:', error);
-        }
+        // Remove from UI only
+        setExistingShowRooms((prevShowRooms) => prevShowRooms.filter((room) => room.id !== roomId));
+        alert('Showroom removed from UI.');
     };
 
     useEffect(() => {
@@ -545,7 +566,35 @@ const ShowRoom = () => {
                     </button>
                 </div>
             </form>
-
+            <br/>
+            <div className="search-bar-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
+                    style={{
+                        padding: '10px',
+                        borderRadius: '5px 0 0 5px',
+                        border: '1px solid #ccc',
+                        width: '300px',
+                        fontSize: '16px',
+                    }}
+                />
+                <button
+                    style={{
+                        padding: '10px 15px',
+                        borderRadius: '0 5px 5px 0',
+                        border: '1px solid #007bff',
+                        backgroundColor: '#007bff',
+                        color: '#fff',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Search
+                </button>
+            </div>
             <h3 className="text-lg font-semibold mb-4" style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '16px' }}>
                 ShowRooms List
             </h3>
@@ -611,7 +660,7 @@ const ShowRoom = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {existingShowRooms.map((room) => (
+                        {filteredRecords.map((room) => (
                             <tr key={room.id}>
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     <img src={room.img} alt="ShowRoom" className="w-16 h-16 object-cover" style={{ width: '64px', height: '64px', objectFit: 'cover' }} />

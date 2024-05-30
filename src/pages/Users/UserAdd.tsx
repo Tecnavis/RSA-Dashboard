@@ -7,8 +7,8 @@ const UserAdd = () => {
     const [email, setEmail] = useState('');
     const [address, setAddress] = useState('');
     const [phone_number, setPhone] = useState('');
-    const [showroom_name, setShowRoomName] = useState('');
-    const [showroom_district, setShowRoomDistrict] = useState('');
+    const [userName, setUserName] = useState('');
+    const [password, setPassword] = useState('');
     const [editData, setEditData] = useState(null);
     const navigate = useNavigate();
     const { state } = useLocation(); // Use the useLocation hook to access location state
@@ -22,8 +22,8 @@ const UserAdd = () => {
             setEmail(state.editData.email || '');
             setAddress(state.editData.address || '');
             setPhone(state.editData.phone_number || '');
-            setShowRoomName(state.editData.showroom_name || '');
-            setShowRoomDistrict(state.editData.showroom_district || '');
+            setUserName(state.editData.userName || '');
+            setPassword(state.editData.password || '');
         }
     }, [state]);
           
@@ -35,8 +35,8 @@ const UserAdd = () => {
                 email,
                 address,
                 phone_number,
-                showroom_name,
-                showroom_district,
+                userName,
+                password,
             };
 
             if (editData) {
@@ -98,25 +98,25 @@ const UserAdd = () => {
                                     <input id="phone_number" type="phone_number" placeholder="phone number" className="form-input" value={phone_number} onChange={(e) => setPhone(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="showroom_name">ShowRoom Name</label>
+                                    <label htmlFor="userName">User Name</label>
                                     <input
-                                        id="showroom_name"
-                                        type="showroom_name"
-                                        placeholder="ShowRoom name"
+                                        id="userName"
+                                        type="userName"
+                                        placeholder="User Name"
                                         className="form-input"
-                                        value={showroom_name}
-                                        onChange={(e) => setShowRoomName(e.target.value)}
+                                        value={userName}
+                                        onChange={(e) => setUserName(e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="showroom_district">ShowRoom District</label>
+                                    <label htmlFor="password">Password </label>
                                     <input
-                                        id="showroom_district"
-                                        type="showroom_district"
-                                        placeholder="district"
+                                        id="password"
+                                        type="password"
+                                        placeholder="password"
                                         className="form-input"
-                                        value={showroom_district}
-                                        onChange={(e) => setShowRoomDistrict(e.target.value)}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                     />
                                 </div>
 

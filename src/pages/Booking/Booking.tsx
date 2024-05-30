@@ -9,6 +9,7 @@ import { serverTimestamp } from 'firebase/firestore';
 import useGoogleMaps from './GoogleMaps';
 import MyMapComponent from './MyMapComponent';
 
+
 const Booking = () => {
     const db = getFirestore();
     const navigate = useNavigate();
@@ -34,7 +35,7 @@ const Booking = () => {
         comments: '',
     });
     const { state } = useLocation();
-    const [map, setMap] = useState(null); // Initialize map state
+    const [map, setMap] = useState(null); 
 
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
@@ -51,6 +52,10 @@ const Booking = () => {
     const [serviceType, setServiceType] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
     const [dropoffLocation, setDropoffLocation] = useState(null);
+    const [baseLocation, setBaseLocation] = useState(null);  
+    
+    const [showrooms, setShowrooms] = useState([]);
+    const [selectedShowroom, setSelectedShowroom] = useState('');
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
     const distanceNumeric = parseFloat(distance.replace('km', ''));
@@ -70,6 +75,10 @@ const Booking = () => {
             setVehicleModel(state.editData.vehicleModel || '');
             setDistance(state.editData.distance || '');
             setSelectedDriver(state.editData.selectedDriver || '');
+            setBaseLocation(state.editData.baseLocation || '');
+            setShowrooms(state.editData.showrooms || '');
+
+            
             setPickupLocation(state.editData.pickupLocation || '');
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
@@ -130,6 +139,9 @@ const Booking = () => {
             case 'vehicleModel':
                 setVehicleModel(value || '');
                 break;
+                case 'baseLocation':  
+                setBaseLocation(value || '');
+                break;
             case 'selectedDriver':
                 console.log('Selected Driver ID:', value);
                 setSelectedDriver(value);
@@ -145,10 +157,13 @@ const Booking = () => {
                 const selectedDriverTotalDistance = totalDistances.find(dist => dist.driverId === value)?.totalDistance || 0;
                 setTotalDistance(selectedDriverTotalDistance);
                 break;
-           
+                
             case 'vehicleNumber':
                 setVehicleNumber(value || '');
                 break;
+                case 'showrooms':
+                    setShowrooms(value || '');
+                    break;
             default:
                 break;
         }
@@ -284,7 +299,7 @@ const Booking = () => {
     const [pickupDistances, setPickupDistances] = useState([]);
     console.log('first', pickupDistances);
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371; // Radius of the Earth in kilometers
+        const R = 6371; 
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -365,7 +380,6 @@ const Booking = () => {
 
     useEffect(() => {
         if (pickupDistances.length > 0) {
-            // Calculate total salary using pickup distances
             const totalSalaries = drivers.map((driver, index) => {
                 const numericPickupDistance = pickupDistances[index];
 
@@ -405,7 +419,27 @@ const Booking = () => {
             return numericBasicSalary;
         }
     };
-
+    useEffect(() => {
+        const fetchShowrooms = async () => {
+            try {
+                const showroomCollection = collection(getFirestore(), 'showroom');
+                const snapshot = await getDocs(showroomCollection);
+                console.log('Snapshot:', snapshot); // Log the snapshot
+                const showroomList = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                console.log('Showroom List:', showroomList); // Log the showroomList
+                setShowrooms(showroomList);
+            } catch (error) {
+                console.error('Error fetching showrooms:', error);
+            }
+        };
+        
+        fetchShowrooms();
+    }, []);
+    
+    
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -432,16 +466,16 @@ const Booking = () => {
                 createdAt: serverTimestamp(),
                 comments: comments || '',
                 totalDistance: totalDistance, 
-
+                baseLocation:baseLocation || '',
                 company: company || '',
-                customerName: customerName || '',
+                showroom: selectedShowroom || '',                customerName: customerName || '',
                 mobileNumber: mobileNumber || '',
                 phoneNumber: phoneNumber || '',
                 serviceType: serviceType || '',
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
                 vehicleNumber: vehicleNumber || '',
-                fileNumber: finalFileNumber, // Use finalFileNumber here
+                fileNumber: finalFileNumber, 
                 selectedDriver: selectedDriver || '',
             };
 
@@ -626,6 +660,31 @@ const Booking = () => {
                                 {googleMapsLoaded && (
                                     <div>
                                         <div className="flex items-center mt-4">
+                        <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                            Base Location
+                        </label>
+                        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                            <input
+                                className="form-input flex-1"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                type="text"
+                                placeholder="Base Location"
+                                ref={(node) => setupAutocomplete(node, setBaseLocation)}
+                                onChange={(e) => handleInputChange('baseLocation', e.target.value)}
+                                value={baseLocation ? baseLocation.name : ''}
+                            />
+                            {baseLocation && <div>{`baseLocation Lat/Lng: ${baseLocation.lat}, ${baseLocation.lng}`}</div>}
+                        </div>
+                    </div> 
+                                        <div className="flex items-center mt-4">
                                             <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Pickup Location
                                             </label>
@@ -675,8 +734,9 @@ const Booking = () => {
                                                 {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
                                             </div>
                                         </div>
+                                        
                                         <GoogleMap>
-                                            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} />
+                                            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation}  baseLocation={baseLocation}/>
                                         </GoogleMap>
                                     </div>
                                 )}
@@ -945,6 +1005,26 @@ const Booking = () => {
                                 />
                             </div>
                             <div className="flex items-center mt-4">
+    <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Showroom
+    </label>
+    <select
+        id="showroom"
+        name="showroom"
+        className="form-input flex-1"
+        value={selectedShowroom}
+        onChange={(e) => setSelectedShowroom(e.target.value)}
+    >
+        <option value="">Select a showroom</option>
+        {showrooms.map((showroom) => (
+            <option key={showroom.id} value={showroom.ShowRoom}>
+                {showroom.ShowRoom}
+            </option>
+        ))}
+    </select>
+</div>
+
+   <div className="flex items-center mt-4">
                                 <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Brand Name
                                 </label>

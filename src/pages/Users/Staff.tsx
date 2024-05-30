@@ -58,8 +58,8 @@
                                 <th>Address</th>
 
                                 <th>Phone Number</th>
-                                <th>ShowRoom Name</th>
-                                <th>ShowRoom District</th>
+                                <th>User Name</th>
+                                <th>Password </th>
                                 <th className="!text-center">Action</th>
                             </tr>
                         </thead>
@@ -75,9 +75,9 @@
                                         <td>{item.address}</td>
 
                                         <td>{item.phone_number}</td>
-                                        <td>{item.showroom_name}</td>
+                                        <td>{item.userName}</td>
 
-                                        <td>{item.showroom_district}</td>
+                                        <td>{item.password}</td>
 
                                         <td className="text-center">
                                             <ul className="flex items-center justify-center gap-2">
