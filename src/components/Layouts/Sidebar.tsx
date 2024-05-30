@@ -109,7 +109,7 @@ const Sidebar = () => {
                                             <NavLink to="/users/staff">Staff Creation</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/users/company">Company Creation</NavLink>
+                                            <NavLink to="/users/company">Provider Creation</NavLink>
                                         </li>
                                         <li>
                                             <NavLink to="/users/customer">Customer Creation</NavLink>

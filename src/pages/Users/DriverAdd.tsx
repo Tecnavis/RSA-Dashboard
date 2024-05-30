@@ -60,7 +60,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     };
    
     const handleProfileImageChange = (e) => {
-        setProfileImage(e.target.files[0]); // Store the selected file
+        setProfileImage(e.target.files[0]); 
     };
     
     const renderServiceOptions = () => {
@@ -199,6 +199,10 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                 )}
                             </div>
                             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label htmlFor="driverName">Driver Name</label>
+                                    <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+                                </div>
                                 <div>
                                     <label htmlFor="driverName">Driver Name</label>
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />

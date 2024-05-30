@@ -9,7 +9,11 @@ import { serverTimestamp } from 'firebase/firestore';
 import useGoogleMaps from './GoogleMaps';
 import MyMapComponent from './MyMapComponent';
 
-
+interface Showroom {
+    id: string;
+    name: string;
+    // other properties
+}
 const Booking = () => {
     const db = getFirestore();
     const navigate = useNavigate();
@@ -54,7 +58,7 @@ const Booking = () => {
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [baseLocation, setBaseLocation] = useState(null);  
     
-    const [showrooms, setShowrooms] = useState([]);
+    const [showrooms, setShowrooms] = useState<Showroom[]>([]);
     const [selectedShowroom, setSelectedShowroom] = useState('');
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
@@ -76,9 +80,10 @@ const Booking = () => {
             setDistance(state.editData.distance || '');
             setSelectedDriver(state.editData.selectedDriver || '');
             setBaseLocation(state.editData.baseLocation || '');
-            setShowrooms(state.editData.showrooms || '');
-
+            setShowrooms(state.editData.showrooms || []);
             
+            setSelectedShowroom(state.editData.selectedShowroom || '');
+
             setPickupLocation(state.editData.pickupLocation || '');
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
@@ -435,24 +440,26 @@ const Booking = () => {
     useEffect(() => {
         const fetchShowrooms = async () => {
             try {
-                const showroomCollection = collection(getFirestore(), 'showroom');
+                const showroomCollection = collection(db, 'showroom');
                 const snapshot = await getDocs(showroomCollection);
-                console.log('Snapshot:', snapshot); // Log the snapshot
-                const showroomList = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                console.log('Showroom List:', showroomList); // Log the showroomList
+                const showroomList = snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        name: data.name || 'Unnamed Showroom', // Default value if name is undefined
+                        ...data,
+                    };
+                });
+                console.log('Fetched showrooms:', showroomList);
                 setShowrooms(showroomList);
             } catch (error) {
                 console.error('Error fetching showrooms:', error);
+                setShowrooms([]);
             }
         };
-        
+
         fetchShowrooms();
-    }, []);
-    
-    
+    }, [db]);
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -1018,25 +1025,24 @@ const Booking = () => {
                                 />
                             </div>
                             <div className="flex items-center mt-4">
-    <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Showroom
-    </label>
-    <select
-        id="showroom"
-        name="showroom"
-        className="form-input flex-1"
-        value={selectedShowroom}
-        onChange={(e) => setSelectedShowroom(e.target.value)}
-    >
-        <option value="">Select a showroom</option>
-        {showrooms.map((showroom) => (
-            <option key={showroom.id} value={showroom.ShowRoom}>
-                {showroom.ShowRoom}
-            </option>
-        ))}
-    </select>
-</div>
-
+                            <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                            Showroom Name
+                                </label>
+            <select
+                id="showroom"
+                name="showroom"
+                className="form-input flex-1"
+                value={selectedShowroom}
+                onChange={(e) => setSelectedShowroom(e.target.value)}
+            >
+                <option value="">Select a showroom</option>
+                {Array.isArray(showrooms) && showrooms.map(showroom => (
+                    <option key={showroom.id} value={showroom.id}>
+                        {showroom.Location}
+                    </option>
+                ))}
+            </select>
+        </div>
    <div className="flex items-center mt-4">
                                 <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Brand Name
