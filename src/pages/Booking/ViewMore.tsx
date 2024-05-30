@@ -284,6 +284,14 @@ const ViewMore = () => {
                         <td style={tdStyle}>{bookingDetails.mobileNumber}</td>
                     </tr>
                     <tr>
+                        <td style={thStyle}>Start Location:</td>
+                        <td style={tdStyle}>
+                            {bookingDetails.baseLocation
+                                ? `${bookingDetails.baseLocation.name}, Lat: ${bookingDetails.baseLocation.lat}, Lng: ${bookingDetails.baseLocation.lng}`
+                                : 'Location not selected'}
+                        </td>
+                    </tr>
+                    <tr>
                         <td style={thStyle}>Pickup Location:</td>
                         <td style={tdStyle}>
                             {bookingDetails.pickupLocation

@@ -181,7 +181,7 @@ const Booking = () => {
 
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
-
+    
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
         autocomplete.setFields(['geometry', 'name']);
         autocomplete.addListener('place_changed', () => {
@@ -196,35 +196,48 @@ const Booking = () => {
             }
         });
     };
-
+    
     useEffect(() => {
-        if (pickupLocation && dropoffLocation) {
+        setupAutocomplete(document.getElementById('baseLocationInput'), setBaseLocation);
+        setupAutocomplete(document.getElementById('pickupLocationInput'), setPickupLocation);
+        setupAutocomplete(document.getElementById('dropoffLocationInput'), setDropoffLocation);
+    }, []);
+    
+    useEffect(() => {
+        if (baseLocation && pickupLocation && dropoffLocation) {
             const service = new window.google.maps.DistanceMatrixService();
+    
+            const origins = [baseLocation, pickupLocation, dropoffLocation];
+            const destinations = [pickupLocation, dropoffLocation, baseLocation];
+    
             service.getDistanceMatrix(
                 {
-                    origins: [pickupLocation],
-                    destinations: [dropoffLocation],
+                    origins,
+                    destinations,
                     travelMode: 'DRIVING',
                 },
                 (response, status) => {
-                    console.log('Response:', response);
-                    console.log('Status:', status);
                     if (status === 'OK') {
-                        if (response.rows && response.rows.length > 0 && response.rows[0].elements && response.rows[0].elements.length > 0) {
-                            const distance = response.rows[0].elements[0].distance.text;
-                            console.log('Distance:', distance);
-                            setDistance(distance);
-                            setBookingDetails({ ...bookingDetails, distance: distance });
-                        } else {
-                            console.error('Invalid response structure:', response);
-                        }
+                        const distances = response.rows.map((row, index) => {
+                            return row.elements[index].distance.value / 1000; // Distance in km
+                        });
+                        console.log('Distances:', distances);
+    
+                        // Calculate total distance
+                        const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
+                        console.log('Total Distance:', totalDistance);
+    
+                        // Set total distance and other booking details
+                        setDistance(`${totalDistance} km`);
+                        setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
                     } else {
-                        console.error('Error calculating distance:', status);
+                        console.error('Error calculating distances:', status);
                     }
                 }
             );
         }
-    }, [pickupLocation, dropoffLocation]);
+    }, [baseLocation, pickupLocation, dropoffLocation]);
+    
     
 
     useEffect(() => {
@@ -370,7 +383,7 @@ const Booking = () => {
         if (pickupDistances.length > 0 && drivers.length > 0) {
             const totalDistances = drivers.map((driver, index) => {
                 const numericPickupDistance = pickupDistances[index] || 0; // Default to 0 if pickupDistance is not available
-                const totalDistance = distanceNumeric + numericPickupDistance;
+                const totalDistance = distanceNumeric ;
                 return { driverId: driver.id, totalDistance };
             });
             console.log('Total Distances:', totalDistances);
@@ -897,20 +910,20 @@ const Booking = () => {
                                                             <thead>
                                                                 <tr>
                                                                     <th>Driver Name</th>
-                                                                    <th>Total Amount</th>
+                                                                    {/* <th>Total Amount</th> */}
                                                                     <th>Distance to Pickup (km)</th> 
            
-                                                                    <th>Total Distance (km)</th>
+                                                                    {/* <th>Total Distance (km)</th> */}
                                                                     <th>Select</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
                                                                     <td>{driver.driverName || 'Unknown Driver'}</td>
-                                                                    <td className="text-danger">{driverTotalSalary}</td>
-                                                                    <td>{pickupDistance}</td>
+                                                                    {/* <td className="text-danger">{driverTotalSalary}</td> */}
+                                                                    <td>{pickupDistance.toFixed(2)} km</td>
             
-            <td>{totalDistance || 'N/A'}</td>
+            {/* <td>{totalDistance || 'N/A'}</td> */}
                         {/* <td>{pickupDistance !== null ? pickupDistance.toFixed(1) : 'N/A'}</td>
             
                         <td>{totalDistance !== null ? totalDistance.toFixed(1) : 'N/A'}</td> */}
@@ -957,7 +970,7 @@ const Booking = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="mt-4 flex items-center">
+                                {/* <div className="mt-4 flex items-center">
                                     <label htmlFor="totalDistance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                         Total Distance
                                     </label>
@@ -979,7 +992,7 @@ const Booking = () => {
                                             readOnly
                                         />
                                     </div>
-                                </div>
+                                </div> */}
                             </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
