@@ -11,6 +11,8 @@ const DriverAdd = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [phone, setPhone] = useState('');
+    const [companyName, setCompanyName] = useState('');
+
     const [personalphone, setPersonalPhone] = useState('');
     const [salaryPerKm, setSalaryPerKm] = useState({});
     const [basicSalaryKm, setBasicSalaryKm] = useState({});
@@ -104,6 +106,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             setIdnumber(state.editData.idnumber || '');
             setPhone(state.editData.phone || '');
             setPassword(state.editData.password || '');
+            setCompanyName(state.editData.companyName || '');
+
 
             setConfirmPassword(state.editData.confirmPassword || '');
 
@@ -143,6 +147,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 salaryPerKm,
                 basicSalaryKm,
                 selectedServices,
+                companyName,
+
                 basicSalaries,
                 password,
                 confirmPassword,
@@ -203,9 +209,13 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                     <label htmlFor="driverName">Driver Name</label>
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label htmlFor="driverName">Driver Name</label>
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+                                </div> */}
+                                <div>
+                                    <label htmlFor="companyName">Company Name</label>
+                                    <input id="companyName" type="text" placeholder="Enter Company Name" className="form-input" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
                                 </div>
                                 <div>
                                     <label htmlFor="idnumber">ID number</label>

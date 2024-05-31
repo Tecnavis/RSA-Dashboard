@@ -329,7 +329,18 @@ const Booking = () => {
         driver,
         pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
     }));
-    driversWithDistances.sort((a, b) => a.pickupDistance - b.pickupDistance);
+    
+    // Sort drivers: RSA company first, then by pickup distance
+    driversWithDistances.sort((a, b) => {
+        if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
+            return -1;
+        }
+        if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
+            return 1;
+        }
+        return b.pickupDistance - a.pickupDistance;
+    });
+    
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
 
@@ -867,91 +878,87 @@ const Booking = () => {
                                 </div>
 
                                 <ReactModal
-                                    isOpen={isModalOpen}
-                                    onRequestClose={closeModal}
-                                    style={{
-                                        overlay: {
-                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                        },
-                                        content: {
-                                            top: '50%',
-                                            left: '50%',
-                                            right: 'auto',
-                                            bottom: 'auto',
-                                            transform: 'translate(-50%, -50%)',
-                                            borderRadius: '10px',
-                                            maxWidth: '90vw',
-                                            maxHeight: '80vh',
-                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-                                            padding: '20px',
-                                            overflow: 'auto',
-                                        },
-                                    }}
-                                >
-                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-                                        <button
-                                            onClick={closeModal}
-                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
-                                        >
-                                            OK
-                                        </button>
-                                    </div>
+    isOpen={isModalOpen}
+    onRequestClose={closeModal}
+    style={{
+        overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '10px',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+            padding: '20px',
+            overflow: 'auto',
+        },
+    }}
+>
+    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+        <button
+            onClick={closeModal}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+            style={{ marginLeft: 'auto', marginRight: '20px' }}
+        >
+            OK
+        </button>
+    </div>
 
-                                    <div style={{ marginTop: '10px' }}>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            {driversWithDistances.map(({ driver, pickupDistance }) => {
-                                                console.log('Driver ID:', driver.id);
-                                                console.log('Total Distances:', totalDistances);
-                                                const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
-                                                const driverTotalSalary = calculateTotalSalary(
-                                                    serviceDetails.salary,
-                                                    totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
-                                                    serviceDetails.basicSalaryKM,
-                                                    serviceDetails.salaryPerKM
-                                                ).toFixed(2); ;
-                                                return (
-                                                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                                                        <table className="panel p-4 w-full">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Driver Name</th>
-                                                                    {/* <th>Total Amount</th> */}
-                                                                    <th>Distance to Pickup (km)</th> 
-           
-                                                                    {/* <th>Total Distance (km)</th> */}
-                                                                    <th>Select</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td>{driver.driverName || 'Unknown Driver'}</td>
-                                                                    {/* <td className="text-danger">{driverTotalSalary}</td> */}
-                                                                    <td>{pickupDistance.toFixed(2)} km</td>
-            
-            {/* <td>{totalDistance || 'N/A'}</td> */}
-                        {/* <td>{pickupDistance !== null ? pickupDistance.toFixed(1) : 'N/A'}</td>
-            
-                        <td>{totalDistance !== null ? totalDistance.toFixed(1) : 'N/A'}</td> */}
-                                                                    <td>
-                                                                        <input
-                                                                            type="radio"
-                                                                            name="selectedDriver"
-                                                                            value={driver.id}
-                                                                            checked={selectedDriver === driver.id}
-                                                                            onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </ReactModal>
+    <div style={{ marginTop: '10px' }}>
+        <div className="grid grid-cols-1 gap-4">
+            {driversWithDistances
+                .sort((a, b) => (a.driver.companyName === 'RSA' ? -1 : 1))
+                .map(({ driver, pickupDistance }) => {
+                    console.log('Driver ID:', driver.id);
+                    console.log('Total Distances:', totalDistances);
+                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
+                    const driverTotalSalary = calculateTotalSalary(
+                        serviceDetails.salary,
+                        totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
+                        serviceDetails.basicSalaryKM,
+                        serviceDetails.salaryPerKM
+                    ).toFixed(2);
+                    return (
+                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                            <table className="panel p-4 w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Driver Name</th>
+                                        <th>Company Name</th>
+                                        <th>Distance to Pickup (km)</th> 
+                                        <th>Select</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{driver.driverName || 'Unknown Driver'}</td>
+                                        <td>{driver.companyName || 'Unknown Company'}</td>
+                                        <td>{pickupDistance.toFixed(2)} km</td>
+                                        <td>
+                                            <input
+                                                type="radio"
+                                                name="selectedDriver"
+                                                value={driver.id}
+                                                checked={selectedDriver === driver.id}
+                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })}
+        </div>
+    </div>
+</ReactModal>
+
                             </div>
                             <React.Fragment>
                                 <div className="mt-4 flex items-center">

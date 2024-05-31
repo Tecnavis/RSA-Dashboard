@@ -14,7 +14,6 @@ const ViewMore = () => {
     const queryParams = new URLSearchParams(search);
     const [editData, setEditData] = useState(null);
     const [staffName, setStaffName] = useState('Admin');
-    const [showroomLocation, setShowroomLocation] = useState(null);
 
     console.log('first', bookingDetails);
     useEffect(() => {
@@ -40,9 +39,6 @@ const ViewMore = () => {
                       if (data.staffId) {
                         fetchStaffName(data.staffId);
                     }
-                    if (data.showroom) {
-                        fetchShowroomLocation(data.showroom);
-                    }
                 } else {
                     console.log(`Document with ID ${id} does not exist!`);
                 }
@@ -63,19 +59,6 @@ const ViewMore = () => {
                 }
             } catch (error) {
                 console.error('Error fetching staff data:', error);
-            }
-        };
-        const fetchShowroomLocation = async (showroomId) => {
-            try {
-                const showroomDocRef = doc(db, 'showroom', showroomId);
-                const showroomDocSnap = await getDoc(showroomDocRef);
-                if (showroomDocSnap.exists()) {
-                    setShowroomLocation(showroomDocSnap.data().location);
-                } else {
-                    console.log(`Showroom with ID ${showroomId} does not exist!`);
-                }
-            } catch (error) {
-                console.error('Error fetching showroom data:', error);
             }
         };
 
@@ -267,10 +250,10 @@ const ViewMore = () => {
                         <td style={tdStyle}>{bookingDetails.company}</td>
                     </tr>
                     
-                    <tr>
+                    {/* <tr>
                         <td style={thStyle}>Showroom :</td>
                         <td style={tdStyle}>{bookingDetails.showroom}</td>
-                    </tr>
+                    </tr> */}
                     <tr>
                         <td style={thStyle}>File Number :</td>
                         <td style={tdStyle}>{bookingDetails.fileNumber}</td>

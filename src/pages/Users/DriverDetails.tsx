@@ -50,6 +50,10 @@ console.log("driver",driver)
                         <td>{driver.idnumber}</td>
                     </tr>
                     <tr>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Company Name:</td>
+                        <td>{driver.companyName}</td>
+                    </tr>
+                    <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Phone Number:</td>
                         <td>{driver.phone}</td>
                     </tr>
