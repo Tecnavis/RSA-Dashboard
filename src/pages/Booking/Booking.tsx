@@ -8,6 +8,7 @@ import { query, where } from 'firebase/firestore';
 import { serverTimestamp } from 'firebase/firestore';
 import useGoogleMaps from './GoogleMaps';
 import MyMapComponent from './MyMapComponent';
+import VehicleSection from './VehicleSection';
 
 interface Showroom {
     id: string;
@@ -36,6 +37,7 @@ const Booking = () => {
         driver: '',
         vehicleNumber: '',
         vehicleModel: '',
+        vehicleSection:'',
         comments: '',
     });
     const { state } = useLocation();
@@ -50,6 +52,8 @@ const Booking = () => {
     const [serviceVehicle, setServiceVehicle] = useState('');
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [vehicleModel, setVehicleModel] = useState('');
+    const [vehicleSection, setVehicleSection] = useState('');
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState(null);
     const [serviceDetails, setServiceDetails] = useState('');
@@ -77,6 +81,9 @@ const Booking = () => {
             setVehicleNumber(state.editData.vehicleNumber || '');
             setServiceVehicle(state.editData.serviceVehicle || '');
             setVehicleModel(state.editData.vehicleModel || '');
+            setVehicleSection(state.editData.vehicleSection || '');
+
+            
             setDistance(state.editData.distance || '');
             setSelectedDriver(state.editData.selectedDriver || '');
             setBaseLocation(state.editData.baseLocation || '');
@@ -141,6 +148,10 @@ const Booking = () => {
             case 'totalSalary':
                 setTotalSalary(value || '');
                 break;
+                
+                case 'vehicleSection':
+                    setVehicleSection(value || '');
+                    break;
             case 'vehicleModel':
                 setVehicleModel(value || '');
                 break;
@@ -228,11 +239,9 @@ const Booking = () => {
                         });
                         console.log('Distances:', distances);
     
-                        // Calculate total distance
                         const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
                         console.log('Total Distance:', totalDistance);
     
-                        // Set total distance and other booking details
                         setDistance(`${totalDistance} km`);
                         setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
                     } else {
@@ -505,6 +514,7 @@ const Booking = () => {
                 serviceType: serviceType || '',
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
+                vehicleSection:vehicleSection || '',
                 vehicleNumber: vehicleNumber || '',
                 fileNumber: finalFileNumber, 
                 selectedDriver: selectedDriver || '',
@@ -1050,6 +1060,32 @@ const Booking = () => {
                 ))}
             </select>
         </div>
+        <br/>
+        <div className="flex items-center" style={{ marginBottom: '1rem' }}>
+                        <label htmlFor="vehicleSection" className="w-1/3 mb-0" style={{ marginRight: '1rem' }}>Service Center</label>
+                       <VehicleSection/>
+                        {/* <select
+                            id="vehicleSection"
+                            name="vehicleSection"
+                            className="form-select flex-1"
+                            value={vehicleSection}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            }}
+                            onChange={(e) => handleInputChange('vehicleSection', e.target.value)}
+                        >
+                            <option value="">Select Service Section</option>
+                            <option value="Service Center">Service Center</option>
+                            <option value="Body Shopes">Body Shopes</option>
+                            <option value="ShowRooms">ShowRooms</option>
+                        </select> */}
+                    </div>
    <div className="flex items-center mt-4">
                                 <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Brand Name

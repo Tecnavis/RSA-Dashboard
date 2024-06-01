@@ -193,8 +193,14 @@ const ShowRoom = () => {
 };
 
 
-    const handleEdit = (roomId) => {
+     const handleEdit = (roomId) => {
         const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
+        const userPassword = prompt('Please enter your password:');
+        if (userPassword !== roomToEdit.password) {
+            alert('Incorrect password. Editing aborted.');
+            return;
+        }
+
         setShowRoom(roomToEdit);
         setEditRoomId(roomId);
         formRef.current.scrollIntoView({ behavior: 'smooth' });
