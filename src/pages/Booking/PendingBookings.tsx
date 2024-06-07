@@ -24,7 +24,7 @@ const PendingBookings = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
-    const PAGE_SIZES = [10, 20, 30];
+    const PAGE_SIZES = [10, 25, 'All'];
     const db = getFirestore();
 
     useEffect(() => {
@@ -66,6 +66,9 @@ const PendingBookings = () => {
         );
         setFilteredRecords(filtered);
     }, [searchTerm, recordsData]);
+    const totalPages = Math.ceil(filteredRecords.length / pageSize);
+
+    const displayedRecords = pageSize === 'All' ? filteredRecords : filteredRecords.slice((page - 1) * pageSize, page * pageSize);
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', color: '#333' }}>
@@ -101,7 +104,7 @@ const PendingBookings = () => {
                         noRecordsText="No results match your search query"
                         highlightOnHover
                         className="whitespace-nowrap table-hover"
-                        records={filteredRecords}
+                        records={displayedRecords}
                         columns={[
                             { accessor: 'dateTime', title: 'Booking Date & Time' },
                             { accessor: 'fileNumber', title: 'File Number' },
@@ -131,11 +134,14 @@ const PendingBookings = () => {
                             },
                         ]}
                         totalRecords={filteredRecords.length}
-                        recordsPerPage={pageSize}
+                        recordsPerPage={pageSize === 'All' ? filteredRecords.length : pageSize}
                         page={page}
                         onPageChange={(p) => setPage(p)}
                         recordsPerPageOptions={PAGE_SIZES}
-                        onRecordsPerPageChange={setPageSize}
+                        onRecordsPerPageChange={(size) => {
+                            setPageSize(size === 'All' ? filteredRecords.length : size);
+                            setPage(1); // reset to first page when page size changes
+                        }}
                         minHeight={200}
                         rowStyle={(record) =>
                             record.bookingStatus === 'ShowRoom Booking' ? { backgroundColor: '#ffeeba' } : {}

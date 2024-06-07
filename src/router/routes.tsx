@@ -34,6 +34,7 @@ import ShowRoom from '../pages/ShowRooms/ShowRoom';
 import ShowRoomss from '../pages/ShowRooms/ShowRoomss';
 import ShowRm from '../pages/ShowRooms/ShowRm';
 import PendingBookings from '../pages/Booking/PendingBookings';
+import BaseLocation from '../pages/BaseLocation/BaseLocation';
 
 
 
@@ -504,6 +505,10 @@ const routes = [
       {
         path: '/checkstatus/status',
         element: <StatusTable />,
+    },
+    {
+        path: '/baselocation/location',
+        element: <BaseLocation />,
     },
     //Booking pages
     {

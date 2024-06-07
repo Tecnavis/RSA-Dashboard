@@ -45,7 +45,7 @@ const ShowRoom = () => {
         Location: '',
         userName: '',
         password: '',
-        // Map: '',
+       
         tollfree: '',
         showroomId: '',
         phoneNumber: '',
@@ -138,7 +138,7 @@ const ShowRoom = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const db = getFirestore();
-        const timestamp = serverTimestamp(); // Get server timestamp
+        const timestamp = serverTimestamp();
         const newShowRoom = { ...showRoom, createdAt: timestamp }; // Include createdAt field
     
         try {
@@ -151,7 +151,6 @@ const ShowRoom = () => {
                 await addDoc(collection(db, 'showroom'), newShowRoom);
                 alert('Showroom added successfully');
             }
-            // Reset state
             setShowRoom({
                 img: '',
                 ShowRoom: '',
@@ -172,6 +171,8 @@ const ShowRoom = () => {
                 hasInsuranceBody: '',
                 insuranceAmountBody: '',
             });
+            formRef.current.reset();
+
             fetchShowRooms();
         } catch (error) {
             console.error('Error adding/updating showroom:', error);

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { addDoc, collection, getFirestore, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { addDoc, collection, getFirestore, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
-const VehicleSection = () => {
+const VehicleSection = ({ selectedShowroom, totalSalary, onUpdateTotalSalary }) => {
     const [showRoom, setShowRoom] = useState({
         availableServices: '',
         hasInsurance: '',
@@ -10,6 +10,36 @@ const VehicleSection = () => {
         insuranceAmountBody: '',
     });
     const [editRoomId, setEditRoomId] = useState(null);
+    const [updatedTotalSalary, setUpdatedTotalSalary] = useState('');
+
+    useEffect(() => {
+        const fetchInsuranceAmount = async () => {
+            if (selectedShowroom) {
+                const db = getFirestore();
+                const showroomRef = doc(db, 'showroom', selectedShowroom);
+                const showroomSnap = await getDoc(showroomRef);
+
+                if (showroomSnap.exists()) {
+                    const showroomData = showroomSnap.data();
+                    setShowRoom((prevShowRoom) => ({
+                        ...prevShowRoom,
+                        insuranceAmount: showroomData.insuranceAmountBody,
+                    }));
+                } else {
+                    console.log('No such document!');
+                }
+            }
+        };
+
+        fetchInsuranceAmount();
+    }, [selectedShowroom]);
+
+    useEffect(() => {
+        const newTotalSalary = totalSalary - showRoom.insuranceAmount;
+        setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+        onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+    }, [showRoom.insuranceAmount, totalSalary]);
+
 
     const handleServiceChange = (e) => {
         const { value } = e.target;
@@ -28,42 +58,13 @@ const VehicleSection = () => {
     };
 
     const handleInsuranceAmountChange = (e) => {
-        const { name, value } = e.target;
+        const { value } = e.target;
         setShowRoom((prevShowRoom) => ({
             ...prevShowRoom,
-            [name]: value,
+            insuranceAmount: value,
         }));
     };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const db = getFirestore();
-        const timestamp = serverTimestamp(); // Get server timestamp
-        const newShowRoom = { ...showRoom, createdAt: timestamp }; // Include createdAt field
-    
-        try {
-            if (editRoomId) {
-                const roomRef = doc(db, 'showroom', editRoomId);
-                await updateDoc(roomRef, newShowRoom);
-                alert('Showroom updated successfully');
-                setEditRoomId(null);
-            } else {
-                await addDoc(collection(db, 'showroom'), newShowRoom);
-                alert('Showroom added successfully');
-            }
-            // Reset state
-            setShowRoom({
-                availableServices: '',
-                hasInsurance: '',
-                insuranceAmount: '',
-                insurance: '',
-                insuranceAmountBody: '',
-            });
-        } catch (error) {
-            console.error('Error adding/updating showroom:', error);
-        }
-    };
-
+  
     return (
         <div className="mb-5">
             <div className="mb-2" style={{ alignItems: 'center', border: '1px solid #ccc', padding: '10px', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
@@ -106,16 +107,6 @@ const VehicleSection = () => {
                             />
                             Insurance
                         </label>
-                        {showRoom.insurance === 'insurance' && (
-                            <input
-                                type="number"
-                                name="insuranceAmount"
-                                value={showRoom.insuranceAmount}
-                                onChange={handleInsuranceAmountChange}
-                                placeholder="Enter insurance amount"
-                                style={{ marginLeft: '10px' }}
-                            />
-                        )}
                         <label className="mr-2" style={{ marginRight: '10px', fontSize: '1em' }}>
                             <input
                                 type="radio"
@@ -128,16 +119,6 @@ const VehicleSection = () => {
                             />
                             Ready Payment
                         </label>
-                        {showRoom.insurance === 'ready' && (
-                            <input
-                                type="number"
-                                name="insuranceAmountBody"
-                                value={showRoom.insuranceAmountBody}
-                                onChange={handleInsuranceAmountChange}
-                                placeholder="Enter ready payment amount"
-                                style={{ marginLeft: '10px' }}
-                            />
-                        )}
                         <label className="mr-2" style={{ marginRight: '10px', fontSize: '1em' }}>
                             <input
                                 type="radio"
@@ -150,23 +131,15 @@ const VehicleSection = () => {
                             />
                             Both
                         </label>
-                        {showRoom.insurance === 'both' && (
-                            <div style={{ marginLeft: '10px' }}>
+                        {showRoom.insurance === 'insurance' && (
+                            <div className="mt-2" style={{ marginTop: '10px', fontSize: '0.9em' }}>
+                                <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Insurance Amount:</label>
                                 <input
                                     type="number"
                                     name="insuranceAmount"
                                     value={showRoom.insuranceAmount}
                                     onChange={handleInsuranceAmountChange}
-                                    placeholder="Enter insurance amount"
-                                    style={{ display: 'block', marginBottom: '5px' }}
-                                />
-                                <input
-                                    type="number"
-                                    name="insuranceAmountBody"
-                                    value={showRoom.insuranceAmountBody}
-                                    onChange={handleInsuranceAmountChange}
-                                    placeholder="Enter ready payment amount"
-                                    style={{ display: 'block' }}
+                                    style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}
                                 />
                             </div>
                         )}
@@ -186,6 +159,13 @@ const VehicleSection = () => {
                 </label>
             </div>
             <br />
+            <div>
+                <p>Selected Showroom: {selectedShowroom ? selectedShowroom.Location : 'None selected'}</p>
+                <p>Total Salary: {updatedTotalSalary}</p>
+                <p>Insurance Amount: {showRoom.insuranceAmount}</p>
+               
+            </div>
+           
         </div>
     );
 };

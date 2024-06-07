@@ -4,6 +4,9 @@ import { getFirestore, collection, getDocs } from 'firebase/firestore';
 const ApprovedBooking = () => {
     const [approvedBookings, setApprovedBookings] = useState([]);
     const [searchQuery, setSearchQuery] = useState(''); // State for search query
+    const [currentPage, setCurrentPage] = useState(1); // State for current page
+    const [pageSize, setPageSize] = useState(10); // State for page size
+    const PAGE_SIZES = [10, 25, 'All'];
 
     useEffect(() => {
         const fetchApprovedBookings = async () => {
@@ -36,6 +39,13 @@ const ApprovedBooking = () => {
         )
     );
 
+    const totalRecords = filteredBookings.length;
+    const totalPages = pageSize === 'All' ? 1 : Math.ceil(totalRecords / pageSize);
+
+    const displayedBookings = pageSize === 'All'
+        ? filteredBookings
+        : filteredBookings.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
     return (
         <div className="panel mt-6">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">
@@ -51,7 +61,7 @@ const ApprovedBooking = () => {
                 />
             </div>
             <div className="datatables">
-                {filteredBookings.length === 0 ? (
+                {displayedBookings.length === 0 ? (
                     <p>No approved bookings found.</p>
                 ) : (
                     <table className="table-hover">
@@ -66,7 +76,7 @@ const ApprovedBooking = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredBookings.map((booking) => (
+                            {displayedBookings.map((booking) => (
                                 <tr key={booking.id}>
                                     <td>{booking.dateTime}</td>
                                     <td>{booking.customerName}</td>
@@ -80,6 +90,41 @@ const ApprovedBooking = () => {
                     </table>
                 )}
             </div>
+            {pageSize !== 'All' && (
+                <div className="pagination-controls">
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="pagination-button"
+                    >
+                        Previous
+                    </button>
+                    <span className="pagination-info">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="pagination-button"
+                    >
+                        Next
+                    </button>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(e.target.value === 'All' ? 'All' : parseInt(e.target.value, 10));
+                            setCurrentPage(1); // Reset to the first page
+                        }}
+                        className="pagination-size-select"
+                    >
+                        {PAGE_SIZES.map((size) => (
+                            <option key={size} value={size}>
+                                {size}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
         </div>
     );
 };
