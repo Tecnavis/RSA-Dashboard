@@ -716,7 +716,7 @@
 //                                 />
 //                             </div>{' '}
 //                             <div style={{ width: '100%' }}>
-//                                   
+//
 //                                 {googleMapsLoaded && (
 //                                     <div>
 //                                         <div className="flex items-center mt-4">
@@ -1171,7 +1171,7 @@
 // export default Booking;
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { GoogleMap } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
@@ -1182,6 +1182,8 @@ import MyMapComponent from './MyMapComponent';
 import VehicleSection from './VehicleSection';
 import IconPlus from '../../components/Icon/IconPlus';
 import ShowroomModal from './ShowroomModal';
+import { Button } from '@mantine/core';
+import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 
 interface Showroom {
     id: string;
@@ -1211,16 +1213,24 @@ const Booking = () => {
         driver: '',
         vehicleNumber: '',
         vehicleModel: '',
-        vehicleSection:'',
+        vehicleSection: '',
         comments: '',
     });
     const { state } = useLocation();
-    const [map, setMap] = useState(null); 
+    const [map, setMap] = useState(null);
+    const [isModalOpen1, setIsModalOpen1] = useState(false);
 
-  
+    const openModal1 = () => {
+        setIsModalOpen1(true);
+    };
+
+    const closeModal1 = () => {
+        setIsModalOpen1(false);
+    };
+
     const [Location, setLocation] = useState('');
 
-    console.log("loc",Location)
+    console.log('loc', Location);
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -1239,7 +1249,7 @@ const Booking = () => {
     const [serviceType, setServiceType] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
     const [dropoffLocation, setDropoffLocation] = useState(null);
-    const [baseLocation, setBaseLocation] = useState(null);  
+    const [baseLocation, setBaseLocation] = useState(null);
     const [trappedLocation, setTrappedLocation] = useState('');
 
     const [showrooms, setShowrooms] = useState<Showroom[]>([]);
@@ -1272,14 +1282,14 @@ const Booking = () => {
             setVehicleSection(state.editData.vehicleSection || '');
 
             setLocation(state.editData.Location || '');
-            
+
             setUpdatedTotalSalary(state.editData.updatedTotalSalary || '');
 
             setDistance(state.editData.distance || '');
             setSelectedDriver(state.editData.selectedDriver || '');
             setBaseLocation(state.editData.baseLocation || '');
             setShowrooms(state.editData.showrooms || []);
-            
+
             setSelectedShowroom(state.editData.selectedShowroom || '');
             setShowrooms(state.editData.showrooms || '');
 
@@ -1287,8 +1297,7 @@ const Booking = () => {
             setServiceType(state.editData.serviceType || '');
             setTotalSalary(state.editData.totalSalary || '');
             setDropoffLocation(state.editData.dropoffLocation || '');
-      
-    }
+        }
     }, [state]);
     console.log('Selected Base Location:', baseLocation);
 
@@ -1306,23 +1315,23 @@ const Booking = () => {
             case 'customerName':
                 setCustomerName(value || '');
                 break;
-        case 'company':
-                    setCompany(value);
-                    setFileNumber(value === 'self' ? bookingId : '');
-                    break;
-         case 'fileNumber':
-                    setFileNumber(value || '');
-                    break;
+            case 'company':
+                setCompany(value);
+                setFileNumber(value === 'self' ? bookingId : '');
+                break;
+            case 'fileNumber':
+                setFileNumber(value || '');
+                break;
             case 'bookingId':
                 setBookingId(value || '');
                 break;
             case 'comments':
                 setComments(value || '');
                 break;
-                case 'updatedTotalSalary':
-                    setUpdatedTotalSalary(value || '');
-                    break;
-                
+            case 'updatedTotalSalary':
+                setUpdatedTotalSalary(value || '');
+                break;
+
             case 'distance':
                 setDistance(value || '');
                 openModal();
@@ -1345,20 +1354,20 @@ const Booking = () => {
             case 'totalSalary':
                 setTotalSalary(value || '');
                 break;
-                
-                case 'vehicleSection':
-                    setVehicleSection(value || '');
-                    break;
+
+            case 'vehicleSection':
+                setVehicleSection(value || '');
+                break;
             case 'vehicleModel':
                 setVehicleModel(value || '');
                 break;
-                case 'baseLocation':  
+            case 'baseLocation':
                 setBaseLocation(value || '');
                 break;
-                case 'Location':  
+            case 'Location':
                 setLocation(value || '');
                 break;
-                case 'trappedLocation':  
+            case 'trappedLocation':
                 setTrappedLocation(value || '');
                 break;
             case 'selectedDriver':
@@ -1373,20 +1382,20 @@ const Booking = () => {
                 );
                 // Update the Total Salary field with the calculated total salary
                 setTotalSalary(selectedDriverTotalSalary);
-                const selectedDriverTotalDistance = totalDistances.find(dist => dist.driverId === value)?.totalDistance || 0;
+                const selectedDriverTotalDistance = totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0;
                 setTotalDistance(selectedDriverTotalDistance);
                 break;
-                
+
             case 'vehicleNumber':
                 setVehicleNumber(value || '');
                 break;
-                case 'selectedShowroom':
-                    setSelectedShowroom(value || '');
-                    break;
-                   
-                case 'showrooms':
-                    setShowrooms(value || '');
-                    break;
+            case 'selectedShowroom':
+                setSelectedShowroom(value || '');
+                break;
+
+            case 'showrooms':
+                setShowrooms(value || '');
+                break;
             default:
                 break;
         }
@@ -1404,7 +1413,7 @@ const Booking = () => {
 
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
-    
+
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
         autocomplete.setFields(['geometry', 'name']);
         autocomplete.addListener('place_changed', () => {
@@ -1419,20 +1428,20 @@ const Booking = () => {
             }
         });
     };
-    
+
     useEffect(() => {
         // setupAutocomplete(document.getElementById('baseLocationInput'), setBaseLocation);
         setupAutocomplete(document.getElementById('pickupLocationInput'), setPickupLocation);
         setupAutocomplete(document.getElementById('dropoffLocationInput'), setDropoffLocation);
     }, []);
-    
+
     useEffect(() => {
         if (baseLocation && pickupLocation && dropoffLocation) {
             const service = new window.google.maps.DistanceMatrixService();
-    
+
             const origins = [baseLocation, pickupLocation, dropoffLocation];
             const destinations = [pickupLocation, dropoffLocation, baseLocation];
-    
+
             service.getDistanceMatrix(
                 {
                     origins,
@@ -1445,10 +1454,10 @@ const Booking = () => {
                             return row.elements[index].distance.value / 1000; // Distance in km
                         });
                         console.log('Distances:', distances);
-    
+
                         const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
                         console.log('Total Distance:', totalDistance);
-    
+
                         setDistance(`${totalDistance} km`);
                         setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
                     } else {
@@ -1458,8 +1467,6 @@ const Booking = () => {
             );
         }
     }, [baseLocation, pickupLocation, dropoffLocation]);
-    
-    
 
     useEffect(() => {
         const fetchDrivers = async () => {
@@ -1533,7 +1540,7 @@ const Booking = () => {
     const [pickupDistances, setPickupDistances] = useState([]);
     console.log('first', pickupDistances);
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371; 
+        const R = 6371;
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -1545,7 +1552,7 @@ const Booking = () => {
         driver,
         pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
     }));
-    
+
     // Sort drivers: RSA company first, then by pickup distance
     driversWithDistances.sort((a, b) => {
         if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
@@ -1556,7 +1563,7 @@ const Booking = () => {
         }
         return b.pickupDistance - a.pickupDistance;
     });
-    
+
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
 
@@ -1615,7 +1622,7 @@ const Booking = () => {
         if (pickupDistances.length > 0 && drivers.length > 0) {
             const totalDistances = drivers.map((driver, index) => {
                 const numericPickupDistance = pickupDistances[index] || 0; // Default to 0 if pickupDistance is not available
-                const totalDistance = distanceNumeric ;
+                const totalDistance = distanceNumeric;
                 return { driverId: driver.id, totalDistance };
             });
             console.log('Total Distances:', totalDistances);
@@ -1665,42 +1672,36 @@ const Booking = () => {
         }
     };
     useEffect(() => {
-        const fetchShowrooms = async () => {
-            try {
-                const showroomCollection = collection(db, 'showroom');
-                const snapshot = await getDocs(showroomCollection);
-                const showroomList = snapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        name: data.name || 'Unnamed Showroom', // Default value if name is undefined
-                        ...data,
-                    };
-                });
-                console.log('Fetched showrooms:', showroomList);
-                setShowrooms(showroomList);
-            } catch (error) {
-                console.error('Error fetching showrooms:', error);
-                setShowrooms([]);
-            }
-        };
-
-        fetchShowrooms();
-    }, [db]);
+        const unsubscribe = onSnapshot(collection(db, 'showroom'), (snapshot) => {
+          const showroomList = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || 'Unnamed Showroom',
+              ...data,
+            };
+          });
+          console.log('Fetched showrooms:', showroomList);
+          setShowrooms(showroomList);
+        });
+    
+        // Cleanup the listener on component unmount
+        return () => unsubscribe();
+      }, [db]);
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
             const currentDate = new Date();
             const dateTime = currentDate.toLocaleString();
-            let finalFileNumber = ''; 
+            let finalFileNumber = '';
 
             if (company === 'self') {
-                finalFileNumber = bookingId; 
+                finalFileNumber = bookingId;
             } else if (company === 'rsa') {
-                finalFileNumber = fileNumber; 
+                finalFileNumber = fileNumber;
             }
-    
+
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
@@ -1712,22 +1713,23 @@ const Booking = () => {
                 bookingId: `${bookingId}`,
                 createdAt: serverTimestamp(),
                 comments: comments || '',
-                totalDistance: totalDistance, 
-                baseLocation:baseLocation || '',
-                Location:Location || '',
+                totalDistance: totalDistance,
+                baseLocation: baseLocation || '',
+                Location: Location || '',
                 company: company || '',
-                showroom: selectedShowroom || '',                customerName: customerName || '',
+                showroom: selectedShowroom || '',
+                customerName: customerName || '',
                 mobileNumber: mobileNumber || '',
                 phoneNumber: phoneNumber || '',
                 serviceType: serviceType || '',
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
-                vehicleSection:vehicleSection || '',
+                vehicleSection: vehicleSection || '',
                 vehicleNumber: vehicleNumber || '',
-                fileNumber: finalFileNumber, 
+                fileNumber: finalFileNumber,
                 selectedDriver: selectedDriver || '',
                 trappedLocation: trappedLocation || '',
-                updatedTotalSalary:updatedTotalSalary || '',
+                updatedTotalSalary: updatedTotalSalary || '',
             };
 
             console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
@@ -1757,85 +1759,83 @@ const Booking = () => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
                         <div style={{ padding: '1rem' }}>
-                            <h5 className="font-semibold text-lg dark:text-white-light">
-                                {bookingId}
-                            </h5>
+                            <h5 className="font-semibold text-lg dark:text-white-light">{bookingId}</h5>
                         </div>{' '}
                         <div style={{ width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                    <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                        Company
-                    </label>
-                    <select
-                        id="company"
-                        name="company"
-                        value={company}
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        onChange={(e) => handleInputChange('company', e.target.value)}
-                    >
-                        <option value="">Select Company</option>
-                        <option value="rsa">RSA Work</option>
-                        <option value="self">Payment Work</option>
-                    </select>
-                </div>
-                {company === 'self' ? (
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                            File Number
-                        </label>
-                        <input
-                            id="fileNumber"
-                            type="text"
-                            name="fileNumber"
-                            placeholder="Enter File Number"
-                            className="form-input lg:w-[250px] w-2/3"
-                            value={`PMNA${bookingId}`}                            readOnly
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                backgroundColor: '#f1f1f1', // read-only background color
-                            }}
-                        />
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                        <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                            File Number
-                        </label>
-                        <input
-                            id="fileNumber"
-                            type="text"
-                            name="fileNumber"
-                            className="form-input lg:w-[250px] w-2/3"
-                            placeholder="Enter File Number"
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            value={fileNumber}
-                            onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                        />
-                    </div>
-                )}
-
+                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                    Company
+                                </label>
+                                <select
+                                    id="company"
+                                    name="company"
+                                    value={company}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    onChange={(e) => handleInputChange('company', e.target.value)}
+                                >
+                                    <option value="">Select Company</option>
+                                    <option value="rsa">RSA Work</option>
+                                    <option value="self">Payment Work</option>
+                                </select>
+                            </div>
+                            {company === 'self' ? (
+                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                        File Number
+                                    </label>
+                                    <input
+                                        id="fileNumber"
+                                        type="text"
+                                        name="fileNumber"
+                                        placeholder="Enter File Number"
+                                        className="form-input lg:w-[250px] w-2/3"
+                                        value={`PMNA${bookingId}`}
+                                        readOnly
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            backgroundColor: '#f1f1f1', // read-only background color
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                        File Number
+                                    </label>
+                                    <input
+                                        id="fileNumber"
+                                        type="text"
+                                        name="fileNumber"
+                                        className="form-input lg:w-[250px] w-2/3"
+                                        placeholder="Enter File Number"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        value={fileNumber}
+                                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                                    />
+                                </div>
+                            )}
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -1909,52 +1909,134 @@ const Booking = () => {
                                   
                                 {googleMapsLoaded && (
                                     <div>
-                                   <div className="mt-4 flex items-center">
-    <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Start Location
-    </label>
-    <input
-        id="baseLocation"
-        type="text"
-        name="baseLocation"
-        className="form-input flex-1"
-        placeholder="select start location"
-        value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
-        style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            outline: 'none',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}
-        readOnly
-    />
-    <Link
-        to="/baselocation/location"
-        style={{
-            borderRadius: '40px',
-            background: 'linear-gradient(135deg, #32CD32, #228B22)',
-            color: 'white',
-            marginLeft: '10px',
-            padding: '10px',
-            border: 'none',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer',
-            transition: 'background 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-    >
-        <IconPlus />
-    </Link>
-</div>
+                                        <div className="mt-4 flex items-center">
+                                            <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Start Location
+                                            </label>
+                                            <input
+                                                id="baseLocation"
+                                                type="text"
+                                                name="baseLocation"
+                                                className="form-input flex-1"
+                                                placeholder="select start location"
+                                                value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem',
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: '5px',
+                                                    fontSize: '1rem',
+                                                    outline: 'none',
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                }}
+                                                readOnly
+                                            />
+                                            <button
+                                                onClick={openModal1}
+                                                style={{
+                                                    borderRadius: '40px',
+                                                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                                                    color: 'white',
+                                                    marginLeft: '10px',
+                                                    padding: '10px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                            >
+                                                <IconPlus />
+                                            </button>
+                                        </div>
 
-           <div className="flex items-center mt-4">
+                                        {isModalOpen1 && (
+                                            <div
+                                                className="modal"
+                                                style={{
+                                                    position: 'fixed',
+                                                    zIndex: 1,
+                                                    left: 0,
+                                                    top: 0,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    overflow: 'auto',
+                                                    backgroundColor: 'rgb(0,0,0)',
+                                                    backgroundColor: 'rgba(0,0,0,0.4)',
+                                                }}
+                                            >
+                                                <div
+                                                    className="modal-content"
+                                                    style={{
+                                                        backgroundColor: '#fefefe',
+                                                        margin: '15% auto',
+                                                        padding: '20px',
+                                                        border: '1px solid #888',
+                                                        width: '80%',
+                                                        boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+                                                        borderRadius: '10px',
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="modal-header"
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'flex-end',
+                                                            borderBottom: '1px solid #eee',
+                                                            paddingBottom: '10px',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="close"
+                                                            onClick={closeModal1}
+                                                            style={{
+                                                                color: '#aaa',
+                                                                fontSize: '28px',
+                                                                fontWeight: 'bold',
+                                                                cursor: 'pointer',
+                                                                transition: '0.3s',
+                                                            }}
+                                                        >
+                                                            &times;
+                                                        </span>
+                                                    </div>
+                                                    <div className="modal-body">
+                                                        <BaseLocationModal />
+                                                    </div>
+                                                    <div
+                                                        className="modal-footer"
+                                                        style={{
+                                                            padding: '10px',
+                                                            borderTop: '1px solid #eee',
+                                                            textAlign: 'right',
+                                                        }}
+                                                    >
+                                                        <button
+                                                            onClick={closeModal1}
+                                                            style={{
+                                                                padding: '10px 20px',
+                                                                border: 'none',
+                                                                borderRadius: '5px',
+                                                                background: '#f44336',
+                                                                color: '#fff',
+                                                                cursor: 'pointer',
+                                                                transition: 'background 0.3s ease',
+                                                            }}
+                                                            onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
+                                                            onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
+                                                        >
+                                                            Close
+                                                        </button>{' '}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center mt-4">
                                             <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Pickup Location
                                             </label>
@@ -1978,7 +2060,27 @@ const Booking = () => {
                                                 />
                                                 {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
                                             </div>
-                                        </div>
+                                            <Link
+        to="https://www.google.co.in/maps/@11.0527369,76.0747136,15z?entry=ttu" // Update this to your actual route for the Google Map page
+        style={{
+          borderRadius: '40px',
+          background: 'linear-gradient(135deg, #32CD32, #228B22)',
+          color: 'white',
+          marginLeft: '10px',
+          padding: '10px',
+          border: 'none',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          cursor: 'pointer',
+          transition: 'background 0.3s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+      >
+        <IconPlus />
+      </Link>                                        </div>
                                         <div className="flex items-center mt-4">
                                             <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Drop off Location
@@ -2005,11 +2107,13 @@ const Booking = () => {
                                             </div>
                                         </div>
                                         <div>
-                                             <div className="flex items-center mt-4">
+                                            <div className="flex items-center mt-4">
                                                 <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                     Showroom Name
-                                                 </label>
-                                                <select id="showroom" name="showroom" className="form-input flex-1" value={selectedShowroom} onChange={(e) => setSelectedShowroom(e.target.value)}>                                                     <option value="">Select a showroom</option>
+                                                    Showroom Name
+                                                </label>
+                                                <select id="showroom" name="showroom" className="form-input flex-1" value={selectedShowroom} onChange={(e) => setSelectedShowroom(e.target.value)}>
+                                                    {' '}
+                                                    <option value="">Select a showroom</option>
                                                     {Array.isArray(showrooms) &&
                                                         showrooms.map((showroom) => (
                                                             <option key={showroom.id} value={showroom.id}>
@@ -2041,7 +2145,7 @@ const Booking = () => {
 
                                         <br />
                                         <GoogleMap>
-                                            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation}  baseLocation={baseLocation}/>
+                                            <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} baseLocation={baseLocation} />
                                         </GoogleMap>
                                     </div>
                                 )}
@@ -2070,43 +2174,46 @@ const Booking = () => {
                                 />
                             </div>
                             <div className="flex items-center mt-4">
-    <label htmlFor="trappedLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Trapped Location
-    </label>
-    <div className="flex items-center">
-        <input
-            type="radio"
-            id="onRoad"
-            name="trappedLocation"
-            value="onRoad"
-            checked={trappedLocation === 'onRoad'}
-            onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
-            className="mr-2"
-        />
-        <label htmlFor="onRoad" className="mr-4">On Road</label>
-        <input
-            type="radio"
-            id="inHouse"
-            name="trappedLocation"
-            value="inHouse"
-            checked={trappedLocation === 'inHouse'}
-            onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
-            className="mr-2"
-        />
-        <label htmlFor="inHouse" className="mr-4">In House</label>
-        <input
-            type="radio"
-            id="outsideOfRoad"
-            name="trappedLocation"
-            value="outsideOfRoad"
-            checked={trappedLocation === 'outsideOfRoad'}
-            onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
-            className="mr-2"
-        />
-        <label htmlFor="outsideOfRoad">Outside of Road</label>
-    </div>
-</div>
-
+                                <label htmlFor="trappedLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Trapped Location
+                                </label>
+                                <div className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        id="onRoad"
+                                        name="trappedLocation"
+                                        value="onRoad"
+                                        checked={trappedLocation === 'onRoad'}
+                                        onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor="onRoad" className="mr-4">
+                                        On Road
+                                    </label>
+                                    <input
+                                        type="radio"
+                                        id="inHouse"
+                                        name="trappedLocation"
+                                        value="inHouse"
+                                        checked={trappedLocation === 'inHouse'}
+                                        onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor="inHouse" className="mr-4">
+                                        In House
+                                    </label>
+                                    <input
+                                        type="radio"
+                                        id="outsideOfRoad"
+                                        name="trappedLocation"
+                                        value="outsideOfRoad"
+                                        checked={trappedLocation === 'outsideOfRoad'}
+                                        onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor="outsideOfRoad">Outside of Road</label>
+                                </div>
+                            </div>
                             <div className="flex items-center mt-4">
                                 <label htmlFor="serviceType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Service Type
@@ -2162,7 +2269,7 @@ const Booking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                     onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                                required
+                                    required
                                 />
                             </div>
                             <div className="flex items-center mt-4">
@@ -2190,139 +2297,137 @@ const Booking = () => {
                                 </div>
 
                                 <ReactModal
-    isOpen={isModalOpen}
-    onRequestClose={closeModal}
-    style={{
-        overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '10px',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-            padding: '20px',
-            overflow: 'auto',
-        },
-    }}
->
-    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-        <button
-            onClick={closeModal}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-            style={{ marginLeft: 'auto', marginRight: '20px' }}
-        >
-            OK
-        </button>
-    </div>
+                                    isOpen={isModalOpen}
+                                    onRequestClose={closeModal}
+                                    style={{
+                                        overlay: {
+                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                        },
+                                        content: {
+                                            top: '50%',
+                                            left: '50%',
+                                            right: 'auto',
+                                            bottom: 'auto',
+                                            transform: 'translate(-50%, -50%)',
+                                            borderRadius: '10px',
+                                            maxWidth: '90vw',
+                                            maxHeight: '80vh',
+                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                                            padding: '20px',
+                                            overflow: 'auto',
+                                        },
+                                    }}
+                                >
+                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                                        <button
+                                            onClick={closeModal}
+                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
+                                        >
+                                            OK
+                                        </button>
+                                    </div>
 
-    <div style={{ marginTop: '10px' }}>
-        <div className="grid grid-cols-1 gap-4">
-            {driversWithDistances
-                .sort((a, b) => (a.driver.companyName === 'RSA' ? -1 : 1))
-                .map(({ driver, pickupDistance }) => {
-                    console.log('Driver ID:', driver.id);
-                    console.log('Total Distances:', totalDistances);
-                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
-                    const driverTotalSalary = calculateTotalSalary(
-                        serviceDetails.salary,
-                        totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
-                        serviceDetails.basicSalaryKM,
-                        serviceDetails.salaryPerKM
-                    ).toFixed(2);
-                    return (
-                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                            <table className="panel p-4 w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Driver Name</th>
-                                        <th>Company Name</th>
-                                        <th>Distance to Pickup (km)</th> 
-                                        <th>Select</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{driver.driverName || 'Unknown Driver'}</td>
-                                        <td>{driver.companyName || 'Unknown Company'}</td>
-                                        <td>{pickupDistance.toFixed(2)} km</td>
-                                        <td>
-                                            <input
-                                                type="radio"
-                                                name="selectedDriver"
-                                                value={driver.id}
-                                                checked={selectedDriver === driver.id}
-                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                            />
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    );
-                })}
-        </div>
-    </div>
-</ReactModal>
-
+                                    <div style={{ marginTop: '10px' }}>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {driversWithDistances
+                                                .sort((a, b) => (a.driver.companyName === 'RSA' ? -1 : 1))
+                                                .map(({ driver, pickupDistance }) => {
+                                                    console.log('Driver ID:', driver.id);
+                                                    console.log('Total Distances:', totalDistances);
+                                                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
+                                                    const driverTotalSalary = calculateTotalSalary(
+                                                        serviceDetails.salary,
+                                                        totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
+                                                        serviceDetails.basicSalaryKM,
+                                                        serviceDetails.salaryPerKM
+                                                    ).toFixed(2);
+                                                    return (
+                                                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                                            <table className="panel p-4 w-full">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Driver Name</th>
+                                                                        <th>Company Name</th>
+                                                                        <th>Distance to Pickup (km)</th>
+                                                                        <th>Select</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>{driver.driverName || 'Unknown Driver'}</td>
+                                                                        <td>{driver.companyName || 'Unknown Company'}</td>
+                                                                        <td>{pickupDistance.toFixed(2)} km</td>
+                                                                        <td>
+                                                                            <input
+                                                                                type="radio"
+                                                                                name="selectedDriver"
+                                                                                value={driver.id}
+                                                                                checked={selectedDriver === driver.id}
+                                                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                    </div>
+                                </ReactModal>
                             </div>
                             <React.Fragment>
-                            <div>
-            <VehicleSection selectedShowroom={selectedShowroom} totalSalary={totalSalary} onUpdateTotalSalary={handleUpdatedTotalSalary} />
-            <div className="mt-4 flex items-center">
-                <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                    Payable Amount
-                </label>
-                <div className="form-input flex-1">
-                    <input
-                        id="totalSalary"
-                        type="text"
-                        name="totalSalary"
-                        className="w-full text-danger text-bold"
-                        style={{
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        value={totalSalary}
-                        readOnly
-                    />
-                </div>
-            </div>
-            <div className="mt-4 flex items-center">
-                <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                    Updated Total Salary
-                </label>
-                <div className="form-input flex-1">
-                    <input
-                        id="updatedTotalSalary"
-                        type="text"
-                        name="updatedTotalSalary"
-                        className="w-full text-danger text-bold"
-                        style={{
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        value={updatedTotalSalary}
-                        readOnly
-                    />
-                </div>
-            </div>
-        </div>
-                              
+                                <div>
+                                    <VehicleSection selectedShowroom={selectedShowroom} totalSalary={totalSalary} onUpdateTotalSalary={handleUpdatedTotalSalary} />
+                                    <div className="mt-4 flex items-center">
+                                        <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                            Total Amount without insurance
+                                        </label>
+                                        <div className="form-input flex-1">
+                                            <input
+                                                id="totalSalary"
+                                                type="text"
+                                                name="totalSalary"
+                                                className="w-full text-danger text-bold"
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: '5px',
+                                                    fontSize: '1rem',
+                                                    outline: 'none',
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                }}
+                                                value={totalSalary}
+                                                readOnly
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex items-center">
+                                        <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                            Payable Amount(with insurance)
+                                        </label>
+                                        <div className="form-input flex-1">
+                                            <input
+                                                id="updatedTotalSalary"
+                                                type="text"
+                                                name="updatedTotalSalary"
+                                                className="w-full text-danger text-bold"
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: '5px',
+                                                    fontSize: '1rem',
+                                                    outline: 'none',
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                }}
+                                                value={updatedTotalSalary}
+                                                readOnly
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </React.Fragment>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -2347,9 +2452,7 @@ const Booking = () => {
                                     onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
                                 />
                             </div>
-                          
-        
-   <div className="flex items-center mt-4">
+                            <div className="flex items-center mt-4">
                                 <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Brand Name
                                 </label>
@@ -2390,7 +2493,6 @@ const Booking = () => {
                                 />
                             </div>
                             <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                              
                                 <button
                                     type="button"
                                     className="btn btn-primary"
