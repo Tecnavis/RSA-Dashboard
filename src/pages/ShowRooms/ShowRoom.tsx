@@ -136,48 +136,49 @@ const ShowRoom = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        const db = getFirestore();
-        const timestamp = serverTimestamp();
-        const newShowRoom = { ...showRoom, createdAt: timestamp }; // Include createdAt field
-    
-        try {
-            if (editRoomId) {
-                const roomRef = doc(db, 'showroom', editRoomId);
-                await updateDoc(roomRef, newShowRoom);
-                alert('Showroom updated successfully');
-                setEditRoomId(null);
-            } else {
-                await addDoc(collection(db, 'showroom'), newShowRoom);
-                alert('Showroom added successfully');
-            }
-            setShowRoom({
-                img: '',
-                ShowRoom: '',
-                description: '',
-                Location: '',
-                userName: '',
-                password: '',
-                tollfree: '',
-                showroomId: '',
-                phoneNumber: '',
-                availableServices: [],
-                mobileNumber: '',
-                locationLatLng: { lat: '', lng: '' },
-                state: '',
-                district: '',
-                hasInsurance: '',
-                insuranceAmount: '',
-                hasInsuranceBody: '',
-                insuranceAmountBody: '',
-            });
-            formRef.current.reset();
+    e.preventDefault();
+    const db = getFirestore();
+    const timestamp = serverTimestamp();
+    const newShowRoom = { ...showRoom, createdAt: timestamp, status: 'admin added showroom' }; // Include createdAt and status fields
 
-            fetchShowRooms();
-        } catch (error) {
-            console.error('Error adding/updating showroom:', error);
+    try {
+        if (editRoomId) {
+            const roomRef = doc(db, 'showroom', editRoomId);
+            await updateDoc(roomRef, newShowRoom);
+            alert('Showroom updated successfully');
+            setEditRoomId(null);
+        } else {
+            await addDoc(collection(db, 'showroom'), newShowRoom);
+            alert('Showroom added successfully');
         }
-    };
+        setShowRoom({
+            img: '',
+            ShowRoom: '',
+            description: '',
+            Location: '',
+            userName: '',
+            password: '',
+            tollfree: '',
+            showroomId: '',
+            phoneNumber: '',
+            availableServices: [],
+            mobileNumber: '',
+            locationLatLng: { lat: '', lng: '' },
+            state: '',
+            district: '',
+            hasInsurance: '',
+            insuranceAmount: '',
+            hasInsuranceBody: '',
+            insuranceAmountBody: '',
+        });
+        formRef.current.reset();
+
+        fetchShowRooms();
+    } catch (error) {
+        console.error('Error adding/updating showroom:', error);
+    }
+};
+
     
    const fetchShowRooms = async () => {
     const db = getFirestore();
@@ -194,18 +195,23 @@ const ShowRoom = () => {
 };
 
 
-     const handleEdit = (roomId) => {
-        const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
-        const userPassword = prompt('Please enter your password:');
-        if (userPassword !== roomToEdit.password) {
-            alert('Incorrect password. Editing aborted.');
-            return;
-        }
-
+const handleEdit = (roomId) => {
+    const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
+    
+    // Prompt user for password
+    const userPassword = prompt('Please enter the password for edit:');
+    
+    // Check if the entered password matches the expected password
+    if (userPassword === 'SHOWROOM') {
         setShowRoom(roomToEdit);
         setEditRoomId(roomId);
         formRef.current.scrollIntoView({ behavior: 'smooth' });
-    };
+    } else {
+        alert('Incorrect password. Edit operation aborted.');
+    }
+};
+
+  
 
     const handleDelete = async (roomId: string) => {
         const roomToDelete = existingShowRooms.find((room) => room.id === roomId);

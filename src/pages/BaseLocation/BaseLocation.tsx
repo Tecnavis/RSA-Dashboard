@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import './BaseLocationForm.css'; // Import the CSS file
 import MyMapComponent from './MyMapComponent';
 import Tippy from '@tippyjs/react';
 import IconPencil from '../../components/Icon/IconPencil';
 import IconTrashLines from '../../components/Icon/IconTrashLines';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const BaseLocation = () => {
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
-    const [baseLocation, setBaseLocation] = useState(null); // Add this line
+    const [baseLocation, setBaseLocation] = useState(null);
     const [baseLocationName, setBaseLocationName] = useState('');
     const [savedBaseLocation, setSavedBaseLocation] = useState(null);
     const [items, setItems] = useState([]);
+    const [editing, setEditing] = useState(false);
+    const [currentItemId, setCurrentItemId] = useState(null);
     const db = getFirestore();
-    const navigate = useNavigate(); // Use the useNavigate hook
+    const navigate = useNavigate();
 
     const handleMapClick = (location) => {
         setLat(location.lat);
         setLng(location.lng);
-        setBaseLocation(location); // Update baseLocation state
+        setBaseLocation(location);
     };
 
     useEffect(() => {
@@ -41,31 +43,56 @@ const BaseLocation = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         const baseLocationDetails = { name: baseLocationName, lat, lng };
-        try {
-            await addDoc(collection(db, 'baselocation'), baseLocationDetails);
-            setSavedBaseLocation(baseLocationDetails);
-            setBaseLocationName('');
-            setLat('');
-            setLng('');
-        } catch (error) {
-            console.error('Error adding base location: ', error);
+
+        if (editing) {
+            try {
+                await updateDoc(doc(db, 'baselocation', currentItemId), baseLocationDetails);
+                setItems((prevItems) =>
+                    prevItems.map((item) =>
+                        item.id === currentItemId ? { ...item, ...baseLocationDetails } : item
+                    )
+                );
+                setEditing(false);
+                setCurrentItemId(null);
+            } catch (error) {
+                console.error('Error updating base location: ', error);
+            }
+        } else {
+            try {
+                const docRef = await addDoc(collection(db, 'baselocation'), baseLocationDetails);
+                setItems([...items, { ...baseLocationDetails, id: docRef.id }]);
+            } catch (error) {
+                console.error('Error adding base location: ', error);
+            }
         }
+
+        setSavedBaseLocation(baseLocationDetails);
+        setBaseLocationName('');
+        setLat('');
+        setLng('');
     };
 
-    const handleSelect = (item) => {
-        navigate('/bookings/booking', { state: { baseLocation: item } });
-    };
     const handleDelete = async (id) => {
-        console.log('Deleting document with ID:', id);
-
-        try {
-            await deleteDoc(doc(db, 'baselocation', id));
-            // Update the items state to remove the deleted item
-            setItems(items.filter(item => item.id !== id));
-        } catch (error) {
-            console.error('Error deleting base location: ', error);
+        const confirmDelete = window.confirm('Are you sure you want to delete this base location?');
+        if (confirmDelete) {
+            try {
+                await deleteDoc(doc(db, 'baselocation', id));
+                setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+            } catch (error) {
+                console.error('Error deleting document:', error);
+            }
         }
     };
+
+    const handleEdit = (item) => {
+        setEditing(true);
+        setCurrentItemId(item.id);
+        setBaseLocationName(item.name);
+        setLat(item.lat);
+        setLng(item.lng);
+        setBaseLocation({ lat: item.lat, lng: item.lng });
+    };
+
     return (
         <div className="base-location-form-container">
             <form onSubmit={handleFormSubmit} className="base-location-form">
@@ -80,13 +107,12 @@ const BaseLocation = () => {
                         className="form-control"
                     />
                 </div>
-                <button type="submit" className="btn btn-primary">Save Base Location</button>
+                <button type="submit" className="btn btn-primary">
+                    {editing ? 'Update Base Location' : 'Save Base Location'}
+                </button>
             </form>
             <div className="map-container">
-                <MyMapComponent
-                    baseLocation={baseLocation}
-                    onMapClick={handleMapClick}
-                />
+                <MyMapComponent baseLocation={baseLocation} onMapClick={handleMapClick} />
             </div>
             {savedBaseLocation && (
                 <div className="base-location-details">
@@ -132,13 +158,6 @@ const BaseLocation = () => {
                                             <Tippy content="Delete">
                                                 <button type="button" onClick={() => handleDelete(item.id)}>
                                                     <IconTrashLines className="text-danger" />
-                                                </button>
-                                            </Tippy>
-                                        </li>
-                                        <li>
-                                            <Tippy content="Select">
-                                                <button type="button" className="btn btn-secondary" onClick={() => handleSelect(item)}>
-                                                    Select
                                                 </button>
                                             </Tippy>
                                         </li>
