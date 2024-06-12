@@ -75,23 +75,35 @@ const BaseLocation = () => {
     const handleDelete = async (id) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this base location?');
         if (confirmDelete) {
-            try {
-                await deleteDoc(doc(db, 'baselocation', id));
-                setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-            } catch (error) {
-                console.error('Error deleting document:', error);
+            const password = window.prompt('Please enter the password to confirm deletion:BASELOCATION(password)');
+            if (password === 'BASELOCATION') {
+                try {
+                    await deleteDoc(doc(db, 'baselocation', id));
+                    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+                } catch (error) {
+                    console.error('Error deleting document:', error);
+                }
+            } else {
+                alert('Incorrect password. Deletion cancelled.');
             }
         }
     };
+    
 
     const handleEdit = (item) => {
-        setEditing(true);
-        setCurrentItemId(item.id);
-        setBaseLocationName(item.name);
-        setLat(item.lat);
-        setLng(item.lng);
-        setBaseLocation({ lat: item.lat, lng: item.lng });
+        const password = window.prompt('Please enter the password to edit this base location:BASELOCATION(password)');
+        if (password === 'BASELOCATION') {
+            setEditing(true);
+            setCurrentItemId(item.id);
+            setBaseLocationName(item.name);
+            setLat(item.lat);
+            setLng(item.lng);
+            setBaseLocation({ lat: item.lat, lng: item.lng });
+        } else {
+            alert('Incorrect password. Edit cancelled.');
+        }
     };
+    
 
     return (
         <div className="base-location-form-container">

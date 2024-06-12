@@ -250,6 +250,10 @@ const ViewMore = () => {
                         <td style={thStyle}>{staffName}</td>
                     </tr>
                     <tr>
+                        <td style={thStyle}>Edited person</td>
+                        <td style={thStyle}>{bookingDetails.newStatus} , {bookingDetails.editedTime} </td>
+                    </tr>
+                    <tr>
                         <td style={thStyle}>Amount without insurance :</td>
                         <td style={tdStyle}>{bookingDetails.totalSalary} </td>
                     </tr>

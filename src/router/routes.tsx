@@ -35,6 +35,7 @@ import ShowRoomss from '../pages/ShowRooms/ShowRoomss';
 import ShowRm from '../pages/ShowRooms/ShowRm';
 import PendingBookings from '../pages/Booking/PendingBookings';
 import BaseLocation from '../pages/BaseLocation/BaseLocation';
+import PreviewExpense from '../pages/Report/generalReports/PreviewExpense';
 
 
 
@@ -228,6 +229,10 @@ const routes = [
     {
         path: '/apps/invoice/preview',
         element: <Preview />,
+    },
+    {
+        path: '/general/expense/preview',
+        element: <PreviewExpense />,
     },
     {
         path: '/apps/invoice/add',

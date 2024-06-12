@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 
 const BaseLocationModal = ({ onClose, setBaseLocation }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,73 +21,67 @@ const BaseLocationModal = ({ onClose, setBaseLocation }) => {
 
         fetchData();
     }, [db]);
+
     const filteredItems = items.filter((item) =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-   
 
     const handleSelect = (item) => {
         setBaseLocation(item); // Update the base location in the parent component
         onClose(); // Close the modal
     };
 
-  
-
     return (
-        <div className="base-location-form-container">
-             <div className="search-container" style={{ marginBottom: '10px' }}>
-    <input
-        type="text"
-        placeholder="Search locations..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-            padding: '8px',
-            borderRadius: '5px',
-            border: '1px solid #ccc',
-            width: '100%',
-            maxWidth: '300px',
-            boxSizing: 'border-box',
-        }}
-    />
-</div>
-
-            <div className="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Start Location</th>
-                            <th className="!text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredItems.map((item) => (
-                            <tr key={item.id}>
-                                <td>
-                                    <div className="whitespace-nowrap">{item.name}</div>
-                                </td>
-                                <td className="text-center">
-                                    <ul className="flex items-center justify-center gap-2">
-                                        <li>
-                                            <Tippy content="Select">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-secondary"
-                                                    onClick={() => handleSelect(item)}
-                                                >
-                                                    Select
-                                                </button>
-                                            </Tippy>
-                                        </li>
-                                        <li>
-                                           
-                                        </li>
-                                    </ul>
-                                </td>
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg">
+                <div className="mb-4 flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Select Base Location</h2>
+                    <button
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={onClose}
+                    >
+                        <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div className="search-container mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search locations..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="p-2 rounded border border-gray-300 w-full"
+                    />
+                </div>
+                <div className="table-responsive">
+                    <table className="w-full">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-2">Start Location</th>
+                                <th className="px-4 py-2 text-center">Action</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredItems.map((item) => (
+                                <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <td className="px-4 py-2">{item.name}</td>
+                                    <td className="px-4 py-2 text-center">
+                                        <Tippy content="Select">
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary text-blue-600 hover:text-blue-800"
+                                                onClick={() => handleSelect(item)}
+                                            >
+                                                Select
+                                            </button>
+                                        </Tippy>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

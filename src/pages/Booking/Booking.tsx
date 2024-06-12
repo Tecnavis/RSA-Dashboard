@@ -85,6 +85,36 @@ const Booking = () => {
     const handleUpdatedTotalSalary = (newTotalSalary) => {
         setUpdatedTotalSalary(newTotalSalary);
     };
+    const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
+
+    useEffect(() => {
+        setManualInput(pickupLocation ? pickupLocation.name : '');
+    }, [pickupLocation]);
+
+    const handleManualChange = (field, value) => {
+        setPickupLocation(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setManualInput(value);
+        handleInputChange('pickupLocation', value);
+    };
+    const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
+
+    useEffect(() => {
+        setManualInput1(dropoffLocation ? dropoffLocation.name : '');
+    }, [dropoffLocation]);
+
+    const handleManualChange1 = (field, value) => {
+        setDropoffLocation(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleLocationChange1 = (e) => {
+        const value = e.target.value;
+        setManualInput1(value);
+        handleInputChange('dropoffLocation', value);
+    };
     useEffect(() => {
       
         if (state && state.editData) {
@@ -162,18 +192,29 @@ const Booking = () => {
             case 'serviceVehicle':
                 setServiceVehicle(value || '');
                 break;
-            case 'dropoffLocation':
-                setDropoffLocation(value || '');
-                break;
+            // case 'dropoffLocation':
+            //     setDropoffLocation(value || '');
+            //     break;
+                case 'dropoffLocation':
+                    if (typeof value === 'string') {
+                        setDropoffLocation({ ...dropoffLocation, name: value });
+                    } else {
+                        setDropoffLocation({ ...dropoffLocation, name: value.name });
+                    }
+                    break;
             case 'mobileNumber':
                 setMobileNumber(value || '');
                 break;
             case 'phoneNumber':
                 setPhoneNumber(value || '');
                 break;
-            case 'pickupLocation':
-                setPickupLocation(value || '');
-                break;
+                case 'pickupLocation':
+                    if (typeof value === 'string') {
+                        setPickupLocation({ ...pickupLocation, name: value });
+                    } else {
+                        setPickupLocation({ ...pickupLocation, name: value.name });
+                    }
+                    break;
             case 'totalSalary':
                 setTotalSalary(value || '');
                 break;
@@ -556,10 +597,14 @@ const Booking = () => {
                 trappedLocation: trappedLocation || '',
                 updatedTotalSalary: updatedTotalSalary || '',
             };
-
+            if (editData) {
+                bookingData.newStatus = 'Edited by Admin';
+                bookingData.editedTime = currentDate.toLocaleString();
+            }
             console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
 
             if (editData) {
+
                 const docRef = doc(db, 'bookings', editData.id);
                 await updateDoc(docRef, bookingData);
                 console.log('Document updated');
@@ -576,16 +621,14 @@ const Booking = () => {
     };
 
     return (
-        <div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <h5 className="font-semibold text-lg dark:text-white-light">Add Bookings</h5>
+        <div style={{ backgroundColor: '#e6f7ff', padding: '2rem', borderRadius: '10px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+             <h5 className="font-semibold text-lg dark:text-white-light">Add Bookings</h5>
 
-                <div style={{ padding: '6px', flex: 1, marginTop: '2rem', marginRight: '6rem', marginLeft: '6rem', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '10px' }}>
+                <div style={{ padding: '6px', flex: 1, marginTop: '2rem', marginRight: '6rem', marginLeft: '6rem', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '10px',background:"lightblue" }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
-                        <div style={{ padding: '1rem' }}>
-                            <h5 className="font-semibold text-lg dark:text-white-light">{bookingId}</h5>
-                        </div>{' '}
+                       
                         <div style={{ width: '100%' }}>
                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
                                 <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
@@ -861,52 +904,89 @@ const Booking = () => {
                                             </div>
                                         )}
 
-                                        <div className="flex items-center mt-4">
-                                            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                Pickup Location
-                                            </label>
-                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                <input
-                                                    className="form-input flex-1"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '0.5rem',
-                                                        border: '1px solid #ccc',
-                                                        borderRadius: '5px',
-                                                        fontSize: '1rem',
-                                                        outline: 'none',
-                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                    }}
-                                                    type="text"
-                                                    placeholder="Pickup Location"
-                                                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
-                                                    onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                                                    value={pickupLocation ? pickupLocation.name : ''}
-                                                />
-                                                {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
-                                            </div>
-                                            <Link
-        to="https://www.google.co.in/maps/@11.0527369,76.0747136,15z?entry=ttu" // Update this to your actual route for the Google Map page
-        style={{
-          borderRadius: '40px',
-          background: 'linear-gradient(135deg, #32CD32, #228B22)',
-          color: 'white',
-          marginLeft: '10px',
-          padding: '10px',
-          border: 'none',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-          cursor: 'pointer',
-          transition: 'background 0.3s ease',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-      >
-        <IconPlus />
-      </Link>                                        </div>
-                                        <div className="flex items-center mt-4">
+<div className="flex items-center mt-4">
+            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                Pickup Location
+            </label>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="Pickup Location"
+                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
+                    onChange={handleLocationChange}
+                    value={manualInput}
+                />
+            </div>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="Latitude"
+                    value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
+                    onChange={(e) => handleManualChange('lat', e.target.value)}
+                />
+            </div>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="Longitude"
+                    value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
+                    onChange={(e) => handleManualChange('lng', e.target.value)}
+                />
+            </div>
+            <a
+                href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    borderRadius: '40px',
+                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                    color: 'white',
+                    marginLeft: '10px',
+                    padding: '10px',
+                    border: 'none',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'background 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+            >
+                <IconPlus />
+            </a>                                      </div>
+                                        {/* <div className="flex items-center mt-4">
                                             <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Drop off Location
                                             </label>
@@ -930,7 +1010,89 @@ const Booking = () => {
                                                 />
                                                 {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
                                             </div>
-                                        </div>
+                                        </div> */}
+                                        <div className="flex items-center mt-4">
+            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+            Dropoff Location
+            </label>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="dropoff Location"
+                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
+                    onChange={handleLocationChange1}
+                    value={manualInput1}
+                />
+            </div>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="Latitude"
+                    value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
+                    onChange={(e) => handleManualChange1('lat', e.target.value)}
+                />
+            </div>
+            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                <input
+                    className="form-input flex-1"
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    type="text"
+                    placeholder="Longitude"
+                    value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
+                    onChange={(e) => handleManualChange1('lng', e.target.value)}
+                />
+            </div>
+            <a
+                href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    borderRadius: '40px',
+                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                    color: 'white',
+                    marginLeft: '10px',
+                    padding: '10px',
+                    border: 'none',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'background 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+            >
+                <IconPlus />
+            </a>                                      </div>
                                         <div>
                                             <div className="flex items-center mt-4">
                                                 <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">

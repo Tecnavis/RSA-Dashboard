@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addDoc, collection, getFirestore, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+import IconPrinter from '../../components/Icon/IconPrinter';
+import './ShowRoom.css'
 const setupAutocomplete = (inputRef, setter) => {
     if (!inputRef) return;
 
@@ -64,7 +65,8 @@ const ShowRoom = () => {
     const locationInputRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecords, setFilteredRecords] = useState([]);
-    
+    const listRef = useRef();
+
     const formRef = useRef(null);
     useEffect(() => {
         const term = searchTerm.toLowerCase();
@@ -242,7 +244,13 @@ const handleEdit = (roomId) => {
             }));
         });
     }, []);
-
+    const handlePrint = () => {
+        const originalContents = document.body.innerHTML;
+        const printContents = listRef.current.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    };
     return (
         <div className="mb-5">
             <h5 className="font-semibold text-lg dark:text-white-light mb-5">Showroom Details</h5>
@@ -611,70 +619,91 @@ const handleEdit = (roomId) => {
             <h3 className="text-lg font-semibold mb-4" style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '16px' }}>
                 ShowRooms List
             </h3>
-            <div className="overflow-x-auto" style={{ overflowX: 'auto' }}>
-                <table className="w-full whitespace-nowrap text-black dark:text-white" style={{ width: '100%', whiteSpace: 'nowrap', color: '#000', backgroundColor: '#fff' }}>
-                    <thead>
-                        <tr>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Image
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                ShowRoom Name
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                ShowRoom Id
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Location
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                User Name
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Password
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Help Line Number
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Phone Number
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Mobile Number
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                State
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                District
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Available Services
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Has Insurance<br/>(Service Center)
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Insurance Amount Service Center{' '}
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Has Insurance<br/>(Body Shope)
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Insurance Amount Body Shope{' '}
-                            </th>
+            <div className="tooltip">
+      <button
+        onClick={handlePrint}
+        style={{
+          backgroundColor: 'gray',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          marginBottom: '16px',
+        }}
+      >
+        <IconPrinter />
+      </button>
+      <span className="tooltip-text">Print here</span>
+    </div>
 
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Description
-                            </th>
-                            <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+            <div className="overflow-x-auto" style={{ overflowX: 'auto' }} ref={listRef}>
+                <table className="w-full whitespace-nowrap text-black dark:text-white" style={{ width: '100%', whiteSpace: 'nowrap', color: '#000', backgroundColor: '#fff' }}>
+                <thead style={{ background: '#f8f9fa' }}>
+    <tr>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Image
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            ShowRoom Name
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            ShowRoom Id
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Status
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Location
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            User Name
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Password
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Help Line Number
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Phone Number
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Mobile Number
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            State
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            District
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Available Services
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Has Insurance<br/>(Service Center)
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Insurance Amount Service Center{' '}
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Has Insurance<br/>(Body Shop)
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Insurance Amount Body Shop{' '}
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Description
+        </th>
+        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+            Actions
+        </th>
+    </tr>
+</thead>
+
                     <tbody>
                         {filteredRecords.map((room) => (
-                            <tr key={room.id}>
+        <tr key={room.id} style={{ backgroundColor: room.status === 'admin added showroom' ? '#e6f7ff' : room.status === 'new showroom' ? '#f2f9ff' : 'transparent' }}>
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     <img src={room.img} alt="ShowRoom" className="w-16 h-16 object-cover" style={{ width: '64px', height: '64px', objectFit: 'cover' }} />
                                 </td>
@@ -683,6 +712,9 @@ const handleEdit = (roomId) => {
                                 </td>
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.ShowRoomId}
+                                </td>
+                                <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+                                    {room.status}
                                 </td>
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.Location}
