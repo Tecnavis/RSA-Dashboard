@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
@@ -28,7 +27,7 @@ const Booking = () => {
         setBookingId(newBookingId);
     }, []);
     const googleMapsLoaded = useGoogleMaps();
-    const [updatedTotalSalary, setUpdatedTotalSalary] = useState('');
+    const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [bookingDetails, setBookingDetails] = useState({
@@ -75,8 +74,11 @@ const Booking = () => {
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [baseLocation, setBaseLocation] = useState(null);
     const [trappedLocation, setTrappedLocation] = useState('');
+    const [selectedShowroomLocation, setSelectedShowroomLocation] = useState('');
+    
+    const [showroomLocation, setShowroomLocation] = useState('');
 
-    const [showrooms, setShowrooms] = useState<Showroom[]>([]);
+        const [showrooms, setShowrooms] = useState<Showroom[]>([]);
     const [selectedShowroom, setSelectedShowroom] = useState('');
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
@@ -92,9 +94,21 @@ const Booking = () => {
     }, [pickupLocation]);
 
     const handleManualChange = (field, value) => {
-        setPickupLocation(prev => ({ ...prev, [field]: value }));
+        setPickupLocation((prev) => ({ ...prev, [field]: value }));
+    };
+    const [insuranceAmount, setInsuranceAmount] = useState('');
+
+    const handleInsuranceAmountChange = (amount) => {
+        setInsuranceAmount(amount);
     };
 
+    // const handleUpdatedTotalSalaryChange = (event) => {
+    //     const { value } = event.target;
+    //     setUpdatedTotalSalary(value);
+    // };
+    // const handleUpdateTotalSalary = () => {
+    //     setTotalSalary(updatedTotalSalary); // Example: Update totalSalary based on updatedTotalSalary
+    // };
     const handleLocationChange = (e) => {
         const value = e.target.value;
         setManualInput(value);
@@ -107,7 +121,7 @@ const Booking = () => {
     }, [dropoffLocation]);
 
     const handleManualChange1 = (field, value) => {
-        setDropoffLocation(prev => ({ ...prev, [field]: value }));
+        setDropoffLocation((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleLocationChange1 = (e) => {
@@ -116,11 +130,14 @@ const Booking = () => {
         handleInputChange('dropoffLocation', value);
     };
     useEffect(() => {
-      
         if (state && state.editData) {
             setEditData(state.editData);
             setBookingId(state.editData.bookingId || '');
             setTrappedLocation(state.editData.trappedLocation || '');
+            
+            setInsuranceAmount(state.editData.insuranceAmount || '');
+            
+            setSelectedShowroomLocation(state.editData.selectedShowroomLocation || '');
 
             setComments(state.editData.comments || '');
             setFileNumber(state.editData.fileNumber || '');
@@ -132,6 +149,8 @@ const Booking = () => {
             setServiceVehicle(state.editData.serviceVehicle || '');
             setVehicleModel(state.editData.vehicleModel || '');
             setVehicleSection(state.editData.vehicleSection || '');
+            
+            setShowroomLocation(state.editData.showroomLocation || '');
 
             setLocation(state.editData.Location || '');
 
@@ -140,7 +159,6 @@ const Booking = () => {
             setDistance(state.editData.distance || '');
             setSelectedDriver(state.editData.selectedDriver || '');
             setBaseLocation(state.editData.baseLocation || '');
-            // setShowrooms(state.editData.showrooms || []);
 
             setSelectedShowroom(state.editData.selectedShowroom || '');
             setShowrooms(state.editData.showrooms || '');
@@ -162,15 +180,20 @@ const Booking = () => {
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
-
+    
         switch (field) {
-            
             case 'customerName':
                 setCustomerName(value || '');
                 break;
             case 'company':
                 setCompany(value);
                 setFileNumber(value === 'self' ? bookingId : '');
+                break;
+            case 'selectedShowroomLocation':
+                setSelectedShowroomLocation(value || '');
+                break;
+            case 'showroomLocation':
+                setShowroomLocation(value || '');
                 break;
             case 'fileNumber':
                 setFileNumber(value || '');
@@ -184,7 +207,6 @@ const Booking = () => {
             case 'updatedTotalSalary':
                 setUpdatedTotalSalary(value || '');
                 break;
-
             case 'distance':
                 setDistance(value || '');
                 openModal();
@@ -192,33 +214,29 @@ const Booking = () => {
             case 'serviceVehicle':
                 setServiceVehicle(value || '');
                 break;
-            // case 'dropoffLocation':
-            //     setDropoffLocation(value || '');
-            //     break;
-                case 'dropoffLocation':
-                    if (typeof value === 'string') {
-                        setDropoffLocation({ ...dropoffLocation, name: value });
-                    } else {
-                        setDropoffLocation({ ...dropoffLocation, name: value.name });
-                    }
-                    break;
+            case 'dropoffLocation':
+                if (typeof value === 'string') {
+                    setDropoffLocation({ ...dropoffLocation, name: value });
+                } else {
+                    setDropoffLocation({ ...dropoffLocation, name: value.name });
+                }
+                break;
             case 'mobileNumber':
                 setMobileNumber(value || '');
                 break;
             case 'phoneNumber':
                 setPhoneNumber(value || '');
                 break;
-                case 'pickupLocation':
-                    if (typeof value === 'string') {
-                        setPickupLocation({ ...pickupLocation, name: value });
-                    } else {
-                        setPickupLocation({ ...pickupLocation, name: value.name });
-                    }
-                    break;
+            case 'pickupLocation':
+                if (typeof value === 'string') {
+                    setPickupLocation({ ...pickupLocation, name: value });
+                } else {
+                    setPickupLocation({ ...pickupLocation, name: value.name });
+                }
+                break;
             case 'totalSalary':
                 setTotalSalary(value || '');
                 break;
-
             case 'vehicleSection':
                 setVehicleSection(value || '');
                 break;
@@ -249,21 +267,19 @@ const Booking = () => {
                 const selectedDriverTotalDistance = totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0;
                 setTotalDistance(selectedDriverTotalDistance);
                 break;
-
             case 'vehicleNumber':
                 setVehicleNumber(value || '');
                 break;
             case 'selectedShowroom':
                 setSelectedShowroom(value || '');
                 break;
-
             case 'showrooms':
                 setShowrooms(value || '');
                 break;
             default:
                 break;
         }
-
+    
         if (field === 'distance') {
             openModal(value);
         } else if (field === 'serviceType') {
@@ -274,7 +290,7 @@ const Booking = () => {
             setSelectedDriver(value || '');
         }
     };
-
+    
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
 
@@ -371,7 +387,7 @@ const Booking = () => {
         }
     }, [db, serviceType, serviceDetails]);
 
-    const [totalSalary, setTotalSalary] = useState([]);
+    const [totalSalary, setTotalSalary] = useState(0);
 
     useEffect(() => {
         const fetchServiceDetails = async () => {
@@ -403,21 +419,12 @@ const Booking = () => {
 
     const [pickupDistances, setPickupDistances] = useState([]);
     console.log('first', pickupDistances);
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-        return distance;
-    };
+
     const driversWithDistances = drivers.map((driver, index) => ({
         driver,
         pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
     }));
 
-    // Sort drivers: RSA company first, then by pickup distance
     driversWithDistances.sort((a, b) => {
         if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
             return -1;
@@ -431,6 +438,49 @@ const Booking = () => {
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
 
+    const calculateTotalSalary = (salary, totalDistance, basicSalaryKM, salaryPerKM) => {
+        const numericBasicSalary = Number(salary) || 0;
+        const numericTotalDistance = Number(totalDistance) || 0;
+        const numericKmValueNumeric = Number(basicSalaryKM) || 0;
+        const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
+        console.log('numericBasicSalary', numericBasicSalary);
+        console.log('numericTotalDistance', numericTotalDistance);
+
+        console.log('numericKmValueNumeric', numericKmValueNumeric);
+
+        console.log('numericPerKmValueNumeric', numericPerKmValueNumeric);
+
+        if (numericTotalDistance > numericKmValueNumeric) {
+            return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
+        } else {
+            return numericBasicSalary;
+        }
+    };
+
+    const fetchTravelDistance = async (origin, destination) => {
+        return new Promise((resolve, reject) => {
+            const service = new window.google.maps.DistanceMatrixService();
+            service.getDistanceMatrix(
+                {
+                    origins: [origin],
+                    destinations: [destination],
+                    travelMode: window.google.maps.TravelMode.DRIVING,
+                },
+                (response, status) => {
+                    if (status === 'OK') {
+                        const element = response.rows[0].elements[0];
+                        const distance = element.distance.value / 1000; // distance in kilometers
+                        const duration = element.duration.value / 60; // duration in minutes
+                        resolve({ distance, duration });
+                    } else {
+                        reject(new Error('Error fetching travel distance and duration'));
+                    }
+                }
+            );
+        });
+    };
+    
+    
     useEffect(() => {
         const fetchDrivers = async () => {
             try {
@@ -447,41 +497,34 @@ const Booking = () => {
                         id: doc.id,
                         ...doc.data(),
                     }))
-                    .filter((driver) => driver.selectedServices && driver.selectedServices.includes(serviceType))
-                    .map((driver) => {
-                        console.log('dist', distanceNumeric);
-                        console.log('Driverrrrr ID:', driver.id);
+                    .filter((driver) => driver.selectedServices && driver.selectedServices.includes(serviceType));
 
-                        return {
-                            ...driver,
-                            totalSalary: calculateTotalSalary(serviceDetails.salary, distanceNumeric, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM),
-                        };
-                    });
-
-                const pickupDistances = filteredDrivers.map((driver) => {
+                const distancePromises = filteredDrivers.map(async (driver) => {
                     if (driver.currentLocation && driver.currentLocation.latitude && driver.currentLocation.longitude) {
-                        const lat1 = driver.currentLocation.latitude;
-                        const lng1 = driver.currentLocation.longitude;
-                        return calculateDistance(pickupLocation.lat, pickupLocation.lng, lat1, lng1);
+                        const origin = new window.google.maps.LatLng(driver.currentLocation.latitude, driver.currentLocation.longitude);
+                        const destination = new window.google.maps.LatLng(pickupLocation.lat, pickupLocation.lng);
+                        const { distance, duration } = await fetchTravelDistance(origin, destination);
+                        return { distance, duration };
                     } else {
-                        return null;
+                        return { distance: 0, duration: 0 };
                     }
                 });
 
-                console.log('Pickup Distances:', pickupDistances);
-                setPickupDistances(pickupDistances);
+                const resolvedDistances = await Promise.all(distancePromises);
+
+                setPickupDistances(resolvedDistances);
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
         };
 
-        if (serviceType && serviceDetails) {
+        if (serviceType && serviceDetails && window.google) {
             fetchDrivers().catch(console.error);
         } else {
             setDrivers([]);
         }
-    }, [serviceType, serviceDetails, pickupLocation]);
+    }, [serviceType, serviceDetails, pickupLocation, distanceNumeric]);
     useEffect(() => {
         if (pickupDistances.length > 0 && drivers.length > 0) {
             const totalDistances = drivers.map((driver, index) => {
@@ -489,71 +532,69 @@ const Booking = () => {
                 const totalDistance = distanceNumeric;
                 return { driverId: driver.id, totalDistance };
             });
-            console.log('Total Distances:', totalDistances);
             setTotalDistances(totalDistances); // Set totalDistances state
         }
     }, [pickupDistances, drivers, distanceNumeric]);
 
     useEffect(() => {
-        if (pickupDistances.length > 0) {
-            const totalSalaries = drivers.map((driver, index) => {
-                const numericPickupDistance = pickupDistances[index];
+        if (pickupDistances.length > 0 && totalDistances.length > 0) {
+            console.log('Drivers:', drivers);
+            console.log('Pickup Distances:', pickupDistances);
+            console.log('Total Distances:', totalDistances);
+            console.log('Service Details:', serviceDetails);
 
-                console.log('distanceNumericcc', distanceNumeric);
+            const totalSalaries = drivers.map((driver) => {
+                const totalDistanceObj = totalDistances.find((dist) => dist.driverId === driver.id);
+                const totalDistance = totalDistanceObj ? totalDistanceObj.totalDistance : 0;
 
-                console.log('numericPickupDistance', numericPickupDistance);
+                // Log the values to the console
+                console.log('Calculating salary for driver:', driver.id);
+                console.log('serviceDetails.salary:', serviceDetails.salary);
+                console.log('totalDistance:', totalDistance);
+                console.log('serviceDetails.basicSalaryKM:', serviceDetails.basicSalaryKM);
+                console.log('serviceDetails.salaryPerKM:', serviceDetails.salaryPerKM);
 
-                return calculateTotalSalary(
-                    serviceDetails.salary,
-                    totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
-                    serviceDetails.basicSalaryKM,
-                    serviceDetails.salaryPerKM,
-                    numericPickupDistance
-                );
+                return calculateTotalSalary(serviceDetails.salary, totalDistance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
             });
-            console.log('total amount array', totalSalaries);
-            // Calculate total salary for all drivers
-            const totalSalary = totalSalaries.reduce((acc, salary) => acc + salary, 0);
+
+            const totalSalary = totalSalaries.reduce((acc, salary) => acc + parseFloat(salary), 0);
             setTotalSalary(totalSalary);
+            // Assuming updatedTotalSalary calculation here
+            setUpdatedTotalSalary(totalSalary); // For example, adding 10% for insurance
         }
-    }, [pickupDistances, drivers, serviceDetails, totalDistances]);
+    }, [pickupDistances, drivers, serviceDetails, totalDistances, distanceNumeric]);
 
-    console.log('totalDistancetotalDistance', totalDistance);
-
-    const calculateTotalSalary = (salary, totalDistances, kmValueNumeric, perKmValueNumeric) => {
-        const numericBasicSalary = Number(salary);
-        const numericDistanceNumeric = Number(distanceNumeric);
-        const numericKmValueNumeric = Number(kmValueNumeric);
-        const numericPerKmValueNumeric = Number(perKmValueNumeric);
-        const numericTotalDistances = Number(totalDistances);
-
-        console.log('Total Distance with Pickup:', numericTotalDistances);
-
-        if (numericTotalDistances > numericKmValueNumeric) {
-            return numericBasicSalary + (numericTotalDistances - numericKmValueNumeric) * numericPerKmValueNumeric;
-        } else {
-            return numericBasicSalary;
-        }
-    };
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'showroom'), (snapshot) => {
-          const filteredShowroomList = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || 'Unnamed Showroom',
-              ...data,
-            };
-          }).filter(showroom => {
-            return showroom.name.toLowerCase().includes(searchTerm.toLowerCase());
-          });
-          
-          setShowrooms(filteredShowroomList);
+            const filteredShowroomList = snapshot.docs
+                .map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        name: data.name || 'Unnamed Showroom',
+                        Location: data.Location || 'Unknown Location', // Ensure Location is defined
+                        ...data,
+                    };
+                })
+                .filter((showroom) => {
+                    return showroom.name.toLowerCase().includes(searchTerm.toLowerCase());
+                });
+
+            setShowrooms(filteredShowroomList);
         });
-      
+
         return () => unsubscribe();
-      }, [db, searchTerm]); 
-      
+    }, [db, searchTerm]);
+
+    useEffect(() => {
+        if (selectedShowroom) {
+            const showroom = showrooms.find(s => s.id === selectedShowroom);
+            const location = showroom ? showroom.Location : '';
+            setSelectedShowroomLocation(location);
+            console.log('Selected Showroom Location:', location);
+        }
+    }, [selectedShowroom, showrooms]);
+
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -581,6 +622,8 @@ const Booking = () => {
                 comments: comments || '',
                 totalDistance: totalDistance,
                 baseLocation: baseLocation || '',
+                showroomId: selectedShowroom,
+                showroomLocation: selectedShowroomLocation,
                 Location: Location || '',
                 company: company || '',
                 showroom: selectedShowroom || '',
@@ -596,6 +639,7 @@ const Booking = () => {
                 selectedDriver: selectedDriver || '',
                 trappedLocation: trappedLocation || '',
                 updatedTotalSalary: updatedTotalSalary || '',
+                insuranceAmount:insuranceAmount || '',
             };
             if (editData) {
                 bookingData.newStatus = 'Edited by Admin';
@@ -604,7 +648,6 @@ const Booking = () => {
             console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
 
             if (editData) {
-
                 const docRef = doc(db, 'bookings', editData.id);
                 await updateDoc(docRef, bookingData);
                 console.log('Document updated');
@@ -622,13 +665,24 @@ const Booking = () => {
 
     return (
         <div style={{ backgroundColor: '#e6f7ff', padding: '2rem', borderRadius: '10px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-             <h5 className="font-semibold text-lg dark:text-white-light">Add Bookings</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h5 className="font-semibold text-lg dark:text-white-light">Add Bookings</h5>
 
-                <div style={{ padding: '6px', flex: 1, marginTop: '2rem', marginRight: '6rem', marginLeft: '6rem', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '10px',background:"lightblue" }}>
+                <div
+                    style={{
+                        padding: '6px',
+                        flex: 1,
+                        marginTop: '2rem',
+                        marginRight: '6rem',
+                        marginLeft: '6rem',
+                        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+                        borderRadius: '10px',
+                        background: 'lightblue',
+                    }}
+                >
                     <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
-                       
+
                         <div style={{ width: '100%' }}>
                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
                                 <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
@@ -777,6 +831,197 @@ const Booking = () => {
                                   
                                 {googleMapsLoaded && (
                                     <div>
+                                        <div className="flex items-center mt-4">
+                                            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Pickup Location
+                                            </label>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Pickup Location"
+                                                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
+                                                    onChange={handleLocationChange}
+                                                    value={manualInput}
+                                                />
+                                            </div>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Latitude"
+                                                    value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
+                                                    onChange={(e) => handleManualChange('lat', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Longitude"
+                                                    value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
+                                                    onChange={(e) => handleManualChange('lng', e.target.value)}
+                                                />
+                                            </div>
+                                            <a
+                                                href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    borderRadius: '40px',
+                                                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                                                    color: 'white',
+                                                    marginLeft: '10px',
+                                                    padding: '10px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                            >
+                                                <IconPlus />
+                                            </a>{' '}
+                                        </div>
+                                        {/* <div className="flex items-center mt-4">
+                                            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Drop off Location
+                                            </label>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Drop off Location"
+                                                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
+                                                    onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
+                                                    value={dropoffLocation ? dropoffLocation.name : ''}
+                                                />
+                                                {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
+                                            </div>
+                                        </div> */}
+                                        <div className="flex items-center mt-4">
+                                            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Dropoff Location
+                                            </label>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="dropoff Location"
+                                                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
+                                                    onChange={handleLocationChange1}
+                                                    value={manualInput1}
+                                                />
+                                            </div>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Latitude"
+                                                    value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
+                                                    onChange={(e) => handleManualChange1('lat', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                <input
+                                                    className="form-input flex-1"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '5px',
+                                                        fontSize: '1rem',
+                                                        outline: 'none',
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                    }}
+                                                    type="text"
+                                                    placeholder="Longitude"
+                                                    value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
+                                                    onChange={(e) => handleManualChange1('lng', e.target.value)}
+                                                />
+                                            </div>
+                                            <a
+                                                href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    borderRadius: '40px',
+                                                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                                                    color: 'white',
+                                                    marginLeft: '10px',
+                                                    padding: '10px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                            >
+                                                <IconPlus />
+                                            </a>{' '}
+                                        </div>
                                         <div className="mt-4 flex items-center">
                                             <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Start Location
@@ -873,8 +1118,8 @@ const Booking = () => {
                                                         </span>
                                                     </div>
                                                     <div className="modal-body">
-                            <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} />
-                        </div>
+                                                        <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
+                                                    </div>
                                                     <div
                                                         className="modal-footer"
                                                         style={{
@@ -903,202 +1148,12 @@ const Booking = () => {
                                                 </div>
                                             </div>
                                         )}
-
-<div className="flex items-center mt-4">
-            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                Pickup Location
-            </label>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Pickup Location"
-                    ref={(node) => setupAutocomplete(node, setPickupLocation)}
-                    onChange={handleLocationChange}
-                    value={manualInput}
-                />
-            </div>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Latitude"
-                    value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
-                    onChange={(e) => handleManualChange('lat', e.target.value)}
-                />
-            </div>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Longitude"
-                    value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
-                    onChange={(e) => handleManualChange('lng', e.target.value)}
-                />
-            </div>
-            <a
-                href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                    borderRadius: '40px',
-                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
-                    color: 'white',
-                    marginLeft: '10px',
-                    padding: '10px',
-                    border: 'none',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    cursor: 'pointer',
-                    transition: 'background 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-            >
-                <IconPlus />
-            </a>                                      </div>
-                                        {/* <div className="flex items-center mt-4">
-                                            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                Drop off Location
-                                            </label>
-                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                <input
-                                                    className="form-input flex-1"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '0.5rem',
-                                                        border: '1px solid #ccc',
-                                                        borderRadius: '5px',
-                                                        fontSize: '1rem',
-                                                        outline: 'none',
-                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                    }}
-                                                    type="text"
-                                                    placeholder="Drop off Location"
-                                                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                                                    onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                                                    value={dropoffLocation ? dropoffLocation.name : ''}
-                                                />
-                                                {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
-                                            </div>
-                                        </div> */}
-                                        <div className="flex items-center mt-4">
-            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            Dropoff Location
-            </label>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="dropoff Location"
-                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                    onChange={handleLocationChange1}
-                    value={manualInput1}
-                />
-            </div>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Latitude"
-                    value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
-                    onChange={(e) => handleManualChange1('lat', e.target.value)}
-                />
-            </div>
-            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                <input
-                    className="form-input flex-1"
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    type="text"
-                    placeholder="Longitude"
-                    value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
-                    onChange={(e) => handleManualChange1('lng', e.target.value)}
-                />
-            </div>
-            <a
-                href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                    borderRadius: '40px',
-                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
-                    color: 'white',
-                    marginLeft: '10px',
-                    padding: '10px',
-                    border: 'none',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    cursor: 'pointer',
-                    transition: 'background 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-            >
-                <IconPlus />
-            </a>                                      </div>
                                         <div>
                                             <div className="flex items-center mt-4">
                                                 <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                     Showroom Name
                                                 </label>
-                                                <select id="showroom" name="showroom" className="form-input flex-1" value={selectedShowroom} onChange={(e) => setSelectedShowroom(e.target.value)}>
+                                                <select id="showroom" name="showroom" className="form-input flex-1" value={selectedShowroomLocation} onChange={(e) => setSelectedShowroom(e.target.value)}>
                                                     {' '}
                                                     <option value="">Select a showroom</option>
                                                     {Array.isArray(showrooms) &&
@@ -1198,7 +1253,9 @@ const Booking = () => {
                                         onChange={(e) => handleInputChange('trappedLocation', e.target.value)}
                                         className="mr-2"
                                     />
-                                    <label htmlFor="outsideOfRoad" className='text-danger'>Outside of Road</label>
+                                    <label htmlFor="outsideOfRoad" className="text-danger">
+                                        Outside of Road
+                                    </label>
                                 </div>
                             </div>
                             <div className="flex items-center mt-4">
@@ -1282,227 +1339,231 @@ const Booking = () => {
                                         onClick={() => openModal(distance)}
                                     />
                                 </div>
-
                                 <ReactModal
-                                    isOpen={isModalOpen}
-                                    onRequestClose={closeModal}
-                                    style={{
-                                        overlay: {
-                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                        },
-                                        content: {
-                                            top: '50%',
-                                            left: '50%',
-                                            right: 'auto',
-                                            bottom: 'auto',
-                                            transform: 'translate(-50%, -50%)',
-                                            borderRadius: '10px',
-                                            maxWidth: '90vw',
-                                            maxHeight: '80vh',
-                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-                                            padding: '20px',
-                                            overflow: 'auto',
-                                        },
-                                    }}
-                                >
-                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-                                        <button
-                                            onClick={closeModal}
-                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
-                                        >
-                                            OK
-                                        </button>
-                                    </div>
-
-                                    <div style={{ marginTop: '10px' }}>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            {driversWithDistances
-                                                .sort((a, b) => (a.driver.companyName === 'RSA' ? -1 : 1))
-                                                .map(({ driver, pickupDistance }) => {
-                                                    console.log('Driver ID:', driver.id);
-                                                    console.log('Total Distances:', totalDistances);
-                                                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance;
-                                                    const driverTotalSalary = calculateTotalSalary(
-                                                        serviceDetails.salary,
-                                                        totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0,
-                                                        serviceDetails.basicSalaryKM,
-                                                        serviceDetails.salaryPerKM
-                                                    ).toFixed(2);
-                                                    return (
-                                                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                                                            <table className="panel p-4 w-full">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Driver Name</th>
-                                                                        <th>Company Name</th>
-                                                                        <th>Distance to Pickup (km)</th>
-                                                                        <th>Select</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{driver.driverName || 'Unknown Driver'}</td>
-                                                                        <td>{driver.companyName || 'Unknown Company'}</td>
-                                                                        <td>{pickupDistance.toFixed(2)} km</td>
-                                                                        <td>
-                                                                            <input
-                                                                                type="radio"
-                                                                                name="selectedDriver"
-                                                                                value={driver.id}
-                                                                                checked={selectedDriver === driver.id}
-                                                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                                                            />
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    );
-                                                })}
-                                        </div>
-                                    </div>
-                                </ReactModal>
-                            </div>
-                            <React.Fragment>
-                                <div>
-                                    <VehicleSection selectedShowroom={selectedShowroom} totalSalary={totalSalary} onUpdateTotalSalary={handleUpdatedTotalSalary} />
-                                    <div className="mt-4 flex items-center">
-                                        <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                            Total Amount without insurance
-                                        </label>
-                                        <div className="form-input flex-1">
-                                            <input
-                                                id="totalSalary"
-                                                type="text"
-                                                name="totalSalary"
-                                                className="w-full  text-bold"
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: '5px',
-                                                    fontSize: '1rem',
-                                                    outline: 'none',
-                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                }}
-                                                value={totalSalary}
-                                                readOnly
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex items-center">
-    <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Payable Amount (with insurance)
-    </label>
-    <div className="form-input flex-1">
-        <input
-            id="updatedTotalSalary"
-            type="text"
-            name="updatedTotalSalary"
-            className="w-full text-danger"
-            style={{
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '2rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-            }}
-            value={updatedTotalSalary}
-            readOnly
-        />
+    isOpen={isModalOpen}
+    onRequestClose={closeModal}
+    style={{
+        overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '10px',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+            padding: '20px',
+            overflow: 'auto',
+        },
+    }}
+>
+    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+        <button
+            onClick={closeModal}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+            style={{ marginLeft: 'auto', marginRight: '20px' }}
+        >
+            OK
+        </button>
     </div>
-</div>
-</div>
 
-                            </React.Fragment>
-                            <div className="mt-4 flex items-center">
-                                <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Customer Vehicle Number
-                                </label>
-                                <input
-                                    id="vehicleNumber"
-                                    type="text"
-                                    name="vehicleNumber"
-                                    className="form-input flex-1"
-                                    placeholder="Enter vehicle number"
-                                    value={vehicleNumber}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
-                                />
+    <div style={{ marginTop: '10px' }}>
+        <div className="grid grid-cols-1 gap-4">
+            {drivers
+                .sort((a, b) => (a.companyName === 'RSA' ? -1 : 1))
+                .map((driver, index) => {
+                    const pickupDistanceData = pickupDistances[index] || { distance: 0, duration: 0 };
+                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
+                    const driverTotalSalary = calculateTotalSalary(
+                        serviceDetails.salary,
+                        totalDistance,
+                        serviceDetails.basicSalaryKM,
+                        serviceDetails.salaryPerKM
+                    ).toFixed(2);
+
+                    return (
+                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                            <table className="panel p-4 w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Driver Name</th>
+                                        <th>Company Name</th>
+                                        <th>Distance to Pickup (km)</th>
+                                        <th>Duration (min)</th>
+                                        <th>Select</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{driver.driverName || 'Unknown Driver'}</td>
+                                        <td>{driver.companyName || 'Unknown Company'}</td>
+                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
+                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
+                                        <td>
+                                            <input
+                                                type="radio"
+                                                name="selectedDriver"
+                                                value={driver.id}
+                                                checked={selectedDriver === driver.id}
+                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })}
+        </div>
+    </div>
+</ReactModal>
+
                             </div>
-                            <div className="flex items-center mt-4">
-                                <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Brand Name
-                                </label>
-                                <input
-                                    id="vehicleModel"
-                                    name="vehicleModel"
-                                    className="form-input flex-1"
-                                    value={vehicleModel}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
-                                />
+                        </div>
+                        <React.Fragment>
+                            <div>
+                                <VehicleSection selectedShowroom={selectedShowroom} totalSalary={totalSalary} onUpdateTotalSalary={handleUpdatedTotalSalary} onInsuranceAmountChange={handleInsuranceAmountChange}/>
+                                <div className="mt-4 flex items-center">
+                                    <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                        Total Amount without insurance
+                                    </label>
+                                    <div className="form-input flex-1">
+                                        <input
+                                            id="totalSalary"
+                                            type="text"
+                                            name="totalSalary"
+                                            className="w-full  text-bold"
+                                            style={{
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '1rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }}
+                                            value={totalSalary}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex items-center">
+                                    <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                        Payable Amount (with insurance)
+                                    </label>
+                                    <div className="form-input flex-1">
+                                        <input
+                                            id="updatedTotalSalary"
+                                            type="text"
+                                            name="updatedTotalSalary"
+                                            className="w-full text-danger"
+                                            style={{
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '2rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }}
+                                            value={updatedTotalSalary}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="mt-4 flex items-center">
-                                <textarea
-                                    id="reciever-name"
-                                    name="reciever-name"
-                                    className="form-input flex-1"
-                                    placeholder="Comments"
-                                    value={comments}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('comments', e.target.value)}
-                                />
-                            </div>
-                            <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={addOrUpdateItem}
-                                    style={{
-                                        backgroundColor: '#28a745',
-                                        color: '#fff',
-                                        padding: '0.5rem',
-                                        width: '100%',
-                                        border: 'none',
-                                        borderRadius: '5px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    {editData ? 'Update' : 'Save'}
-                                </button>
-                            </div>
+                        </React.Fragment>
+                 
+                        <div className="mt-4 flex items-center">
+                            <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                Customer Vehicle Number
+                            </label>
+                            <input
+                                id="vehicleNumber"
+                                type="text"
+                                name="vehicleNumber"
+                                className="form-input flex-1"
+                                placeholder="Enter vehicle number"
+                                value={vehicleNumber}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
+                            />
+                        </div>
+                        <div className="flex items-center mt-4">
+                            <label htmlFor="vehicleModel"  className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                Brand Name
+                            </label>
+                            <input
+                                id="vehicleModel"
+                                name="vehicleModel"
+                                className="form-input flex-1"
+                                value={vehicleModel}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
+                            />
+                        </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center">
+                            <textarea
+                                id="reciever-name"
+                                name="reciever-name"
+                                className="form-input flex-1"
+                                placeholder="Comments"
+                                value={comments}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                onChange={(e) => handleInputChange('comments', e.target.value)}
+                            />
+                        </div>
+                        
+                        <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={addOrUpdateItem}
+                                style={{
+                                    backgroundColor: '#28a745',
+                                    color: '#fff',
+                                    padding: '0.5rem',
+                                    width: '100%',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {editData ? 'Update' : 'Save'}
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 

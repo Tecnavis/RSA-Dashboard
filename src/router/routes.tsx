@@ -36,6 +36,7 @@ import ShowRm from '../pages/ShowRooms/ShowRm';
 import PendingBookings from '../pages/Booking/PendingBookings';
 import BaseLocation from '../pages/BaseLocation/BaseLocation';
 import PreviewExpense from '../pages/Report/generalReports/PreviewExpense';
+import Edit from '../pages/Report/generalReports/Edit';
 
 
 
@@ -53,7 +54,6 @@ const Calendar = lazy(() => import('../pages/Apps/Calendar'));
 const List = lazy(() => import('../pages/Apps/Invoice/List'));
 const Preview = lazy(() => import('../pages/Apps/Invoice/Preview'));
 const Add = lazy(() => import('../pages/Apps/Invoice/Add'));
-const Edit = lazy(() => import('../pages/Apps/Invoice/Edit'));
 const Tabs = lazy(() => import('../pages/Components/Tabs'));
 const Accordians = lazy(() => import('../pages/Components/Accordians'));
 const Modals = lazy(() => import('../pages/Components/Modals'));
@@ -231,15 +231,20 @@ const routes = [
         element: <Preview />,
     },
     {
-        path: '/general/expense/preview',
+        path: '/general/expense/preview/:id',
         element: <PreviewExpense />,
     },
     {
         path: '/apps/invoice/add',
         element: <Add />,
     },
+    // {
+    //     path: '/apps/invoice/edit',
+    //     element: <Edit />,
+        
+    // },
     {
-        path: '/apps/invoice/edit',
+        path: '/general/expense/preview/edit/:id',
         element: <Edit />,
     },
     // components page

@@ -650,9 +650,9 @@ const handleEdit = (roomId) => {
         <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
             ShowRoom Id
         </th>
-        <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+        {/* <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
             Status
-        </th>
+        </th> */}
         <th className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
             Location
         </th>
@@ -713,9 +713,9 @@ const handleEdit = (roomId) => {
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.ShowRoomId}
                                 </td>
-                                <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
+                                {/* <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.status}
-                                </td>
+                                </td> */}
                                 <td className="border border-gray-300 p-2" style={{ border: '1px solid #ccc', padding: '8px' }}>
                                     {room.Location}
                                 </td>

@@ -10,7 +10,6 @@ import IconEdit from '../../../components/Icon/IconEdit';
 import IconEye from '../../../components/Icon/IconEye';
 import { collection, getDocs, getFirestore, query, updateDoc, doc } from 'firebase/firestore';
 
-// Helper function to generate a unique invoice ID
 const generateInvoiceId = () => {
     const timestamp = Date.now().toString(); // Current timestamp
     const randomStr = Math.random().toString(36).substring(2, 8); // Random string
@@ -40,20 +39,39 @@ const ExpenseSummery = () => {
     const db = getFirestore();
 
     useEffect(() => {
-        const fetchBookings = async () => {
+        const fetchBookingsAndDrivers = async () => {
             try {
-                const q = query(collection(db, 'bookings'));
-                const querySnapshot = await getDocs(q);
-                const bookingsData = [];
+                const bookingsQuery = query(collection(db, 'bookings'));
+                const driversQuery = query(collection(db, 'driver'));
 
-                for (const docSnapshot of querySnapshot.docs) {
+                const [bookingsSnapshot, driversSnapshot] = await Promise.all([
+                    getDocs(bookingsQuery),
+                    getDocs(driversQuery)
+                ]);
+
+                const driversData = {};
+                
+                driversSnapshot.forEach((doc) => {
+                    driversData[doc.id] = doc.data();
+                });
+                const bookingsData = [];
+                for (const docSnapshot of bookingsSnapshot.docs) {
                     const booking = docSnapshot.data();
-                    // Add a unique invoice ID if it doesn't exist
-                    if (!booking.invoice) {
+console.log("booking",booking)                  
+  if (!booking.invoice) {
                         const invoiceId = generateInvoiceId();
                         booking.invoice = invoiceId;
                         // Update the Firestore document with the new invoice ID
                         await updateDoc(doc(db, 'bookings', docSnapshot.id), { invoice: invoiceId });
+                    }
+                    // Add driver information
+                    const driverId = booking.selectedDriver;
+console.log("driverId",driverId)       
+             const driver = driversData[driverId];
+             console.log("driver12134565",driver)
+                    if (driver) {
+                        booking.driverName = driver.driverName;
+                        booking.driverImg = driver.profileImageUrl; // Assuming there's an 'img' field in the driver data
                     }
                     bookingsData.push({ id: docSnapshot.id, ...booking });
                 }
@@ -62,12 +80,12 @@ const ExpenseSummery = () => {
                 setInitialRecords(sortBy(bookingsData, 'invoice'));
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching bookings:', error);
+                console.error('Error fetching bookings or drivers:', error);
                 setLoading(false);
             }
         };
 
-        fetchBookings();
+        fetchBookingsAndDrivers();
     }, [db]);
 
     useEffect(() => {
@@ -77,7 +95,7 @@ const ExpenseSummery = () => {
                 item.customerName?.toLowerCase().includes(search.toLowerCase()) ||
                 item.email?.toLowerCase().includes(search.toLowerCase()) ||
                 item.dateTime?.toLowerCase().includes(search.toLowerCase()) ||
-                item.totalSalary?.toString().toLowerCase().includes(search.toLowerCase()) ||
+                item.updatedTotalSalary?.toString().toLowerCase().includes(search.toLowerCase()) ||
                 item.status?.toLowerCase().includes(search.toLowerCase())
             );
         });
@@ -129,8 +147,12 @@ const ExpenseSummery = () => {
                             {
                                 accessor: 'invoice',
                                 sortable: true,
-                                render: ({ invoice }) => (
-                                    <NavLink to={`/general/expense/preview`}>
+                                render: ({ invoice, id }) => (
+                                    <NavLink
+                                        to={{
+                                            pathname: `/general/expense/preview/${id}`, // Ensure `${id}` is correctly interpolated
+                                        }}
+                                    >
                                         <div className="text-primary underline hover:no-underline font-semibold">{`#${invoice}`}</div>
                                     </NavLink>
                                 ),
@@ -138,17 +160,17 @@ const ExpenseSummery = () => {
                             {
                                 accessor: 'driver',
                                 sortable: true,
-                                render: ({ driver, id }) => (
+                                render: ({ driverName, driverImg }) => (
                                     <div className="flex items-center font-semibold">
                                         <div className="p-0.5 bg-white-dark/30 rounded-full w-max ltr:mr-2 rtl:ml-2">
-                                            <img className="h-8 w-8 rounded-full object-cover" src={`/assets/images/profile-${id}.jpeg`} alt="" />
+                                            <img className="h-8 w-8 rounded-full object-cover" src={driverImg} alt={driverName} />
                                         </div>
-                                        <div>{driver}</div>
+                                        <div>{driverName}</div>
                                     </div>
                                 ),
                             },
                             {
-                                accessor: 'email',
+                                accessor: 'customerName',
                                 sortable: true,
                             },
                             {
@@ -156,10 +178,10 @@ const ExpenseSummery = () => {
                                 sortable: true,
                             },
                             {
-                                accessor: 'totalSalary',
+                                accessor: 'payable amount',
                                 sortable: true,
                                 titleClassName: 'text-right',
-                                render: ({ totalSalary }) => <div className="text-right font-semibold">{`$${totalSalary}`}</div>,
+                                render: ({ updatedTotalSalary }) => <div className="text-right font-semibold">{`$${updatedTotalSalary}`}</div>,
                             },
                             {
                                 accessor: 'status',
