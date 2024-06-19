@@ -24,7 +24,6 @@ const Index = () => {
                 
                 const newBookings = bookings.filter(booking => booking.status === 'booking added').length;
                 const pendingBookings = bookings.filter(booking => [
-                  
                     'Order Received',
                     'Contacted Customer',
                     'Vehicle Picked',
@@ -126,7 +125,7 @@ const Index = () => {
     }, [isDark]);
 
     return (
-        <div>
+        <div className="container mx-auto p-6 bg-cover bg-center bg-no-repeat">
             <ul className="flex space-x-2 rtl:space-x-reverse">
                 <li>
                     <Link to="/" className="text-primary hover:underline">
@@ -139,16 +138,40 @@ const Index = () => {
             </ul>
 
             <div className="pt-5">
+                
                 <div className="grid xl:grid-cols-1 gap-6 mb-6">
-                    <div className="panel h-full">
-                        <div className="flex items-center mb-5">
-                            <h5 className="font-semibold text-lg dark:text-white-light">Bookings By Category</h5>
+                <div className="grid xl:grid-cols-3 gap-6 mb-6">
+                    <div className="panel bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg shadow-lg p-6">
+                        <h5 className="font-semibold text-lg mb-3">New Bookings</h5>
+                        <p className="text-2xl">{salesByCategory.series[0]}</p>
+                    </div>
+                    <div className="panel bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg shadow-lg p-6">
+                        <h5 className="font-semibold text-lg mb-3">Pending Bookings</h5>
+                        <p className="text-2xl">{salesByCategory.series[1]}</p>
+                    </div>
+                    <div className="panel bg-gradient-to-r from-red-400 to-pink-500 text-white rounded-lg shadow-lg p-6">
+                        <h5 className="font-semibold text-lg mb-3">Completed Bookings</h5>
+                        <p className="text-2xl">{salesByCategory.series[2]}</p>
+                    </div>
+                </div>
+
+                <div className="panel bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 text-white rounded-lg shadow-lg p-6">
+                    <h5 className="font-semibold text-lg mb-3">Booking Statistics</h5>
+                    <p className="text-md">Here you can see the statistics of all bookings categorized by their status.</p>
+                </div>
+                    <div className="panel h-full bg-gradient-to-r from-blue-200 to-blue-400 text-white rounded-lg shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-5">
+                            <h5 className="font-semibold text-lg">Bookings By Category</h5>
+                            <div className="flex space-x-2 rtl:space-x-reverse">
+                                <button className="bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700">Refresh</button>
+                                <button className="bg-green-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-green-700">Export</button>
+                            </div>
                         </div>
                         <div>
-                            <div className="bg-white dark:bg-black rounded-lg overflow-hidden">
+                            <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
                                 {loading ? (
-                                    <div className="min-h-[325px] grid place-content-center bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] ">
-                                        <span className="animate-spin border-2 border-black dark:border-white !border-l-transparent  rounded-full w-5 h-5 inline-flex"></span>
+                                    <div className="min-h-[325px] grid place-content-center bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08]">
+                                        <span className="animate-spin border-2 border-black dark:border-white !border-l-transparent rounded-full w-5 h-5 inline-flex"></span>
                                     </div>
                                 ) : (
                                     <ReactApexChart series={salesByCategory.series} options={salesByCategory.options} type="donut" height={460} />
@@ -157,6 +180,8 @@ const Index = () => {
                         </div>
                     </div>
                 </div>
+
+               
             </div>
         </div>
     );

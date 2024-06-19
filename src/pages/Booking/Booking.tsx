@@ -75,47 +75,72 @@ const Booking = () => {
     const [baseLocation, setBaseLocation] = useState(null);
     const [trappedLocation, setTrappedLocation] = useState('');
     const [selectedShowroomLocation, setSelectedShowroomLocation] = useState('');
-    
+    const [totalSalary, setTotalSalary] = useState(0);
+
     const [showroomLocation, setShowroomLocation] = useState('');
 
-        const [showrooms, setShowrooms] = useState<Showroom[]>([]);
+    const [showrooms, setShowrooms] = useState<Showroom[]>([]);
     const [selectedShowroom, setSelectedShowroom] = useState('');
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
     const distanceNumeric = parseFloat(distance.replace('km', ''));
     const [editData, setEditData] = useState(null);
-    const handleUpdatedTotalSalary = (newTotalSalary) => {
-        setUpdatedTotalSalary(newTotalSalary);
-    };
+    const [insuranceAmount, setInsuranceAmount] = useState('');
+
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
+    const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
 
     useEffect(() => {
         setManualInput(pickupLocation ? pickupLocation.name : '');
     }, [pickupLocation]);
 
-    const handleManualChange = (field, value) => {
-        setPickupLocation((prev) => ({ ...prev, [field]: value }));
-    };
-    const [insuranceAmount, setInsuranceAmount] = useState('');
+    useEffect(() => {
+        if (state && state.editData) {
+            setEditData(state.editData);
+            setBookingId(state.editData.bookingId || '');
+            setTrappedLocation(state.editData.trappedLocation || '');
+            setInsuranceAmount(state.editData.insuranceAmount || '');
+            setSelectedShowroomLocation(state.editData.selectedShowroomLocation || '');
+            setComments(state.editData.comments || '');
+            setFileNumber(state.editData.fileNumber || '');
+            setCompany(state.editData.company || '');
+            setCustomerName(state.editData.customerName || '');
+            setPhoneNumber(state.editData.phoneNumber || '');
+            setMobileNumber(state.editData.mobileNumber || '');
+            setVehicleNumber(state.editData.vehicleNumber || '');
+            setServiceVehicle(state.editData.serviceVehicle || '');
+            setVehicleModel(state.editData.vehicleModel || '');
+            setVehicleSection(state.editData.vehicleSection || '');
+            setShowroomLocation(state.editData.showroomLocation || '');
+            setLocation(state.editData.Location || '');
+            setUpdatedTotalSalary(state.editData.updatedTotalSalary || '');
+            setDistance(state.editData.distance || '');
+            setSelectedDriver(state.editData.selectedDriver || '');
+            setBaseLocation(state.editData.baseLocation || '');
 
-    const handleInsuranceAmountChange = (amount) => {
-        setInsuranceAmount(amount);
-    };
+            setSelectedShowroom(state.editData.selectedShowroom || '');
+            setShowrooms(state.editData.showrooms || '');
 
-    // const handleUpdatedTotalSalaryChange = (event) => {
-    //     const { value } = event.target;
-    //     setUpdatedTotalSalary(value);
-    // };
-    // const handleUpdateTotalSalary = () => {
-    //     setTotalSalary(updatedTotalSalary); // Example: Update totalSalary based on updatedTotalSalary
-    // };
-    const handleLocationChange = (e) => {
-        const value = e.target.value;
-        setManualInput(value);
-        handleInputChange('pickupLocation', value);
-    };
-    const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
+            setPickupLocation(state.editData.pickupLocation || '');
+            setServiceType(state.editData.serviceType || '');
+            setTotalSalary(state.editData.totalSalary || '');
+            setDropoffLocation(state.editData.dropoffLocation || '');
+            if (state.editData.selectedShowroom === showroomLocation) {
+                setShowroomLocation(state.editData.selectedShowroom);
+            }
+        }
+    }, [state, showroomLocation]);
+    console.log('Selected Base Location:', baseLocation);
 
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
+    const handleUpdatedTotalSalary = (newTotalSalary) => {
+        setUpdatedTotalSalary(newTotalSalary);
+    };
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
     }, [dropoffLocation]);
@@ -129,58 +154,28 @@ const Booking = () => {
         setManualInput1(value);
         handleInputChange('dropoffLocation', value);
     };
-    useEffect(() => {
-        if (state && state.editData) {
-            setEditData(state.editData);
-            setBookingId(state.editData.bookingId || '');
-            setTrappedLocation(state.editData.trappedLocation || '');
-            
-            setInsuranceAmount(state.editData.insuranceAmount || '');
-            
-            setSelectedShowroomLocation(state.editData.selectedShowroomLocation || '');
-
-            setComments(state.editData.comments || '');
-            setFileNumber(state.editData.fileNumber || '');
-            setCompany(state.editData.company || '');
-            setCustomerName(state.editData.customerName || '');
-            setPhoneNumber(state.editData.phoneNumber || '');
-            setMobileNumber(state.editData.mobileNumber || '');
-            setVehicleNumber(state.editData.vehicleNumber || '');
-            setServiceVehicle(state.editData.serviceVehicle || '');
-            setVehicleModel(state.editData.vehicleModel || '');
-            setVehicleSection(state.editData.vehicleSection || '');
-            
-            setShowroomLocation(state.editData.showroomLocation || '');
-
-            setLocation(state.editData.Location || '');
-
-            setUpdatedTotalSalary(state.editData.updatedTotalSalary || '');
-
-            setDistance(state.editData.distance || '');
-            setSelectedDriver(state.editData.selectedDriver || '');
-            setBaseLocation(state.editData.baseLocation || '');
-
-            setSelectedShowroom(state.editData.selectedShowroom || '');
-            setShowrooms(state.editData.showrooms || '');
-
-            setPickupLocation(state.editData.pickupLocation || '');
-            setServiceType(state.editData.serviceType || '');
-            setTotalSalary(state.editData.totalSalary || '');
-            setDropoffLocation(state.editData.dropoffLocation || '');
-        }
-    }, [state]);
-    console.log('Selected Base Location:', baseLocation);
-
-    const openModal = () => {
-        setIsModalOpen(true);
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setManualInput(value);
+        handleInputChange('pickupLocation', value);
     };
-    const closeModal = () => {
-        setIsModalOpen(false);
+    const handleInsuranceAmountChange = (amount) => {
+        setInsuranceAmount(amount);
+    };
+    const updateShowroomLocation = (location) => {
+        setShowroomLocation(location);
+    };
+    const handleManualChange = (field, value) => {
+        setPickupLocation((prev) => ({ ...prev, [field]: value }));
     };
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
-    
+        if (field === 'selectedShowroom') {
+            setSelectedShowroom(value);
+            const selectedShowroomName = showrooms.find((showroom) => showroom.id === value)?.Location;
+            console.log('Selected Showroom:', selectedShowroomName);
+        }
         switch (field) {
             case 'customerName':
                 setCustomerName(value || '');
@@ -189,8 +184,11 @@ const Booking = () => {
                 setCompany(value);
                 setFileNumber(value === 'self' ? bookingId : '');
                 break;
-            case 'selectedShowroomLocation':
-                setSelectedShowroomLocation(value || '');
+            // case 'selectedShowroom':
+            //     setSelectedShowroom(value);
+            //     break;
+            case 'searchTerm':
+                setSearchTerm(value);
                 break;
             case 'showroomLocation':
                 setShowroomLocation(value || '');
@@ -279,7 +277,7 @@ const Booking = () => {
             default:
                 break;
         }
-    
+
         if (field === 'distance') {
             openModal(value);
         } else if (field === 'serviceType') {
@@ -290,7 +288,7 @@ const Booking = () => {
             setSelectedDriver(value || '');
         }
     };
-    
+
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
 
@@ -387,7 +385,6 @@ const Booking = () => {
         }
     }, [db, serviceType, serviceDetails]);
 
-    const [totalSalary, setTotalSalary] = useState(0);
 
     useEffect(() => {
         const fetchServiceDetails = async () => {
@@ -479,8 +476,7 @@ const Booking = () => {
             );
         });
     };
-    
-    
+
     useEffect(() => {
         const fetchDrivers = async () => {
             try {
@@ -557,7 +553,7 @@ const Booking = () => {
                 return calculateTotalSalary(serviceDetails.salary, totalDistance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
             });
 
-            const totalSalary = totalSalaries.reduce((acc, salary) => acc + parseFloat(salary), 0);
+            const totalSalary = totalSalaries.reduce((acc, salary) => parseFloat(salary), 0);
             setTotalSalary(totalSalary);
             // Assuming updatedTotalSalary calculation here
             setUpdatedTotalSalary(totalSalary); // For example, adding 10% for insurance
@@ -572,29 +568,22 @@ const Booking = () => {
                     return {
                         id: doc.id,
                         name: data.name || 'Unnamed Showroom',
-                        Location: data.Location || 'Unknown Location', // Ensure Location is defined
+                        Location: data.Location || 'Unknown Location',
                         ...data,
                     };
                 })
-                .filter((showroom) => {
-                    return showroom.name.toLowerCase().includes(searchTerm.toLowerCase());
-                });
-
+                .filter((showroom) => showroom.name.toLowerCase().includes(searchTerm.toLowerCase()));
             setShowrooms(filteredShowroomList);
         });
-
         return () => unsubscribe();
     }, [db, searchTerm]);
-
     useEffect(() => {
         if (selectedShowroom) {
-            const showroom = showrooms.find(s => s.id === selectedShowroom);
+            const showroom = showrooms.find((s) => s.id === selectedShowroom);
             const location = showroom ? showroom.Location : '';
-            setSelectedShowroomLocation(location);
-            console.log('Selected Showroom Location:', location);
+            setShowroomLocation(location);
         }
     }, [selectedShowroom, showrooms]);
-
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -623,7 +612,7 @@ const Booking = () => {
                 totalDistance: totalDistance,
                 baseLocation: baseLocation || '',
                 showroomId: selectedShowroom,
-                showroomLocation: selectedShowroomLocation,
+                showroomLocation: showroomLocation,
                 Location: Location || '',
                 company: company || '',
                 showroom: selectedShowroom || '',
@@ -639,7 +628,7 @@ const Booking = () => {
                 selectedDriver: selectedDriver || '',
                 trappedLocation: trappedLocation || '',
                 updatedTotalSalary: updatedTotalSalary || '',
-                insuranceAmount:insuranceAmount || '',
+                insuranceAmount: insuranceAmount || '',
             };
             if (editData) {
                 bookingData.newStatus = 'Edited by Admin';
@@ -1148,44 +1137,50 @@ const Booking = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        <div>
-                                            <div className="flex items-center mt-4">
-                                                <label htmlFor="showroom" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                    Showroom Name
-                                                </label>
-                                                <select id="showroom" name="showroom" className="form-input flex-1" value={selectedShowroomLocation} onChange={(e) => setSelectedShowroom(e.target.value)}>
-                                                    {' '}
-                                                    <option value="">Select a showroom</option>
-                                                    {Array.isArray(showrooms) &&
-                                                        showrooms.map((showroom) => (
-                                                            <option key={showroom.id} value={showroom.id}>
-                                                                {showroom.Location}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                                <button
-                                                    onClick={() => setShowShowroomModal(true)}
-                                                    style={{
-                                                        borderRadius: '40px',
-                                                        background: 'linear-gradient(135deg, #32CD32, #228B22)', // Gradient background
-                                                        color: 'white',
-                                                        margin: '10px',
-                                                        padding: '10px 10px', // Adjusted padding for a more balanced look
-                                                        border: 'none', // Removing default border
-                                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Adding box shadow
-                                                        cursor: 'pointer',
-                                                        transition: 'background 0.3s ease', // Smooth transition for hover effect
-                                                    }}
-                                                    onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')} // Hover effect
-                                                    onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-                                                >
-                                                    <IconPlus />
-                                                </button>
-                                            </div>
+                                        <div className="flex items-center mt-4">
+                                            <label htmlFor="Location" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Showroom Name
+                                            </label>
+                                            <select
+                                                id="Location"
+                                                name="Location"
+                                                className="form-input flex-1"
+                                                value={selectedShowroom}
+                                                onChange={(e) => handleInputChange('selectedShowroom', e.target.value)}
+                                            >
+                                                <option value="">Select a showroom</option>
+                                                {Array.isArray(showrooms) &&
+                                                    showrooms.map((showroom) => (
+                                                        <option key={showroom.id} value={showroom.id}>
+                                                            {showroom.Location}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                            <button
+                                                onClick={() => setShowShowroomModal(true)}
+                                                style={{
+                                                    borderRadius: '40px',
+                                                    background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                                                    color: 'white',
+                                                    margin: '10px',
+                                                    padding: '10px 10px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                            >
+                                                Add Showroom
+                                            </button>
                                         </div>
-                                        {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} />}
-
-                                        <br />
+                                        {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
+                                        <div>
+    Selected Showroom Name:
+</div>
+<div  style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px',background:"white" ,padding:"10px",borderRadius:"10px"}}> {showroomLocation}</div>
+<br/>
                                         <GoogleMap>
                                             <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} baseLocation={baseLocation} />
                                         </GoogleMap>
@@ -1340,94 +1335,98 @@ const Booking = () => {
                                     />
                                 </div>
                                 <ReactModal
-    isOpen={isModalOpen}
-    onRequestClose={closeModal}
-    style={{
-        overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '10px',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-            padding: '20px',
-            overflow: 'auto',
-        },
-    }}
->
-    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-        <button
-            onClick={closeModal}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-            style={{ marginLeft: 'auto', marginRight: '20px' }}
-        >
-            OK
-        </button>
-    </div>
+                                    isOpen={isModalOpen}
+                                    onRequestClose={closeModal}
+                                    style={{
+                                        overlay: {
+                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                        },
+                                        content: {
+                                            top: '50%',
+                                            left: '50%',
+                                            right: 'auto',
+                                            bottom: 'auto',
+                                            transform: 'translate(-50%, -50%)',
+                                            borderRadius: '10px',
+                                            maxWidth: '90vw',
+                                            maxHeight: '80vh',
+                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                                            padding: '20px',
+                                            overflow: 'auto',
+                                        },
+                                    }}
+                                >
+                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                                        <button
+                                            onClick={closeModal}
+                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
+                                        >
+                                            OK
+                                        </button>
+                                    </div>
 
-    <div style={{ marginTop: '10px' }}>
-        <div className="grid grid-cols-1 gap-4">
-            {drivers
-                .sort((a, b) => (a.companyName === 'RSA' ? -1 : 1))
-                .map((driver, index) => {
-                    const pickupDistanceData = pickupDistances[index] || { distance: 0, duration: 0 };
-                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
-                    const driverTotalSalary = calculateTotalSalary(
-                        serviceDetails.salary,
-                        totalDistance,
-                        serviceDetails.basicSalaryKM,
-                        serviceDetails.salaryPerKM
-                    ).toFixed(2);
+                                    <div style={{ marginTop: '10px' }}>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {drivers
+                                                .sort((a, b) => (a.companyName === 'RSA' ? -1 : 1))
+                                                .map((driver, index) => {
+                                                    const pickupDistanceData = pickupDistances[index] || { distance: 0, duration: 0 };
+                                                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
+                                                    const driverTotalSalary = calculateTotalSalary(
+                                                        serviceDetails.salary,
+                                                        totalDistance,
+                                                        serviceDetails.basicSalaryKM,
+                                                        serviceDetails.salaryPerKM
+                                                    ).toFixed(2);
 
-                    return (
-                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                            <table className="panel p-4 w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Driver Name</th>
-                                        <th>Company Name</th>
-                                        <th>Distance to Pickup (km)</th>
-                                        <th>Duration (min)</th>
-                                        <th>Select</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{driver.driverName || 'Unknown Driver'}</td>
-                                        <td>{driver.companyName || 'Unknown Company'}</td>
-                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
-                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
-                                        <td>
-                                            <input
-                                                type="radio"
-                                                name="selectedDriver"
-                                                value={driver.id}
-                                                checked={selectedDriver === driver.id}
-                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                            />
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    );
-                })}
-        </div>
-    </div>
-</ReactModal>
-
+                                                    return (
+                                                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                                            <table className="panel p-4 w-full">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Driver Name</th>
+                                                                        <th>Company Name</th>
+                                                                        <th>Distance to Pickup (km)</th>
+                                                                        <th>Duration (min)</th>
+                                                                        <th>Select</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>{driver.driverName || 'Unknown Driver'}</td>
+                                                                        <td>{driver.companyName || 'Unknown Company'}</td>
+                                                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
+                                                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
+                                                                        <td>
+                                                                            <input
+                                                                                type="radio"
+                                                                                name="selectedDriver"
+                                                                                value={driver.id}
+                                                                                checked={selectedDriver === driver.id}
+                                                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                    </div>
+                                </ReactModal>
                             </div>
                         </div>
                         <React.Fragment>
                             <div>
-                                <VehicleSection selectedShowroom={selectedShowroom} totalSalary={totalSalary} onUpdateTotalSalary={handleUpdatedTotalSalary} onInsuranceAmountChange={handleInsuranceAmountChange}/>
+                                <VehicleSection
+                                    showroomLocation={showroomLocation}
+                                    totalSalary={totalSalary}
+                                    onUpdateTotalSalary={handleUpdatedTotalSalary}
+                                    onInsuranceAmountChange={handleInsuranceAmountChange}
+                                />
                                 <div className="mt-4 flex items-center">
                                     <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                         Total Amount without insurance
@@ -1476,7 +1475,7 @@ const Booking = () => {
                                 </div>
                             </div>
                         </React.Fragment>
-                 
+
                         <div className="mt-4 flex items-center">
                             <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                 Customer Vehicle Number
@@ -1501,7 +1500,7 @@ const Booking = () => {
                             />
                         </div>
                         <div className="flex items-center mt-4">
-                            <label htmlFor="vehicleModel"  className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                            <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                 Brand Name
                             </label>
                             <input
@@ -1521,49 +1520,49 @@ const Booking = () => {
                                 onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
                             />
                         </div>
-                        </div>
+                    </div>
 
-                        <div className="mt-4 flex items-center">
-                            <textarea
-                                id="reciever-name"
-                                name="reciever-name"
-                                className="form-input flex-1"
-                                placeholder="Comments"
-                                value={comments}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '5px',
-                                    fontSize: '1rem',
-                                    outline: 'none',
-                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                }}
-                                onChange={(e) => handleInputChange('comments', e.target.value)}
-                            />
-                        </div>
-                        
-                        <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={addOrUpdateItem}
-                                style={{
-                                    backgroundColor: '#28a745',
-                                    color: '#fff',
-                                    padding: '0.5rem',
-                                    width: '100%',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                {editData ? 'Update' : 'Save'}
-                            </button>
-                        </div>
+                    <div className="mt-4 flex items-center">
+                        <textarea
+                            id="reciever-name"
+                            name="reciever-name"
+                            className="form-input flex-1"
+                            placeholder="Comments"
+                            value={comments}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            }}
+                            onChange={(e) => handleInputChange('comments', e.target.value)}
+                        />
+                    </div>
+
+                    <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={addOrUpdateItem}
+                            style={{
+                                backgroundColor: '#28a745',
+                                color: '#fff',
+                                padding: '0.5rem',
+                                width: '100%',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            {editData ? 'Update' : 'Save'}
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
     );
 };
 
