@@ -202,6 +202,10 @@ const Booking = () => {
             case 'comments':
                 setComments(value || '');
                 break;
+                case 'vehicleNumber':
+                    setVehicleNumber(value || '');
+                    break;
+                
             case 'updatedTotalSalary':
                 setUpdatedTotalSalary(value || '');
                 break;
@@ -265,9 +269,15 @@ const Booking = () => {
                 const selectedDriverTotalDistance = totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0;
                 setTotalDistance(selectedDriverTotalDistance);
                 break;
-            case 'vehicleNumber':
-                setVehicleNumber(value || '');
-                break;
+                case 'selectedDriver':
+                    setSelectedDriver(value);
+                    const selectedDriverDetails = drivers.find(driver => driver.id === value);
+                    if (selectedDriverDetails) {
+                        setServiceVehicle(selectedDriverDetails.serviceVehicle || '');
+                        // Other updates related to the selected driver
+                    }
+                    break;
+                
             case 'selectedShowroom':
                 setSelectedShowroom(value || '');
                 break;
@@ -288,6 +298,7 @@ const Booking = () => {
             setSelectedDriver(value || '');
         }
     };
+    const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
 
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
@@ -353,7 +364,7 @@ const Booking = () => {
                 setDrivers([]);
                 return;
             }
-
+    
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
@@ -363,27 +374,28 @@ const Booking = () => {
                         if (!driverData.selectedServices.includes(serviceType)) {
                             return null;
                         }
-
+    
                         return {
                             id: doc.id,
                             ...driverData,
                         };
                     })
                     .filter(Boolean);
-
+    
                 console.log('Filtered Drivers:', filteredDrivers);
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
         };
-
+    
         if (serviceType && serviceDetails) {
             fetchDrivers().catch(console.error);
         } else {
             setDrivers([]);
         }
     }, [db, serviceType, serviceDetails]);
+    
 
 
     useEffect(() => {
@@ -584,6 +596,13 @@ const Booking = () => {
             setShowroomLocation(location);
         }
     }, [selectedShowroom, showrooms]);
+      const renderServiceVehicle = (serviceVehicle, serviceType) => {
+        if (serviceVehicle && serviceVehicle[serviceType]) {
+            return serviceVehicle[serviceType];
+        } else {
+            return 'Unknown Vehicle';
+        }
+    };
     const addOrUpdateItem = async () => {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
@@ -1289,121 +1308,152 @@ const Booking = () => {
                                     />
                                 </div>
                                 <ReactModal
-    isOpen={isModalOpen}
-    onRequestClose={closeModal}
-    style={{
-        overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '10px',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-            padding: '20px',
-            overflow: 'auto',
-        },
-    }}
->
-    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-        <button
-            onClick={closeModal}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-            style={{ marginLeft: 'auto', marginRight: '20px' }}
-        >
-            OK
-        </button>
-    </div>
+                isOpen={isModalOpen}
+                onRequestClose={closeModal}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    },
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        transform: 'translate(-50%, -50%)',
+                        borderRadius: '10px',
+                        maxWidth: '90vw',
+                        maxHeight: '80vh',
+                        boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                        padding: '20px',
+                        overflow: 'auto',
+                    },
+                }}
+            >
+                <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                    <button
+                        onClick={closeModal}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                        style={{ marginLeft: 'auto', marginRight: '20px' }}
+                    >
+                        OK
+                    </button>
+                </div>
 
-    <div style={{ marginTop: '10px' }}>
-        <div className="grid grid-cols-1 gap-4">
-            {drivers
-                .map((driver, index) => ({
-                    driver,
-                    pickupDistanceData: pickupDistances[index] || { distance: 0, duration: 0 },
-                }))
-                .sort((a, b) => {
-                    if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
-                        return -1;
-                    }
-                    if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
-                        return 1;
-                    }
-                    return a.pickupDistanceData.distance - b.pickupDistanceData.distance;
-                })
-                .map(({ driver, pickupDistanceData }, index) => {
-                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
-                    const driverTotalSalary = calculateTotalSalary(
-                        serviceDetails.salary,
-                        totalDistance,
-                        serviceDetails.basicSalaryKM,
-                        serviceDetails.salaryPerKM
-                    ).toFixed(2);
+                <div style={{ marginTop: '10px' }}>
+                    <div className="grid grid-cols-1 gap-4">
+                        {drivers
+                            .map((driver, index) => ({
+                                driver,
+                                pickupDistanceData: pickupDistances[index] || { distance: 0, duration: 0 },
+                            }))
+                            .sort((a, b) => {
+                                if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
+                                    return -1;
+                                }
+                                if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
+                                    return 1;
+                                }
+                                return a.pickupDistanceData.distance - b.pickupDistanceData.distance;
+                            })
+                            .map(({ driver, pickupDistanceData }, index) => {
+                                const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
+                                const driverTotalSalary = calculateTotalSalary(
+                                    serviceDetails.salary,
+                                    totalDistance,
+                                    serviceDetails.basicSalaryKM,
+                                    serviceDetails.salaryPerKM
+                                ).toFixed(2);
 
-                    return (
-                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                            <table className="panel p-4 w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Driver Name</th>
-                                        <th>Company Name</th>
-                                                                                <th>Company Name</th>
+                                return (
+                                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                        <table className="panel p-4 w-full">
+                                            <thead>
+                                                <tr>
+                                                    <th>Driver Name</th>
+                                                    <th>Company Name</th>
+                                                    <th>Service Vehicle</th>
+                                                    <th>Distance to Pickup (km)</th>
+                                                    <th>Duration (min)</th>
+                                                    <th>Select</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
+                                                    <td>{driver.companyName || 'Unknown Company'}</td>
+                                                    <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td>
+                                                    <td>{pickupDistanceData.distance.toFixed(2)} km</td>
+                                                    <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
+                                                    <td>
+                                                        <input
+                                                            type="radio"
+                                                            name="selectedDriver"
+                                                            value={driver.id}
+                                                            checked={selectedDriver === driver.id}
+                                                            onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                );
+                            })}
+                    </div>
+                </div>
+            </ReactModal>
 
-                                        serviceVehicle
-                                        <th>Distance to Pickup (km)</th>
-                                        <th>Duration (min)</th>
-                                        <th>Select</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ fontSize: '18px', fontWeight: 'bold',color:'green' }}>{driver.driverName || 'Unknown Driver'}</td>
-                                        <td>{driver.companyName || 'Unknown Company'}</td>
-                                        {/* <td>{driver.serviceType.serviceVehicle || 'Unknown Company'}</td> */}
-
-                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
-                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
-                                        <td>
-                                            <input
-                                                type="radio"
-                                                name="selectedDriver"
-                                                value={driver.id}
-                                                checked={selectedDriver === driver.id}
-                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                            />
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    );
-                })}
-        </div>
-    </div>
-</ReactModal>
 
                             </div>
                         </div>
-                        <React.Fragment>
-                        <div className="flex items-center mt-4">
-                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Service Vehicle Number
-                                </label>
+                        {selectedDriver && selectedDriverData && (
+                <React.Fragment>
+                    <div className="flex items-center mt-4">
+                        <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                            Service Vehicle Number
+                        </label>
+                        <input
+                            id="serviceVehicle"
+                            type="text"
+                            name="serviceVehicle"
+                            className="form-input flex-1"
+                            placeholder="Enter Service Vehicle Number"
+                            value={renderServiceVehicle(
+                                selectedDriverData.serviceVehicle,
+                                serviceType
+                            )}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            }}
+                            onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <VehicleSection
+                            showroomLocation={showroomLocation}
+                            totalSalary={totalSalary}
+                            onUpdateTotalSalary={handleUpdatedTotalSalary}
+                            onInsuranceAmountChange={handleInsuranceAmountChange}
+                        />
+                        <div className="mt-4 flex items-center">
+                            <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                Total Amount without insurance
+                            </label>
+                            <div className="form-input flex-1">
                                 <input
-                                    id="serviceVehicle"
+                                    id="totalSalary"
                                     type="text"
-                                    name="serviceVehicle"
-                                    className="form-input flex-1"
-                                    placeholder="Enter Service Vehicle Number"
-                                    value={serviceVehicle}
+                                    name="totalSalary"
+                                    className="w-full  text-bold"
                                     style={{
-                                        width: '100%',
                                         padding: '0.5rem',
                                         border: '1px solid #ccc',
                                         borderRadius: '5px',
@@ -1411,66 +1461,37 @@ const Booking = () => {
                                         outline: 'none',
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
-                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                                    required
+                                    value={totalSalary}
+                                    readOnly
                                 />
                             </div>
-                            <div>
-                                <VehicleSection
-                                    showroomLocation={showroomLocation}
-                                    totalSalary={totalSalary}
-                                    onUpdateTotalSalary={handleUpdatedTotalSalary}
-                                    onInsuranceAmountChange={handleInsuranceAmountChange}
+                        </div>
+                        <div className="mt-4 flex items-center">
+                            <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                Payable Amount (with insurance)
+                            </label>
+                            <div className="form-input flex-1">
+                                <input
+                                    id="updatedTotalSalary"
+                                    type="text"
+                                    name="updatedTotalSalary"
+                                    className="w-full text-danger"
+                                    style={{
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '2rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    value={updatedTotalSalary}
+                                    readOnly
                                 />
-                                <div className="mt-4 flex items-center">
-                                    <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Total Amount without insurance
-                                    </label>
-                                    <div className="form-input flex-1">
-                                        <input
-                                            id="totalSalary"
-                                            type="text"
-                                            name="totalSalary"
-                                            className="w-full  text-bold"
-                                            style={{
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            value={totalSalary}
-                                            readOnly
-                                        />
-                                    </div>
-                                </div>
-                                <div className="mt-4 flex items-center">
-                                    <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Payable Amount (with insurance)
-                                    </label>
-                                    <div className="form-input flex-1">
-                                        <input
-                                            id="updatedTotalSalary"
-                                            type="text"
-                                            name="updatedTotalSalary"
-                                            className="w-full text-danger"
-                                            style={{
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '2rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            value={updatedTotalSalary}
-                                            readOnly
-                                        />
-                                    </div>
-                                </div>
                             </div>
-                        </React.Fragment>
-
+                        </div>
+                    </div>
+                </React.Fragment>
+            )}
                         <div className="mt-4 flex items-center">
                             <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                 Customer Vehicle Number
