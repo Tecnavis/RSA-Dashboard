@@ -22,6 +22,9 @@ const DriverAdd = () => {
     const [basicSalaries, setBasicSalaries] = useState({}); // Ensure basicSalaries is defined here
     const [profileImage, setProfileImage] = useState(null); // State to store profile image file
     const [showPassword, setShowPassword] = useState(false);
+    
+    const [serviceVehicle, setServiceVehicle] = useState({});
+
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const storage = getStorage();
@@ -61,6 +64,10 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
         setSalaryPerKm(updatedsalaryPerKm);
     };
    
+    const handleServiceVehicle = (service, e) => {
+        const updatedServiceVehicle= { ...serviceVehicle, [service]: e.target.value };
+        setServiceVehicle(updatedServiceVehicle);
+    };
     const handleProfileImageChange = (e) => {
         setProfileImage(e.target.files[0]); 
     };
@@ -108,8 +115,9 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             setPassword(state.editData.password || '');
             setCompanyName(state.editData.companyName || '');
 
-
             setConfirmPassword(state.editData.confirmPassword || '');
+
+            setServiceVehicle(state.editData.serviceVehicle || '');
 
             setPersonalPhone(state.editData.personalphone || '');
             setSalaryPerKm(state.editData.salaryPerKm || '');
@@ -148,7 +156,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 basicSalaryKm,
                 selectedServices,
                 companyName,
-
+                serviceVehicle,
                 basicSalaries,
                 password,
                 confirmPassword,
@@ -317,6 +325,9 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 )}
 </div>
+
+
+</div>
 {selectedServices.length > 0 && (
     <table style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
         <thead>
@@ -325,6 +336,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>KM for Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>SalaryPerKm</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Vehicle Number</th>
+
             </tr>
         </thead>
         <tbody>
@@ -358,14 +371,19 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                         />
                         <span style={{ position: 'absolute', right: '45px', top: '50%', transform: 'translateY(-50%)', color: '#555'}}>/km</span>
                     </td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px', position: 'relative' }}>
+                        <input
+                            style={{ border: 'none', outline: 'none' }} // Set border and outline to none, adjust width to leave space for "KM"
+                            type="text"
+                            value={serviceVehicle[service] || ""}
+                            onChange={(e) => handleServiceVehicle(service, e)}
+                        />
+                    </td>
                 </tr>
             ))}
         </tbody>
     </table>
 )}
-
-</div>
-
                                 <div className="sm:col-span-2 mt-3">
             <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}>
                 {editData ? 'Update' : 'Save'}

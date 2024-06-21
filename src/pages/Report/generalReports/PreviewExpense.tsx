@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { setPageTitle } from '../../../store/themeConfigSlice';
@@ -19,7 +19,7 @@ const [booking, setBooking] = useState(null);
     const db = getFirestore(); // Initialize Firestore
     const location = useLocation(); // Use useLocation hook to access state
     const stateId = location.state?.id; // Access id from location state
-    
+    const invoiceRef = useRef();
     useEffect(() => {
         const fetchBooking = async () => {
             setLoading(true);
@@ -53,7 +53,15 @@ const [booking, setBooking] = useState(null);
         // Log id when component mounts or id changes
         console.log('State id:', stateId);
     }, [stateId]);
+    const handlePrint = () => {
+        const printContent = invoiceRef.current.innerHTML;
+        const originalContent = document.body.innerHTML;
 
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        window.location.reload(); // Reload the page to restore the original content
+    };
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -62,28 +70,11 @@ const [booking, setBooking] = useState(null);
         return <div>No booking found.</div>;
     }
     const columns = [
-        {
-            key: 'id',
-            label: 'S.NO',
-        },
-        {
-            key: 'serviceType',
-            label: 'Service Type',
-        },
-        {
-            key: 'vehicleModel',
-            label: 'Vehicle Model',
-        },
-        {
-            key: 'vehicleNumber',
-            label: 'Vehicle Number',
-            class: 'text-center',
-        },
-        {
-            key: 'updatedTotalSalary',
-            label: 'AMOUNT',
-            class: 'text-center',
-        },
+        { key: 'id', label: 'S.NO' },
+        { key: 'serviceType', label: 'Service Type' },
+        { key: 'vehicleModel', label: 'Vehicle Model' },
+        { key: 'vehicleNumber', label: 'Vehicle Number', class: 'text-center' },
+        { key: 'updatedTotalSalary', label: 'AMOUNT', class: 'text-center' },
     ];
     return (
         <div>
@@ -93,7 +84,7 @@ const [booking, setBooking] = useState(null);
                     Send Invoice
                 </button>
 
-                <button type="button" className="btn btn-primary gap-2" onClick={() => window.print()}>
+                <button type="button" className="btn btn-primary gap-2" onClick={handlePrint}>
                     <IconPrinter />
                     Print
                 </button>
@@ -108,12 +99,12 @@ const [booking, setBooking] = useState(null);
                     Create
                 </Link>
 
-                <Link to={`/general/expense/preview/edit/${id}`} className="btn btn-warning gap-2">
+                <Link to={`/general/sales/preview/edit/${id}`} className="btn btn-warning gap-2">
                     <IconEdit />
                     Edit
                 </Link>
             </div>
-            <div className="panel">
+            <div className="panel"  ref={invoiceRef}>
                 <div className="flex justify-between flex-wrap gap-4 px-4">
                     <div className="text-2xl font-semibold uppercase">Invoice</div>
                     <div className="shrink-0">

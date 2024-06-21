@@ -13,6 +13,7 @@ const BaseLocationModal = ({ onClose, setBaseLocation, pickupLocation }) => {
     console.log('pickupLocation', pickupLocation);
 
     useEffect(() => {
+        
         const fetchData = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'baselocation'));

@@ -5,21 +5,20 @@ import sortBy from 'lodash/sortBy';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import IconTrashLines from '../../../components/Icon/IconTrashLines';
-import IconPlus from '../../../components/Icon/IconPlus';
 import IconEdit from '../../../components/Icon/IconEdit';
 import IconEye from '../../../components/Icon/IconEye';
-import { collection, getDocs, getFirestore, query, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, getFirestore, query, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
-const generateInvoiceId = () => {
+const generateExpenseId = () => {
     const timestamp = Date.now().toString(); // Current timestamp
     const randomStr = Math.random().toString(36).substring(2, 8); // Random string
-    return `INV-${timestamp}-${randomStr}`;
+    return `EXP-${timestamp}-${randomStr}`;
 };
 
 const ExpenseSummery = () => {
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(setPageTitle('Invoice List'));
+        dispatch(setPageTitle('Expense List'));
     }, [dispatch]);
 
     const [items, setItems] = useState([]);
@@ -39,59 +38,59 @@ const ExpenseSummery = () => {
     const db = getFirestore();
 
     useEffect(() => {
-        const fetchBookingsAndDrivers = async () => {
+        const fetchExpensesAndDrivers = async () => {
             try {
-                const bookingsQuery = query(collection(db, 'bookings'));
+                const expensesQuery = query(collection(db, 'bookings'));
                 const driversQuery = query(collection(db, 'driver'));
 
-                const [bookingsSnapshot, driversSnapshot] = await Promise.all([
-                    getDocs(bookingsQuery),
+                const [expensesSnapshot, driversSnapshot] = await Promise.all([
+                    getDocs(expensesQuery),
                     getDocs(driversQuery)
                 ]);
 
                 const driversData = {};
-                
                 driversSnapshot.forEach((doc) => {
                     driversData[doc.id] = doc.data();
                 });
-                const bookingsData = [];
-                for (const docSnapshot of bookingsSnapshot.docs) {
-                    const booking = docSnapshot.data();
-console.log("booking",booking)                  
-  if (!booking.invoice) {
-                        const invoiceId = generateInvoiceId();
-                        booking.invoice = invoiceId;
-                        // Update the Firestore document with the new invoice ID
-                        await updateDoc(doc(db, 'bookings', docSnapshot.id), { invoice: invoiceId });
+
+                const expensesData = [];
+                for (const docSnapshot of expensesSnapshot.docs) {
+                    const expense = docSnapshot.data();
+
+                    if (!expense.ExpenseId) {
+                        const expenseId = generateExpenseId();
+                        expense.ExpenseId = expenseId;
+                        // Update the Firestore document with the new ExpenseId
+                        await updateDoc(doc(db, 'bookings', docSnapshot.id), { ExpenseId: expenseId });
                     }
+
                     // Add driver information
-                    const driverId = booking.selectedDriver;
-console.log("driverId",driverId)       
-             const driver = driversData[driverId];
-             console.log("driver12134565",driver)
+                    const driverId = expense.selectedDriver;
+                    const driver = driversData[driverId];
                     if (driver) {
-                        booking.driverName = driver.driverName;
-                        booking.driverImg = driver.profileImageUrl; // Assuming there's an 'img' field in the driver data
+                        expense.driverName = driver.driverName;
+                        expense.driverImg = driver.profileImageUrl; // Assuming there's an 'img' field in the driver data
                     }
-                    bookingsData.push({ id: docSnapshot.id, ...booking });
+
+                    expensesData.push({ id: docSnapshot.id, ...expense });
                 }
 
-                setItems(bookingsData);
-                setInitialRecords(sortBy(bookingsData, 'invoice'));
+                setItems(expensesData);
+                setInitialRecords(sortBy(expensesData, 'ExpenseId')); // Assuming 'ExpenseId' is the field you want to sort by initially
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching bookings or drivers:', error);
+                console.error('Error fetching expenses or drivers:', error);
                 setLoading(false);
             }
         };
 
-        fetchBookingsAndDrivers();
+        fetchExpensesAndDrivers();
     }, [db]);
 
     useEffect(() => {
         const filteredRecords = items.filter((item) => {
             return (
-                item.invoice?.toLowerCase().includes(search.toLowerCase()) ||
+                item.ExpenseId?.toLowerCase().includes(search.toLowerCase()) ||
                 item.customerName?.toLowerCase().includes(search.toLowerCase()) ||
                 item.email?.toLowerCase().includes(search.toLowerCase()) ||
                 item.dateTime?.toLowerCase().includes(search.toLowerCase()) ||
@@ -114,19 +113,24 @@ console.log("driverId",driverId)
         setRecords([...initialRecords.slice(from, to)]);
     }, [page, pageSize, initialRecords]);
 
-    const deleteRow = (id) => {
+    const deleteRow = async (id) => {
         if (window.confirm('Are you sure want to delete selected row ?')) {
-            const updatedRecords = items.filter(item => item.id !== id);
-            setItems(updatedRecords);
-            setInitialRecords(updatedRecords);
-            setRecords(updatedRecords.slice((page - 1) * pageSize, page * pageSize));
-            setSelectedRecords([]);
+            try {
+                await deleteDoc(doc(db, 'expenses', id));
+                const updatedRecords = items.filter((item) => item.id !== id);
+                setItems(updatedRecords);
+                setInitialRecords(updatedRecords);
+                setRecords(updatedRecords.slice((page - 1) * pageSize, page * pageSize));
+                setSelectedRecords([]);
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+            }
         }
     };
 
     return (
         <div className="panel px-0 border-white-light dark:border-[#1b2e4b]">
-            <div className="invoice-table">
+            <div className="expense-table">
                 <div className="mb-4.5 px-5 flex md:items-center md:flex-row flex-col gap-5">
                     <div className="ltr:ml-auto rtl:mr-auto">
                         <input 
@@ -141,21 +145,25 @@ console.log("driverId",driverId)
 
                 <div className="datatables pagination-padding">
                     <DataTable
-                        className="whitespace-nowrap table-hover invoice-table"
+                        className="whitespace-nowrap table-hover expense-table"
                         records={records}
                         columns={[
                             {
-                                accessor: 'invoice',
+                                accessor: 'ExpenseId',
                                 sortable: true,
-                                render: ({ invoice, id }) => (
+                                render: ({ ExpenseId, id }) => (
                                     <NavLink
                                         to={{
                                             pathname: `/general/expense/preview/${id}`, // Ensure `${id}` is correctly interpolated
                                         }}
                                     >
-                                        <div className="text-primary underline hover:no-underline font-semibold">{`#${invoice}`}</div>
+                                        <div className="text-primary underline hover:no-underline font-semibold">{`#${ExpenseId}`}</div>
                                     </NavLink>
                                 ),
+                            },
+                            {
+                                accessor: 'dateTime',
+                                sortable: true,
                             },
                             {
                                 accessor: 'driver',
@@ -174,20 +182,21 @@ console.log("driverId",driverId)
                                 sortable: true,
                             },
                             {
-                                accessor: 'dateTime',
+                                accessor: 'fuelBillAmount',
                                 sortable: true,
                             },
-                            {
-                                accessor: 'payable amount',
-                                sortable: true,
-                                titleClassName: 'text-right',
-                                render: ({ updatedTotalSalary }) => <div className="text-right font-semibold">{`$${updatedTotalSalary}`}</div>,
-                            },
-                            {
-                                accessor: 'status',
-                                sortable: true,
-                                render: ({ status }) => <span className={`badge badge-outline-${status === 'Order Completed' ? 'success' : 'warning'}`}>{status}</span>,
-                            },
+                         
+                            // {
+                            //     accessor: 'payable amount',
+                            //     sortable: true,
+                            //     titleClassName: 'text-right',
+                            //     render: ({ updatedTotalSalary }) => <div className="text-right font-semibold">{`$${updatedTotalSalary}`}</div>,
+                            // },
+                            // {
+                            //     accessor: 'status',
+                            //     sortable: true,
+                            //     render: ({ paymentStatus }) => <span className={`badge badge-outline-${paymentStatus === 'Paid' ? 'success' : 'warning'}`}>{paymentStatus}</span>,
+                            // },
                             {
                                 accessor: 'action',
                                 title: 'Actions',
@@ -195,10 +204,10 @@ console.log("driverId",driverId)
                                 textAlignment: 'center',
                                 render: ({ id }) => (
                                     <div className="flex gap-4 items-center w-max mx-auto">
-                                        <NavLink to={`/apps/invoice/edit/${id}`} className="flex hover:text-info">
+                                        <NavLink to={`/apps/expense/edit/${id}`} className="flex hover:text-info">
                                             <IconEdit className="w-4.5 h-4.5" />
                                         </NavLink>
-                                        <NavLink to={`/apps/invoice/preview/${id}`} className="flex hover:text-primary">
+                                        <NavLink to={`/apps/expense/preview/${id}`} className="flex hover:text-primary">
                                             <IconEye />
                                         </NavLink>
                                         <button type="button" className="flex hover:text-danger" onClick={() => deleteRow(id)}>

@@ -1,134 +1,137 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './ShowroomModal.css'; 
-import { collection, addDoc, getFirestore, onSnapshot } from 'firebase/firestore'; 
+import './ShowroomModal.css';
+import { collection, addDoc, getFirestore, onSnapshot } from 'firebase/firestore';
 
 const ShowroomModal = ({ updateShowroomLocation }) => {
-  const [Location, setLocation] = useState('');
-  const [ShowRoom, setShowRoom] = useState('');
-  const [Description, setDescription] = useState('');
-  const [UserName, setUserName] = useState('');
-  const [Password, setPassword] = useState('');
-  const [TollFree, setTollFree] = useState(''); 
-  const [ShowRoomId, setShowRoomId] = useState(''); 
-  const [PhoneNumber, setPhoneNumber] = useState(''); 
-  const [AvailableServices, setAvailableServices] = useState([]); 
-  const [MobileNumber, setMobileNumber] = useState(''); 
-  const [LocationLatLng, setLocationLatLng] = useState({ lat: '', lng: '' }); 
-  const [State, setState] = useState(''); 
-  const [District, setDistrict] = useState(''); 
-  const [HasInsurance, setHasInsurance] = useState(''); 
-  const [InsuranceAmount, setInsuranceAmount] = useState(''); 
-  const [HasInsuranceBody, setHasInsuranceBody] = useState(''); 
-  const [InsuranceAmountBody, setInsuranceAmountBody] = useState(''); 
-  const [Img, setImg] = useState(''); 
+    const [Location, setLocation] = useState('');
+    const [ShowRoom, setShowRoom] = useState('');
+    const [Description, setDescription] = useState('');
+    const [UserName, setUserName] = useState('');
+    const [Password, setPassword] = useState('');
+    const [TollFree, setTollFree] = useState('');
+    const [ShowRoomId, setShowRoomId] = useState('');
+    const [PhoneNumber, setPhoneNumber] = useState('');
+    const [AvailableServices, setAvailableServices] = useState([]);
+    const [MobileNumber, setMobileNumber] = useState('');
+    const [LocationLatLng, setLocationLatLng] = useState({ lat: '', lng: '' });
+    const [State, setState] = useState('');
+    const [District, setDistrict] = useState('');
+    const [HasInsurance, setHasInsurance] = useState('');
+    const [InsuranceAmount, setInsuranceAmount] = useState('');
+    const [HasInsuranceBody, setHasInsuranceBody] = useState('');
+    const [InsuranceAmountBody, setInsuranceAmountBody] = useState('');
+    const [Img, setImg] = useState('');
 
-  const [showrooms, setShowrooms] = useState([]); 
-  const db = getFirestore();
-  const inputRef = useRef(null); 
+    const [showrooms, setShowrooms] = useState([]);
+    const db = getFirestore();
+    const inputRef = useRef(null);
 
-  const setupAutocomplete = (inputRef, setter) => {
-    if (!inputRef.current) return;
+    const setupAutocomplete = (inputRef, setter) => {
+        if (!inputRef.current) return;
 
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current);
-    autocomplete.setFields(['geometry', 'name']);
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (place.geometry) {
-        const locationName = place.name; 
-        setter(locationName);
-      }
-    });
-  };
+        const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current);
+        autocomplete.setFields(['geometry', 'name']);
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (place.geometry) {
+                const locationName = place.name;
+                setter(locationName);
+            }
+        });
+    };
 
-  useEffect(() => {
-    setupAutocomplete(inputRef, setLocation); 
-  }, []);
+    useEffect(() => {
+        setupAutocomplete(inputRef, setLocation);
+    }, []);
 
-  const handleInputChange = (e) => {
-    setLocation(e.target.value);
-  };
+    const handleInputChange = (e) => {
+        setLocation(e.target.value);
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, 'showroom'), {
-        Location: Location,
-        ShowRoom: ShowRoom,
-        description: Description,
-        userName: UserName,
-        password: Password,
-        tollfree: TollFree,
-        showroomId: ShowRoomId,
-        phoneNumber: PhoneNumber,
-        availableServices: AvailableServices,
-        mobileNumber: MobileNumber,
-        locationLatLng: LocationLatLng,
-        state: State,
-        district: District,
-        hasInsurance: HasInsurance,
-        insuranceAmount: InsuranceAmount,
-        hasInsuranceBody: HasInsuranceBody,
-        insuranceAmountBody: InsuranceAmountBody,
-        img: Img, 
-        status: 'new showroom', 
-        createdAt: new Date()
-      });
-      console.log('Showroom added successfully');
-      updateShowroomLocation(Location); // Update the parent component with the selected location
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db, 'showroom'), {
+                Location: Location,
+                ShowRoom: ShowRoom,
+                description: Description,
+                userName: UserName,
+                password: Password,
+                tollfree: TollFree,
+                showroomId: ShowRoomId,
+                phoneNumber: PhoneNumber,
+                availableServices: AvailableServices,
+                mobileNumber: MobileNumber,
+                locationLatLng: LocationLatLng,
+                state: State,
+                district: District,
+                hasInsurance: HasInsurance,
+                insuranceAmount: InsuranceAmount,
+                hasInsuranceBody: HasInsuranceBody,
+                insuranceAmountBody: InsuranceAmountBody,
+                img: Img,
+                status: 'new showroom',
+                createdAt: new Date()
+            });
+            console.log('Showroom added successfully');
+            
+            // Add console.log to inspect the value of Location before calling updateShowroomLocation
+            console.log('Updating showroom location to:', Location);
+            updateShowroomLocation(Location); // Update the parent component with the selected location
 
-      setLocation('');
-      setShowRoom('');
-      setDescription('');
-      setUserName('');
-      setPassword('');
-      setTollFree(''); 
-      setShowRoomId('');
-      setPhoneNumber('');
-      setAvailableServices([]);
-      setMobileNumber('');
-      setLocationLatLng({ lat: '', lng: '' });
-      setState('');
-      setDistrict('');
-      setHasInsurance('');
-      setInsuranceAmount('');
-      setHasInsuranceBody('');
-      setInsuranceAmountBody('');
-      setImg('');
+            // Reset form fields
+            setLocation('');
+            setShowRoom('');
+            setDescription('');
+            setUserName('');
+            setPassword('');
+            setTollFree('');
+            setShowRoomId('');
+            setPhoneNumber('');
+            setAvailableServices([]);
+            setMobileNumber('');
+            setLocationLatLng({ lat: '', lng: '' });
+            setState('');
+            setDistrict('');
+            setHasInsurance('');
+            setInsuranceAmount('');
+            setHasInsuranceBody('');
+            setInsuranceAmountBody('');
+            setImg('');
+        } catch (error) {
+            console.error('Error adding document: ', error);
+        }
+    };
 
-    } catch (error) {
-      console.error('Error adding document: ', error);
-    }
-  };
+    useEffect(() => {
+        const unsubscribe = onSnapshot(collection(db, 'showroom'), (snapshot) => {
+            const showroomsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setShowrooms(showroomsList);
+        });
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'showroom'), (snapshot) => {
-      const showroomsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setShowrooms(showroomsList);
-    });
+        return () => unsubscribe();
+    }, [db]);
 
-    return () => unsubscribe();
-  }, [db]);
-
-  return (
-    <div className="showroom-modal">
-      <form onSubmit={handleSubmit} className="showroom-form">
-        <div className="form-group">
-          <label htmlFor="Location">Showroom Name:</label>
-          <input
-            type="text"
-            id="Location"
-            ref={inputRef}
-            value={Location}
-            onChange={handleInputChange}
-            required
-            className="form-control"
-            placeholder="Enter showroom name"
-          />
+    return (
+        <div className="showroom-modal">
+            <form onSubmit={handleSubmit} className="showroom-form">
+                <div className="form-group">
+                    <label htmlFor="Location">Showroom Name:</label>
+                    <input
+                        type="text"
+                        id="Location"
+                        ref={inputRef}
+                        value={Location}
+                        onChange={handleInputChange}
+                        required
+                        className="form-control"
+                        placeholder="Enter showroom name"
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary">Save Showroom</button>
+            </form>
         </div>
-        <button type="submit" className="btn btn-primary">Save Showroom</button>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default ShowroomModal;

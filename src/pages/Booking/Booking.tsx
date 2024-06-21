@@ -16,7 +16,6 @@ import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 interface Showroom {
     id: string;
     name: string;
-    // other properties
 }
 const Booking = () => {
     const db = getFirestore();
@@ -168,6 +167,7 @@ const Booking = () => {
     const handleManualChange = (field, value) => {
         setPickupLocation((prev) => ({ ...prev, [field]: value }));
     };
+    
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
@@ -417,20 +417,20 @@ const Booking = () => {
     const [pickupDistances, setPickupDistances] = useState([]);
     console.log('first', pickupDistances);
 
-    const driversWithDistances = drivers.map((driver, index) => ({
-        driver,
-        pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
-    }));
+    // const driversWithDistances = drivers.map((driver, index) => ({
+    //     driver,
+    //     pickupDistance: pickupDistances[index] !== null ? pickupDistances[index] : Infinity,
+    // }));
 
-    driversWithDistances.sort((a, b) => {
-        if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
-            return -1;
-        }
-        if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
-            return 1;
-        }
-        return b.pickupDistance - a.pickupDistance;
-    });
+    // driversWithDistances.sort((a, b) => {
+    //     if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
+    //         return -1;
+    //     }
+    //     if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
+    //         return 1;
+    //     }
+    //     return b.pickupDistance - a.pickupDistance;
+    // });
 
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
@@ -629,6 +629,7 @@ const Booking = () => {
                 trappedLocation: trappedLocation || '',
                 updatedTotalSalary: updatedTotalSalary || '',
                 insuranceAmount: insuranceAmount || '',
+                paymentStatus: 'Not Paid',
             };
             if (editData) {
                 bookingData.newStatus = 'Edited by Admin';
@@ -903,31 +904,7 @@ const Booking = () => {
                                                 <IconPlus />
                                             </a>{' '}
                                         </div>
-                                        {/* <div className="flex items-center mt-4">
-                                            <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                Drop off Location
-                                            </label>
-                                            <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                                <input
-                                                    className="form-input flex-1"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '0.5rem',
-                                                        border: '1px solid #ccc',
-                                                        borderRadius: '5px',
-                                                        fontSize: '1rem',
-                                                        outline: 'none',
-                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                    }}
-                                                    type="text"
-                                                    placeholder="Drop off Location"
-                                                    ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                                                    onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                                                    value={dropoffLocation ? dropoffLocation.name : ''}
-                                                />
-                                                {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
-                                            </div>
-                                        </div> */}
+                                        
                                         <div className="flex items-center mt-4">
                                             <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                                 Dropoff Location
@@ -1287,30 +1264,7 @@ const Booking = () => {
                                     <option value="S Lorry Crane Bed">S Lorry Crane Bed</option>
                                 </select>
                             </div>
-                            <div className="flex items-center mt-4">
-                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Service Vehicle Number
-                                </label>
-                                <input
-                                    id="serviceVehicle"
-                                    type="text"
-                                    name="serviceVehicle"
-                                    className="form-input flex-1"
-                                    placeholder="Enter Service Vehicle Number"
-                                    value={serviceVehicle}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                                    required
-                                />
-                            </div>
+                          
                             <div className="flex items-center mt-4">
                                 <label htmlFor="driver" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Driver
@@ -1335,91 +1289,132 @@ const Booking = () => {
                                     />
                                 </div>
                                 <ReactModal
-                                    isOpen={isModalOpen}
-                                    onRequestClose={closeModal}
-                                    style={{
-                                        overlay: {
-                                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                        },
-                                        content: {
-                                            top: '50%',
-                                            left: '50%',
-                                            right: 'auto',
-                                            bottom: 'auto',
-                                            transform: 'translate(-50%, -50%)',
-                                            borderRadius: '10px',
-                                            maxWidth: '90vw',
-                                            maxHeight: '80vh',
-                                            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-                                            padding: '20px',
-                                            overflow: 'auto',
-                                        },
-                                    }}
-                                >
-                                    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-                                        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-                                        <button
-                                            onClick={closeModal}
-                                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-                                            style={{ marginLeft: 'auto', marginRight: '20px' }}
-                                        >
-                                            OK
-                                        </button>
-                                    </div>
+    isOpen={isModalOpen}
+    onRequestClose={closeModal}
+    style={{
+        overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '10px',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+            padding: '20px',
+            overflow: 'auto',
+        },
+    }}
+>
+    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+        <button
+            onClick={closeModal}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+            style={{ marginLeft: 'auto', marginRight: '20px' }}
+        >
+            OK
+        </button>
+    </div>
 
-                                    <div style={{ marginTop: '10px' }}>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            {drivers
-                                                .sort((a, b) => (a.companyName === 'RSA' ? -1 : 1))
-                                                .map((driver, index) => {
-                                                    const pickupDistanceData = pickupDistances[index] || { distance: 0, duration: 0 };
-                                                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
-                                                    const driverTotalSalary = calculateTotalSalary(
-                                                        serviceDetails.salary,
-                                                        totalDistance,
-                                                        serviceDetails.basicSalaryKM,
-                                                        serviceDetails.salaryPerKM
-                                                    ).toFixed(2);
+    <div style={{ marginTop: '10px' }}>
+        <div className="grid grid-cols-1 gap-4">
+            {drivers
+                .map((driver, index) => ({
+                    driver,
+                    pickupDistanceData: pickupDistances[index] || { distance: 0, duration: 0 },
+                }))
+                .sort((a, b) => {
+                    if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
+                        return -1;
+                    }
+                    if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
+                        return 1;
+                    }
+                    return a.pickupDistanceData.distance - b.pickupDistanceData.distance;
+                })
+                .map(({ driver, pickupDistanceData }, index) => {
+                    const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
+                    const driverTotalSalary = calculateTotalSalary(
+                        serviceDetails.salary,
+                        totalDistance,
+                        serviceDetails.basicSalaryKM,
+                        serviceDetails.salaryPerKM
+                    ).toFixed(2);
 
-                                                    return (
-                                                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                                                            <table className="panel p-4 w-full">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Driver Name</th>
-                                                                        <th>Company Name</th>
-                                                                        <th>Distance to Pickup (km)</th>
-                                                                        <th>Duration (min)</th>
-                                                                        <th>Select</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{driver.driverName || 'Unknown Driver'}</td>
-                                                                        <td>{driver.companyName || 'Unknown Company'}</td>
-                                                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
-                                                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
-                                                                        <td>
-                                                                            <input
-                                                                                type="radio"
-                                                                                name="selectedDriver"
-                                                                                value={driver.id}
-                                                                                checked={selectedDriver === driver.id}
-                                                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                                                            />
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    );
-                                                })}
-                                        </div>
-                                    </div>
-                                </ReactModal>
+                    return (
+                        <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                            <table className="panel p-4 w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Driver Name</th>
+                                        <th>Company Name</th>
+                                                                                <th>Company Name</th>
+
+                                        serviceVehicle
+                                        <th>Distance to Pickup (km)</th>
+                                        <th>Duration (min)</th>
+                                        <th>Select</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ fontSize: '18px', fontWeight: 'bold',color:'green' }}>{driver.driverName || 'Unknown Driver'}</td>
+                                        <td>{driver.companyName || 'Unknown Company'}</td>
+                                        {/* <td>{driver.serviceType.serviceVehicle || 'Unknown Company'}</td> */}
+
+                                        <td>{pickupDistanceData.distance.toFixed(2)} km</td>
+                                        <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
+                                        <td>
+                                            <input
+                                                type="radio"
+                                                name="selectedDriver"
+                                                value={driver.id}
+                                                checked={selectedDriver === driver.id}
+                                                onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })}
+        </div>
+    </div>
+</ReactModal>
+
                             </div>
                         </div>
                         <React.Fragment>
+                        <div className="flex items-center mt-4">
+                                <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Service Vehicle Number
+                                </label>
+                                <input
+                                    id="serviceVehicle"
+                                    type="text"
+                                    name="serviceVehicle"
+                                    className="form-input flex-1"
+                                    placeholder="Enter Service Vehicle Number"
+                                    value={serviceVehicle}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
+                                    required
+                                />
+                            </div>
                             <div>
                                 <VehicleSection
                                     showroomLocation={showroomLocation}

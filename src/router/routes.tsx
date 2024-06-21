@@ -231,7 +231,7 @@ const routes = [
         element: <Preview />,
     },
     {
-        path: '/general/expense/preview/:id',
+        path: '/general/sales/preview/:id',
         element: <PreviewExpense />,
     },
     {
@@ -244,7 +244,7 @@ const routes = [
         
     // },
     {
-        path: '/general/expense/preview/edit/:id',
+        path: '/general/sales/preview/edit/:id',
         element: <Edit />,
     },
     // components page

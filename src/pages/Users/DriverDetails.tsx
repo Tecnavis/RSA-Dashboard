@@ -65,7 +65,12 @@ console.log("driver",driver)
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Password:</td>
                         <td>{driver.password}</td>
                     </tr>
-                    {driver && (
+                    
+        
+</tbody>
+  
+                               </table> 
+                               {driver && (
     <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: "0" }}>
         <thead>
             <tr>
@@ -73,6 +78,8 @@ console.log("driver",driver)
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Basic Salary</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>KM for Basic Salary</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>SalaryPerKm</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Vehicle Number</th>
+
             </tr>
         </thead>
         <tbody>
@@ -82,6 +89,8 @@ console.log("driver",driver)
                     <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaries[service]}</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaryKm[service]} KM</td>
                     <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.salaryPerKm[service]} /km</td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.serviceVehicle[service]}</td>
+
                 </tr>
             ))}
         </tbody>
@@ -92,9 +101,6 @@ console.log("driver",driver)
 
 
 
-</tbody>
-  
-                               </table> 
         </div>
     );
 }

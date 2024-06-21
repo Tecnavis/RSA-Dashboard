@@ -1,191 +1,285 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
-import IconLoader from '../../../components/Icon/IconLoader';
+import { Link, NavLink } from 'react-router-dom';
+import { DataTable, DataTableSortStatus } from 'mantine-datatable';
+import { useState, useEffect } from 'react';
+import sortBy from 'lodash/sortBy';
+import { useDispatch } from 'react-redux';
+import { setPageTitle } from '../../../store/themeConfigSlice';
+import IconTrashLines from '../../../components/Icon/IconTrashLines';
+import IconPlus from '../../../components/Icon/IconPlus';
+import IconEdit from '../../../components/Icon/IconEdit';
+import IconEye from '../../../components/Icon/IconEye';
+import { collection, getDocs, getFirestore, query, updateDoc, doc, where, orderBy } from 'firebase/firestore';
+import dayjs from 'dayjs';
+
+const generateInvoiceId = () => {
+    const timestamp = Date.now().toString(); // Current timestamp
+    const randomStr = Math.random().toString(36).substring(2, 8); // Random string
+    return `INV-${timestamp}-${randomStr}`;
+};
 
 const SalesSummary = () => {
-    const [completedBookings, setCompletedBookings] = useState([]);
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(setPageTitle('Invoice List'));
+    }, [dispatch]);
+
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBooking, setSelectedBooking] = useState(null); // State to hold selected booking
-    const [showModal, setShowModal] = useState(false); // State to control modal visibility
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const PAGE_SIZES = [10, 20, 30, 50, 100]; // Define page sizes here
+    const [initialRecords, setInitialRecords] = useState([]);
+    const [records, setRecords] = useState([]);
+    const [selectedRecords, setSelectedRecords] = useState([]);
+    const [search, setSearch] = useState('');
+    const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
+        columnAccessor: 'customerName',
+        direction: 'asc',
+    });
+    const [historyRange, setHistoryRange] = useState('10'); // State for history range filter
+    const [totalAmount, setTotalAmount] = useState(0); // State for total amount
     const db = getFirestore();
 
     useEffect(() => {
-        const fetchCompletedBookings = async () => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+        setRecords([...initialRecords.slice(from, to)]);
+    }, [page, pageSize, initialRecords]);
+
+    useEffect(() => {
+        const fetchBookingsAndDrivers = async () => {
             try {
-                const q = query(collection(db, 'bookings'), where('status', '==', 'Order Completed'));
-                const querySnapshot = await getDocs(q);
-                const bookingsData = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setCompletedBookings(bookingsData);
+                const bookingsQuery = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
+                const driversQuery = query(collection(db, 'driver'));
+
+                const [bookingsSnapshot, driversSnapshot] = await Promise.all([
+                    getDocs(bookingsQuery),
+                    getDocs(driversQuery)
+                ]);
+
+                const driversData = {};
+                driversSnapshot.forEach((doc) => {
+                    driversData[doc.id] = doc.data();
+                });
+
+                const bookingsData = [];
+                for (const docSnapshot of bookingsSnapshot.docs) {
+                    const booking = docSnapshot.data();
+
+                    if (!booking.invoice) {
+                        const invoiceId = generateInvoiceId();
+                        booking.invoice = invoiceId;
+                        // Update the Firestore document with the new invoice ID
+                        await updateDoc(doc(db, 'bookings', docSnapshot.id), { invoice: invoiceId });
+                    }
+                    // Add driver information
+                    const driverId = booking.selectedDriver;
+                    const driver = driversData[driverId];
+                    if (driver) {
+                        booking.driverName = driver.driverName;
+                        booking.driverImg = driver.profileImageUrl; // Assuming there's an 'img' field in the driver data
+                    }
+                    bookingsData.push({ id: docSnapshot.id, ...booking });
+                }
+
+                // Sort bookingsData by createdAt in descending order
+                const sortedBookingsData = sortBy(bookingsData, (booking) => -dayjs(booking.dateTime).valueOf());
+
+                setItems(sortedBookingsData);
+                setInitialRecords(sortedBookingsData);
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching completed bookings:', error);
+                console.error('Error fetching bookings or drivers:', error);
                 setLoading(false);
             }
         };
 
-        fetchCompletedBookings();
+        fetchBookingsAndDrivers();
     }, [db]);
 
-    // Function to handle click on bookingId link
-    const handleBookingClick = (booking) => {
-        setSelectedBooking(booking);
-        setShowModal(true); // Display modal
+    useEffect(() => {
+        const filterRecordsByDate = (records) => {
+            const currentDate = dayjs();
+            let filteredRecords = records;
+
+            if (historyRange) {
+                let dateRange = currentDate.subtract(parseInt(historyRange), 'day');
+                if (historyRange === '30') {
+                    dateRange = currentDate.subtract(1, 'month');
+                } else if (historyRange === '90') {
+                    dateRange = currentDate.subtract(3, 'months');
+                }
+                filteredRecords = records.filter((item) =>
+                    dayjs(item.dateTime).isAfter(dateRange)
+                );
+            }
+
+            return filteredRecords;
+        };
+
+        const filteredRecords = filterRecordsByDate(items);
+        setInitialRecords(filteredRecords);
+
+        // Calculate total amount
+        const total = filteredRecords.reduce((acc, record) => acc + (record.updatedTotalSalary || 0), 0);
+        setTotalAmount(total);
+    }, [historyRange, items]);
+
+    useEffect(() => {
+        const filteredRecords = initialRecords.filter((item) => {
+            return (
+                item.invoice?.toLowerCase().includes(search.toLowerCase()) ||
+                item.customerName?.toLowerCase().includes(search.toLowerCase()) ||
+                item.email?.toLowerCase().includes(search.toLowerCase()) ||
+                item.dateTime?.toLowerCase().includes(search.toLowerCase()) ||
+                item.updatedTotalSalary?.toString().toLowerCase().includes(search.toLowerCase()) ||
+                item.paymentStatus?.toLowerCase().includes(search.toLowerCase())
+            );
+        });
+        setInitialRecords(filteredRecords);
+    }, [search, initialRecords]);
+
+    useEffect(() => {
+        const sortedRecords = sortBy(initialRecords, sortStatus.columnAccessor);
+        setRecords(sortStatus.direction === 'desc' ? sortedRecords.reverse() : sortedRecords);
+        setPage(1);
+    }, [sortStatus, initialRecords]);
+
+    useEffect(() => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+        setRecords([...initialRecords.slice(from, to)]);
+    }, [page, pageSize, initialRecords]);
+
+    const deleteRow = (id) => {
+        if (window.confirm('Are you sure want to delete selected row ?')) {
+            const updatedRecords = items.filter(item => item.id !== id);
+            setItems(updatedRecords);
+            setInitialRecords(updatedRecords);
+            setRecords(updatedRecords.slice((page - 1) * pageSize, page * pageSize));
+            setSelectedRecords([]);
+        }
     };
 
     return (
-        <div className="p-5">
-            <h5 className="font-semibold text-lg dark:text-white-light mb-5">Sales Summary</h5>
-            {loading ? (
-                <div className="flex justify-center items-center">
-                    <span className="loader"> <IconLoader/></span> {/* Add a loading spinner or animation here */}
+        <div className="panel px-0 border-white-light dark:border-[#1b2e4b]">
+            <div className="invoice-table">
+                <div className="mb-4.5 px-5 flex md:items-center md:flex-row flex-col gap-5">
+                    <div className="flex gap-2 items-center">
+                        <label htmlFor="historyRange" className="text-gray-700 dark:text-gray-300">
+                            History:
+                        </label>
+                        <select
+                            id="historyRange"
+                            className="form-select w-auto"
+                            value={historyRange}
+                            onChange={(e) => setHistoryRange(e.target.value)}
+                        >
+                            <option value="10">Last 10 Days</option>
+                            <option value="30">Last 1 Month</option>
+                            <option value="90">Last 3 Months</option>
+                        </select>
+                    </div>
+                    <div className="ltr:ml-auto rtl:mr-auto">
+                        <input 
+                            type="text" 
+                            className="form-input w-auto" 
+                            placeholder="Search..." 
+                            value={search} 
+                            onChange={(e) => setSearch(e.target.value)} 
+                        />
+                    </div>
                 </div>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white dark:bg-gray-800 border-collapse">
-                        <thead className="bg-gray-200 dark:bg-gray-700">
-                            <tr>
-                                {['Date & Time', 'Booking Id', 'File Number', 'Driver Name', 'Driver Contact Number', 'Customer Name', 'Customer Contact Number', 'Pickup Location', 'Dropoff Location', 'ServiceType'].map((heading) => (
-                                    <th key={heading} className="px-4 py-2 border-b-2 border-gray-300 dark:border-gray-700 text-left text-sm font-medium text-gray-600 dark:text-gray-300 tracking-wider">
-                                        {heading}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {completedBookings.map((record) => (
-                                <tr key={record.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.dateTime}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">
-                                        <a href="#" onClick={() => handleBookingClick(record)} className="text-blue-500 hover:underline">
-                                            {record.bookingId}
-                                        </a>
-                                    </td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.fileNumber}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.driver}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">
-                                        {record.driverContact} / {record.driverPersonalContact}
-                                    </td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.customerName}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">
-                                        {record.phoneNumber} / {record.mobileNumber}
-                                    </td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.pickupLocation ? record.pickupLocation.name : 'N/A'}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.dropoffLocation ? record.dropoffLocation.name : 'N/A'}</td>
-                                    <td className="px-4 py-2 border-b border-gray-300 dark:border-gray-700 text-sm">{record.serviceType}</td>                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+
+                <div className="datatables pagination-padding">
+                    <DataTable
+                        className="whitespace-nowrap table-hover invoice-table"
+                        records={records}
+                        columns={[
+                            {
+                                accessor: 'invoice',
+                                sortable: true,
+                                render: ({ invoice, id }) => (
+                                    <NavLink
+                                        to={{
+                                            pathname: `/general/sales/preview/${id}`, // Ensure `${id}` is correctly interpolated
+                                        }}
+                                    >
+                                        <div className="text-primary underline hover:no-underline font-semibold">{`#${invoice}`}</div>
+                                    </NavLink>
+                                ),
+                            },
+                            {
+                                accessor: 'driver',
+                                sortable: true,
+                                render: ({ driverName, driverImg }) => (
+                                    <div className="flex items-center font-semibold">
+                                        <div className="p-0.5 bg-white-dark/30 rounded-full w-max ltr:mr-2 rtl:ml-2">
+                                            <img className="h-8 w-8 rounded-full object-cover" src={driverImg} alt={driverName} />
+                                        </div>
+                                        <div>{driverName}</div>
+                                    </div>
+                                ),
+                            },
+                            {
+                                accessor: 'customerName',
+                                sortable: true,
+                                render: ({ customerName }) => <div>{customerName}</div>
+                            },
+                            {
+                                accessor: 'dateTime',
+                                sortable: true,
+                            },
+                            {
+                                accessor: 'payable amount',
+                                sortable: true,
+                                titleClassName: 'text-right',
+                                render: ({ updatedTotalSalary }) => <div className="text-right font-semibold">{`${updatedTotalSalary}`}</div>,
+                            },
+                            
+                            {
+                                accessor: 'status',
+                                sortable: true,
+                                render: ({ paymentStatus }) => <span className={`badge badge-outline-${paymentStatus === 'Paid' ? 'success' : 'warning'}`}>{paymentStatus}</span>,
+                            },
+                            {
+                                accessor: 'action',
+                                title: 'Actions',
+                                render: (item) => (
+                                    <div className="flex gap-4 items-center">
+                                        <NavLink to={`/general/sales/preview/${item.id}`} className="btn btn-sm btn-outline-primary">
+                                            <IconEye />
+                                        </NavLink>
+                                        <NavLink to={`/general/sales/preview/edit/${item.id}`} className="btn btn-sm btn-outline-success">
+                                            <IconEdit />
+                                        </NavLink>
+                                        <button className="btn btn-sm btn-outline-danger" onClick={() => deleteRow(item.id)}>
+                                            <IconTrashLines />
+                                        </button>
+                                    </div>
+                                ),
+                            },
+                        ]}
+                        totalRecords={initialRecords.length}
+                        recordsPerPage={pageSize}
+                        page={page}
+                        onPageChange={(p) => setPage(p)}
+                        recordsPerPageOptions={PAGE_SIZES}
+                        onRecordsPerPageChange={setPageSize}
+                        sortStatus={sortStatus}
+                        onSortStatusChange={setSortStatus}
+                        selectedRecords={selectedRecords}
+                        onSelectedRecordsChange={setSelectedRecords}
+                        loading={loading}
+                    />
                 </div>
-            )}
 
-            {/* Modal for displaying booking details */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
-                        <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>
-                            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
-        <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>
-            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-        {/* Display booking details */}
-        {selectedBooking && (
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
-    <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Booking Details</h2>
-
-    <div className="grid grid-cols-2 gap-4">
-    <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Date & Time:</p>
-            <p className="text-sm">{selectedBooking.dateTime}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">File Number:</p>
-            <p className="text-sm">{selectedBooking.fileNumber}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Driver Name:</p>
-            <p className="text-sm">{selectedBooking.driver}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Driver Contact Number:</p>
-            <p className="text-sm">{selectedBooking.driverContact} / {selectedBooking.driverPersonalContact}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Customer Name:</p>
-            <p className="text-sm">{selectedBooking.customerName}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Customer Contact Number:</p>
-            <p className="text-sm">{selectedBooking.phoneNumber} / {selectedBooking.mobileNumber}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pickup Location:</p>
-            <p className="text-sm">{selectedBooking.pickupLocation ? selectedBooking.pickupLocation.name : 'N/A'}</p>
-        </div>
-        <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Dropoff Location:</p>
-            <p className="text-sm">{selectedBooking.dropoffLocation ? selectedBooking.dropoffLocation.name : 'N/A'}</p>
-        </div>
-        <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ServiceType:</p>
-                    <p className="text-sm">{selectedBooking.serviceType}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ServiceVehicle:</p>
-                    <p className="text-sm">{selectedBooking.serviceVehicle}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">VehicleModel:</p>
-                    <p className="text-sm">{selectedBooking.vehicleModel}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Company:</p>
-                    <p className="text-sm">{selectedBooking.company}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">VehicleNumber:</p>
-                    <p className="text-sm">{selectedBooking.vehicleNumber}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">TotalDistance:</p>
-                    <p className="text-sm">{selectedBooking.totalDistance}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Payable Amount:</p>
-                    <p className="text-sm">{selectedBooking.updatedTotalSalary}</p>
-                    </div>
-                    <div className="flex flex-col">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Comments:</p>
-                    <p className="text-sm">{selectedBooking.comments}</p>
-                    </div>
-
+                <div className="mb-4.5 px-5 mt-4">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                        Total Amount: <span className="text-primary">{totalAmount.toFixed(2)}</span>
+                    </h2>
                 </div>
             </div>
-        )}
-       <button
-    className="inline-flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-700 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-    onClick={() => setShowModal(false)}
->
-    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-</button>
-
-    </div>
-</div>
-
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

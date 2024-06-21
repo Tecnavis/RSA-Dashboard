@@ -55,7 +55,7 @@ const Edit = () => {
             const bookingDocRef = doc(db, 'bookings', id);
             await updateDoc(bookingDocRef, formValues);
             setLoading(false);
-            navigate(`/general/expense/preview/${id}`); // Redirect to preview page
+            navigate(`/general/sales/preview/${id}`); // Redirect to preview page
         } catch (error) {
             console.error('Error updating booking:', error);
             setLoading(false);
@@ -77,7 +77,7 @@ const Edit = () => {
                     <IconSave />
                     Save
                 </button>
-                <Link to={`/general/expense/preview/${id}`} className="btn btn-secondary gap-2">
+                <Link to={`/general/sales/preview/${id}`} className="btn btn-secondary gap-2">
                     {/* <IconCancel /> */}
                     Cancel
                 </Link>
