@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addDoc, collection, getFirestore, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, getDocs, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import './ShowRoom.css';
 import IconPrinter from '../../components/Icon/IconPrinter';
-import './ShowRoom.css'
+
 const setupAutocomplete = (inputRef, setter) => {
     if (!inputRef) return;
 
@@ -22,20 +23,9 @@ const setupAutocomplete = (inputRef, setter) => {
 };
 
 const keralaDistricts = [
-    'Alappuzha',
-    'Ernakulam',
-    'Idukki',
-    'Kannur',
-    'Kasaragod',
-    'Kollam',
-    'Kottayam',
-    'Kozhikode',
-    'Malappuram',
-    'Palakkad',
-    'Pathanamthitta',
-    'Thiruvananthapuram',
-    'Thrissur',
-    'Wayanad',
+    'Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod',
+    'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad',
+    'Pathanamthitta', 'Thiruvananthapuram', 'Thrissur', 'Wayanad'
 ];
 
 const ShowRoom = () => {
@@ -46,7 +36,6 @@ const ShowRoom = () => {
         Location: '',
         userName: '',
         password: '',
-       
         tollfree: '',
         showroomId: '',
         phoneNumber: '',
@@ -60,14 +49,15 @@ const ShowRoom = () => {
         hasInsuranceBody: '',
         insuranceAmountBody: '',
     });
+
     const [existingShowRooms, setExistingShowRooms] = useState([]);
     const [editRoomId, setEditRoomId] = useState(null);
     const locationInputRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecords, setFilteredRecords] = useState([]);
     const listRef = useRef();
-
     const formRef = useRef(null);
+
     useEffect(() => {
         const term = searchTerm.toLowerCase();
         const filtered = existingShowRooms.filter(record =>
@@ -90,9 +80,13 @@ const ShowRoom = () => {
         );
         setFilteredRecords(filtered);
     }, [searchTerm, existingShowRooms]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setShowRoom({ ...showRoom, [name]: value });
+        setShowRoom((prevState) => ({
+            ...prevState,
+            [name]: value,
+        }));
     };
     const handleBodyChange = (e) => {
         const { name, value } = e.target;
@@ -114,6 +108,7 @@ const ShowRoom = () => {
     const handleInsuranceChange = (e) => {
         setShowRoom({ ...showRoom, hasInsurance: e.target.value, insuranceAmount: e.target.value === 'No' ? '' : showRoom.insuranceAmount });
     };
+
     const handleBodyInsuranceChange = (e) => {
         const { name, value } = e.target;
         setShowRoom((prevShowRoom) => ({
@@ -138,84 +133,88 @@ const ShowRoom = () => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    const db = getFirestore();
-    const timestamp = serverTimestamp();
-    const newShowRoom = { ...showRoom, createdAt: timestamp, status: 'admin added showroom' }; // Include createdAt and status fields
-
-    try {
-        if (editRoomId) {
-            const roomRef = doc(db, 'showroom', editRoomId);
-            await updateDoc(roomRef, newShowRoom);
-            alert('Showroom updated successfully');
-            setEditRoomId(null);
-        } else {
-            await addDoc(collection(db, 'showroom'), newShowRoom);
-            alert('Showroom added successfully');
+        e.preventDefault();
+        const db = getFirestore();
+        const timestamp = serverTimestamp();
+    
+        // Construct the newShowRoom object with Location including lat and lng
+        const newShowRoom = {
+            ...showRoom,
+            createdAt: timestamp,
+            status: 'admin added showroom',
+            // Assuming Location field should contain the string along with lat and lng
+            Location: `${showRoom.Location}, ${showRoom.locationLatLng.lat}, ${showRoom.locationLatLng.lng}`
+        };
+    
+        try {
+            if (editRoomId) {
+                const roomRef = doc(db, 'showroom', editRoomId);
+                await updateDoc(roomRef, newShowRoom);
+                alert('Showroom updated successfully');
+                setEditRoomId(null);
+            } else {
+                await addDoc(collection(db, 'showroom'), newShowRoom);
+                alert('Showroom added successfully');
+            }
+    
+            // Clear the form fields
+            setShowRoom({
+                img: '',
+                ShowRoom: '',
+                description: '',
+                Location: '',
+                userName: '',
+                password: '',
+                tollfree: '',
+                showroomId: '',
+                phoneNumber: '',
+                availableServices: [],
+                mobileNumber: '',
+                locationLatLng: { lat: '', lng: '' },
+                state: '',
+                district: '',
+                hasInsurance: '',
+                insuranceAmount: '',
+                hasInsuranceBody: '',
+                insuranceAmountBody: '',
+            });
+    
+            fetchShowRooms();
+            window.location.reload();
+    
+        } catch (error) {
+            console.error('Error adding/updating showroom:', error);
         }
-        setShowRoom({
-            img: '',
-            ShowRoom: '',
-            description: '',
-            Location: '',
-            userName: '',
-            password: '',
-            tollfree: '',
-            showroomId: '',
-            phoneNumber: '',
-            availableServices: [],
-            mobileNumber: '',
-            locationLatLng: { lat: '', lng: '' },
-            state: '',
-            district: '',
-            hasInsurance: '',
-            insuranceAmount: '',
-            hasInsuranceBody: '',
-            insuranceAmountBody: '',
-        });
-        formRef.current.reset();
-
-        fetchShowRooms();
-    } catch (error) {
-        console.error('Error adding/updating showroom:', error);
-    }
-};
-
+    };
     
-   const fetchShowRooms = async () => {
-    const db = getFirestore();
-    try {
-        const querySnapshot = await getDocs(query(collection(db, 'showroom'), orderBy('createdAt', 'desc'))); // Query with orderBy createdAt
-        const rooms = [];
-        querySnapshot.forEach((doc) => {
-            rooms.push({ id: doc.id, ...doc.data() });
-        });
-        setExistingShowRooms(rooms);
-    } catch (error) {
-        console.error('Error fetching showrooms:', error);
-    }
-};
+    const fetchShowRooms = async () => {
+        const db = getFirestore();
+        try {
+            const querySnapshot = await getDocs(query(collection(db, 'showroom'), orderBy('createdAt', 'desc')));
+            const rooms = [];
+            querySnapshot.forEach((doc) => {
+                rooms.push({ id: doc.id, ...doc.data() });
+            });
+            setExistingShowRooms(rooms);
+        } catch (error) {
+            console.error('Error fetching showrooms:', error);
+        }
+    };
 
+    const handleEdit = (roomId) => {
+        const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
+        const userPassword = prompt('Please enter the password for edit:');
 
-const handleEdit = (roomId) => {
-    const roomToEdit = existingShowRooms.find((room) => room.id === roomId);
-    
-    // Prompt user for password
-    const userPassword = prompt('Please enter the password for edit:');
-    
-    // Check if the entered password matches the expected password
-    if (userPassword === 'SHOWROOM') {
-        setShowRoom(roomToEdit);
-        setEditRoomId(roomId);
-        formRef.current.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        alert('Incorrect password. Edit operation aborted.');
-    }
-};
+        if (userPassword === 'SHOWROOM') {
+            setShowRoom(roomToEdit);
+            setEditRoomId(roomId);
+            formRef.current.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert('Incorrect password. Edit operation aborted.');
+        }
+    };
 
-  
-
-    const handleDelete = async (roomId: string) => {
+    const handleDelete = async (roomId) => {
         const roomToDelete = existingShowRooms.find((room) => room.id === roomId);
         const shouldDelete = window.confirm('Are you sure you want to delete this showroom?');
         if (!shouldDelete) return;
@@ -226,7 +225,6 @@ const handleEdit = (roomId) => {
             return;
         }
 
-        // Remove from UI only
         setExistingShowRooms((prevShowRooms) => prevShowRooms.filter((room) => room.id !== roomId));
         alert('Showroom removed from UI.');
     };
@@ -244,6 +242,7 @@ const handleEdit = (roomId) => {
             }));
         });
     }, []);
+
     const handlePrint = () => {
         const originalContents = document.body.innerHTML;
         const printContents = listRef.current.innerHTML;

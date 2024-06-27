@@ -35,7 +35,11 @@ const ShowroomModal = ({ updateShowroomLocation }) => {
             const place = autocomplete.getPlace();
             if (place.geometry) {
                 const locationName = place.name;
-                setter(locationName);
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                const formattedLocation = `${locationName}, ${lat}, ${lng}`;
+                setLocation(formattedLocation);
+                setLocationLatLng({ lat, lng });
             }
         });
     };
@@ -45,7 +49,7 @@ const ShowroomModal = ({ updateShowroomLocation }) => {
     }, []);
 
     const handleInputChange = (e) => {
-        setLocation(e.target.value);
+        setShowRoom(e.target.value);
     };
 
     const handleSubmit = async (e) => {
@@ -74,8 +78,6 @@ const ShowroomModal = ({ updateShowroomLocation }) => {
                 createdAt: new Date()
             });
             console.log('Showroom added successfully');
-            
-            // Add console.log to inspect the value of Location before calling updateShowroomLocation
             console.log('Updating showroom location to:', Location);
             updateShowroomLocation(Location); // Update the parent component with the selected location
 
@@ -121,7 +123,7 @@ const ShowroomModal = ({ updateShowroomLocation }) => {
                         type="text"
                         id="Location"
                         ref={inputRef}
-                        value={Location}
+                        value={ShowRoom}
                         onChange={handleInputChange}
                         required
                         className="form-control"

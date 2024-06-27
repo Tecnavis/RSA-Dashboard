@@ -17,28 +17,7 @@ const ViewMore = () => {
     const [ShowRoom, setShowRoom] = useState('');
 
     console.log('first', bookingDetails);
-    useEffect(() => {
-        if (bookingDetails && bookingDetails.showroom) {
-            const fetchShowroomLocation = async () => {
-                try {
-                    const db = getFirestore();
-                    const showroomRef = doc(db, 'showroom', bookingDetails.showroom);
-                    const showroomSnap = await getDoc(showroomRef);
-        
-                    if (showroomSnap.exists()) {
-                        const showroomData = showroomSnap.data();
-                        setShowRoom(showroomData.ShowRoom);
-                    } else {
-                        console.log('Showroom document does not exist');
-                    }
-                } catch (error) {
-                    console.error('Error fetching showroom location:', error);
-                }
-            };
-        
-            fetchShowroomLocation();
-        }
-    }, [bookingDetails]);
+    
     
     useEffect(() => {
         const fetchBookingDetails = async () => {
@@ -271,7 +250,7 @@ const ViewMore = () => {
                     </tr>
                     <tr>
                         <td style={thStyle}>Showroom :</td>
-                        <td style={tdStyle}>{ShowRoom}</td>
+                        <td style={tdStyle}>{bookingDetails.showroomLocation}</td>
                     </tr>
                     <tr>
                         <td style={thStyle}>File Number :</td>

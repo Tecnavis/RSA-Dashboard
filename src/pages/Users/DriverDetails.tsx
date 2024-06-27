@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import IconArrowForward from '../../components/Icon/IconArrowForward';
+import IconArrowLeft from '../../components/Icon/IconArrowLeft';
 
 const DriverDetails = () => {
     const { id } = useParams();
@@ -34,7 +36,7 @@ console.log("driver",driver)
     return (
         <div className="grid xl:grid-cols-1 gap-6 grid-cols-1">
             <div className='panel'>
-                <h2 style={{ textAlign: 'center' }}>Driver Details</h2>
+                <h2 style={{ textAlign: 'center' }}>{driver.driverName}</h2>
               
             </div>
             <table className='panel p-4' style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
@@ -70,6 +72,26 @@ console.log("driver",driver)
 </tbody>
   
                                </table> 
+                               <h2 style={{ textAlign: 'center', margin: '20px 0' }}>
+                <Link
+                    to={`/users/driver/driverdetails/cashcollection/${id}`}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textDecoration: 'none',
+                        color: '#007bff',
+                        fontWeight: 'bold',
+                        fontSize: '1.5em',
+                        transition: 'color 0.3s',
+                    }}
+                    onMouseEnter={(e) => (e.target.style.color = '#0056b3')}
+                    onMouseLeave={(e) => (e.target.style.color = '#007bff')}
+                >
+                    Click here for more details
+                    <IconArrowLeft style={{ marginLeft: '8px' }} />
+                </Link>
+            </h2>
                                {driver && (
     <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: "0" }}>
         <thead>

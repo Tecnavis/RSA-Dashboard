@@ -26,7 +26,7 @@ const DriverAdd = () => {
     const [serviceVehicle, setServiceVehicle] = useState({});
 
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+const [advancePayment, setAdvancePayment] = useState('');
     const storage = getStorage();
 
     const serviceOptions = [
@@ -71,7 +71,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const handleProfileImageChange = (e) => {
         setProfileImage(e.target.files[0]); 
     };
-    
+
     const renderServiceOptions = () => {
         return (
             <div style={{ columnCount: 3, columnGap: '1rem', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
@@ -114,11 +114,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             setPhone(state.editData.phone || '');
             setPassword(state.editData.password || '');
             setCompanyName(state.editData.companyName || '');
-
             setConfirmPassword(state.editData.confirmPassword || '');
-
             setServiceVehicle(state.editData.serviceVehicle || '');
-
             setPersonalPhone(state.editData.personalphone || '');
             setSalaryPerKm(state.editData.salaryPerKm || '');
             setBasicSalaryKm(state.editData.basicSalaryKm || '');
@@ -127,6 +124,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
             setBasicSalaries(state.editData.basicSalaries || '');
             setProfileImage(state.editData.profileImage || '');
+            setAdvancePayment(state.editData.advancePayment || ''); 
 
         }
     }, [state]);
@@ -160,7 +158,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 basicSalaries,
                 password,
                 confirmPassword,
-                profileImageUrl
+                profileImageUrl,
+                advancePayment 
             };
 
             if (editData) {
@@ -238,6 +237,10 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                 <div>
                                     <label htmlFor="personalphone">Personal PhoneNumber</label>
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label htmlFor="advancePayment">Advance payment</label>
+                                    <input id="advancePayment" type="advancePayment" className="form-input" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} />
                                 </div>
                                 <div>
     <label htmlFor="password">Password</label>

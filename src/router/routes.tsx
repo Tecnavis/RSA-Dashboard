@@ -37,6 +37,8 @@ import PendingBookings from '../pages/Booking/PendingBookings';
 import BaseLocation from '../pages/BaseLocation/BaseLocation';
 import PreviewExpense from '../pages/Report/generalReports/PreviewExpense';
 import Edit from '../pages/Report/generalReports/Edit';
+import CashCollectionReport from '../pages/CashCollectionReport.tsx/CashCollectionReport';
+import DriverReport from '../pages/DriverReport/DriverReport';
 
 
 
@@ -247,6 +249,7 @@ const routes = [
         path: '/general/sales/preview/edit/:id',
         element: <Edit />,
     },
+ 
     // components page
     {
         path: '/components/tabs',
@@ -510,6 +513,16 @@ const routes = [
     {
         path: "/users/driver/driverdetails/:id",
         element: <DriverDetails />,
+    },
+       //Driver Reports
+       {
+        path: '/users/driver/driverdetails/cashcollection/:id',
+        element: <CashCollectionReport />,
+        
+    },
+    {
+        path: '/driverreport',
+        element: <DriverReport />,
     },
       //Status pages
       {
