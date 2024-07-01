@@ -5,7 +5,7 @@ import IconPencil from '../../components/Icon/IconPencil';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc, where, query } from 'firebase/firestore';
 
 const Company = () => {
     const [items, setItems] = useState([] as any);
@@ -14,9 +14,18 @@ const Company = () => {
     const navigate = useNavigate();
     console.log("data", items)
 
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         const querySnapshot = await getDocs(collection(db, 'driver'));
+    //         setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    //     };
+    //     fetchData().catch(console.error);
+    // }, []);
     useEffect(() => {
         const fetchData = async () => {
-            const querySnapshot = await getDocs(collection(db, 'driver'));
+            const driverCollection = collection(db, 'driver');
+            const q = query(driverCollection, where('companyName', '!=', 'RSA'));
+            const querySnapshot = await getDocs(q);
             setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
         };
         fetchData().catch(console.error);

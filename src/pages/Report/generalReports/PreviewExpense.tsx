@@ -9,7 +9,8 @@ import IconDownload from '../../../components/Icon/IconDownload';
 import IconEdit from '../../../components/Icon/IconEdit';
 import IconPlus from '../../../components/Icon/IconPlus';
 import { getFirestore, doc, getDoc } from 'firebase/firestore'; // Import Firestore methods
-
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 const PreviewExpense = () => {
     const { id } = useParams();
 console.log("id",id)    
@@ -62,6 +63,17 @@ const [booking, setBooking] = useState(null);
         document.body.innerHTML = originalContent;
         window.location.reload(); // Reload the page to restore the original content
     };
+    const handleDownload = async () => {
+        const canvas = await html2canvas(invoiceRef.current);
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`invoice-${id}.pdf`);
+    };
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -73,8 +85,13 @@ const [booking, setBooking] = useState(null);
         { key: 'id', label: 'S.NO' },
         { key: 'serviceType', label: 'Service Type' },
         { key: 'vehicleModel', label: 'Vehicle Model' },
+        { key: 'pickupLocation', label: 'Pickup Location', class: 'text-center' },
+        { key: 'dropoffLocation', label: 'DropOff Location', class: 'text-center' },
+
+
         { key: 'vehicleNumber', label: 'Vehicle Number', class: 'text-center' },
         { key: 'updatedTotalSalary', label: 'AMOUNT', class: 'text-center' },
+
     ];
     return (
         <div>
@@ -89,7 +106,7 @@ const [booking, setBooking] = useState(null);
                     Print
                 </button>
 
-                <button type="button" className="btn btn-success gap-2">
+                <button type="button" className="btn btn-success gap-2" onClick={handleDownload}>
                     <IconDownload />
                     Download
                 </button>
@@ -146,28 +163,7 @@ const [booking, setBooking] = useState(null);
                             </div>
                           
                         </div>
-                        <div className="xl:1/3 lg:w-2/5 sm:w-1/2">
-                            <div className="flex items-center w-full justify-between mb-2">
-                                <div className="text-white-dark">Bank Name:</div>
-                                <div className="whitespace-nowrap">{booking.bankName}</div>
-                            </div>
-                            <div className="flex items-center w-full justify-between mb-2">
-                                <div className="text-white-dark">Account Number:</div>
-                                <div>{booking.accountNumber}</div>
-                            </div>
-                            <div className="flex items-center w-full justify-between mb-2">
-                                <div className="text-white-dark">SWIFT Code:</div>
-                                <div>{booking.swiftCode}</div>
-                            </div>
-                            <div className="flex items-center w-full justify-between mb-2">
-                                <div className="text-white-dark">IBAN:</div>
-                                <div>{booking.iban}</div>
-                            </div>
-                            <div className="flex items-center w-full justify-between mb-2">
-                                <div className="text-white-dark">Country:</div>
-                                <div>{booking.country}</div>
-                            </div>
-                        </div>
+                       
                     </div>
                 </div>
                 <div className="table-responsive mt-6">
@@ -189,6 +185,8 @@ const [booking, setBooking] = useState(null);
                                         <td>{booking.bookingId}</td>
                                         <td>{booking.serviceType}</td>
                                         <td>{booking.vehicleModel}</td>
+                                        <td>{booking.pickupLocation.name}</td>
+                                        <td>{booking.dropoffLocation.name}</td>
 
                                         <td>{booking.vehicleNumber}</td>
 

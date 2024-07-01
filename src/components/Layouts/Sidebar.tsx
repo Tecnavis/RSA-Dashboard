@@ -118,8 +118,12 @@ const Sidebar = () => {
                                             <NavLink to="/users/customer">Customer Creation</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/users/driver">Driver Adding </NavLink>
+                                            <NavLink to="/users/driver">Driver Creation </NavLink>
                                         </li>
+                                        <li>
+                                            <NavLink to="/users/companycreation">Company Creation </NavLink>
+                                        </li>
+                                        
                                     </ul>
                                 </AnimateHeight>
                             </li>

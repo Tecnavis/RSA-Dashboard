@@ -1,17 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
 import IconPlusCircle from '../../components/Icon/IconPlusCircle';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-const CompanyAdd = () => {
+const CompanyCreationAdd = () => {
     const [driverName, setDriverName] = useState('');
     const [idnumber, setIdnumber] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [phone, setPhone] = useState('');
     const [companyName, setCompanyName] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const [personalphone, setPersonalPhone] = useState('');
     const [salaryPerKm, setSalaryPerKm] = useState({});
@@ -124,10 +124,10 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const addOrUpdateItem = async () => {
         try {
             if (password !== confirmPassword) {
-                console.error('Password and confirm password do not match');
+                setErrorMessage('Password and confirm password do not match');
                 return;
             }
-            
+            setErrorMessage('');
             let profileImageUrl: string = ''; 
 
             if (profileImage) {
@@ -155,15 +155,15 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             };
 
             if (editData) {
-                const docRef = doc(db, 'driver', editData.id);
+                const docRef = doc(db, 'company', editData.id);
                 await updateDoc(docRef, itemData);
                 console.log('Document updated');
             } else {
-                const docRef = await addDoc(collection(db, 'driver'), itemData);
+                const docRef = await addDoc(collection(db, 'company'), itemData);
                 console.log('Document written with ID: ', docRef.id);
             }
 
-            navigate('/users/driver');
+            navigate('/users/companycreation');
         } catch (e) {
             console.error('Error adding/updating document: ', e);
         }
@@ -178,7 +178,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                     </Link>
                 </li>
                 <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
-                    <span>Provider Account Settings</span>
+                    <span>Company Account Settings</span>
                 </li>
             </ul>
             <div className="pt-5">
@@ -263,6 +263,10 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             onChange={handleConfirmPasswordChange}
         />
     )}
+            <div>
+            {errorMessage && <div style={{ color: 'red', marginBottom: '10px' }}>{errorMessage}</div>}
+        </div>
+
     <br />
     {!editData && (
         <button
@@ -377,4 +381,4 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     );
 };
 
-export default CompanyAdd;
+export default CompanyCreationAdd

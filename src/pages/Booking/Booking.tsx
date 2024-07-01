@@ -29,6 +29,8 @@ const Booking = () => {
     }, []);
     const googleMapsLoaded = useGoogleMaps();
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
+    const [companies, setCompanies] = useState([]);
+
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
         fileNumber: '',
@@ -90,82 +92,59 @@ const Booking = () => {
 
     useEffect(() => {
         if (state && state.editData) {
-            setEditData(state.editData);
-            setBookingId(state.editData.bookingId || '');
-            setTrappedLocation(state.editData.trappedLocation || '');
-            setInsuranceAmountBody(state.editData.insuranceAmountBody || '');
-            setComments(state.editData.comments || '');
-            setFileNumber(state.editData.fileNumber || '');
-            setCompany(state.editData.company || '');
-            setCustomerName(state.editData.customerName || '');
-            setPhoneNumber(state.editData.phoneNumber || '');
-            setMobileNumber(state.editData.mobileNumber || '');
-            setVehicleNumber(state.editData.vehicleNumber || '');
-            setServiceVehicle(state.editData.serviceVehicle || '');
-            setVehicleModel(state.editData.vehicleModel || '');
-            setVehicleSection(state.editData.vehicleSection || '');
-            setShowroomLocation(state.editData.showroomLocation || '');
-            setUpdatedTotalSalary(state.editData.updatedTotalSalary || '');
-            setDistance(state.editData.distance || '');
-            setSelectedDriver(state.editData.selectedDriver || '');
-            setBaseLocation(state.editData.baseLocation || '');
-            setShowrooms(state.editData.showrooms || '');
-            setPickupLocation(state.editData.pickupLocation || '');
-            setServiceType(state.editData.serviceType || '');
-            setTotalSalary(state.editData.totalSalary || '');
-            setDropoffLocation(state.editData.dropoffLocation || '');
-            console.log('Edit Data Loaded:', state.editData);  // Debug statement
-            console.log('Updated Total Salary:', state.editData.updatedTotalSalary);
+            const editData = state.editData;
+            setEditData(editData);
+            setBookingId(editData.bookingId || '');
+            setTrappedLocation(editData.trappedLocation || '');
+            setInsuranceAmountBody(editData.insuranceAmountBody || '');
+            setComments(editData.comments || '');
+            setFileNumber(editData.fileNumber || '');
+            setCompany(editData.company || '');
+            setCustomerName(editData.customerName || '');
+            setPhoneNumber(editData.phoneNumber || '');
+            setMobileNumber(editData.mobileNumber || '');
+            setVehicleNumber(editData.vehicleNumber || '');
+            setServiceVehicle(editData.serviceVehicle || '');
+            setVehicleModel(editData.vehicleModel || '');
+            setVehicleSection(editData.vehicleSection || '');
+            setShowroomLocation(editData.showroomLocation || '');
+            setDistance(editData.distance || '');
+            setSelectedDriver(editData.selectedDriver || '');
+            setBaseLocation(editData.baseLocation || '');
+            setShowrooms(editData.showrooms || []);
+            setPickupLocation(editData.pickupLocation || '');
+            setServiceType(editData.serviceType || '');
+            setTotalSalary(editData.totalSalary || 0);
+            setDropoffLocation(editData.dropoffLocation || '');
+    
+            // Calculate updatedTotalSalary based on totalSalary and insuranceAmountBody
+            const totalSalary = editData.totalSalary || 0;
+            const insuranceAmountBody = parseFloat(editData.insuranceAmountBody) || 0;
+            const updatedTotalSalary = totalSalary - insuranceAmountBody;
+            setUpdatedTotalSalary(updatedTotalSalary);
         }
-        console.log('Insurance Amount Body:', insuranceAmountBody); // Debug log
     }, [state]);
-    console.log('Selected Base Location:', baseLocation);
-
-    const openModal = () => {
-        setIsModalOpen(true);
-    };
-    const closeModal = () => {
-        setIsModalOpen(false);
-    };
-  
-    const handleUpdatedInsuranceAmount = (amount) => {
-        setInsuranceAmountBody(amount);
-    };
+    
     useEffect(() => {
-        console.log('Updated Total Salary in State:', updatedTotalSalary);
-    }, [updatedTotalSalary]);
-
-    const handleUpdatedTotalSalary = (newTotalSalary) => {
-        if (newTotalSalary !== updatedTotalSalary) {
-            console.log('Setting Updated Total Salary in handleUpdatedTotalSalary:', newTotalSalary);
-            setUpdatedTotalSalary(newTotalSalary);
+        if (company === 'rsa') {
+            const fetchCompanies = async () => {
+                try {
+                    const querySnapshot = await getDocs(collection(db, 'company'));
+                    const companyList = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    console.log('Fetched companies:', companyList); // Add this line to check fetched companies
+                    setCompanies(companyList);
+                } catch (error) {
+                    console.error('Error fetching companies:', error);
+                }
+            };
+    
+            fetchCompanies();
         }
-    };
-    useEffect(() => {
-        setManualInput1(dropoffLocation ? dropoffLocation.name : '');
-    }, [dropoffLocation]);
-
-    const handleManualChange1 = (field, value) => {
-        setDropoffLocation((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleLocationChange1 = (e) => {
-        const value = e.target.value;
-        setManualInput1(value);
-        handleInputChange('dropoffLocation', value);
-    };
-    const handleLocationChange = (e) => {
-        const value = e.target.value;
-        setManualInput(value);
-        handleInputChange('pickupLocation', value);
-    };
- 
-    const updateShowroomLocation = (location) => {
-        setShowroomLocation(location);
-    };
-    const handleManualChange = (field, value) => {
-        setPickupLocation((prev) => ({ ...prev, [field]: value }));
-    };
+    }, [company, db]);
+   
     useEffect(() => {
         const db = getFirestore();
         const showroomsRef = collection(db, 'showroom');
@@ -177,8 +156,15 @@ const Booking = () => {
             setShowrooms(showRoomsData);
         });
 
-        return () => unsubscribe(); // Cleanup listener on unmount
+        return () => unsubscribe();
     }, []);
+    useEffect(() => {
+        if (totalSalary && insuranceAmountBody) {
+            const calculatedTotalSalary = totalSalary - parseFloat(insuranceAmountBody);
+            console.log("calculatedTotalSalarybb",calculatedTotalSalary)
+            setUpdatedTotalSalary(calculatedTotalSalary);
+        }
+    }, [totalSalary, insuranceAmountBody]);
     useEffect(() => {
         if (selectedDriver) {
             const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
@@ -231,6 +217,7 @@ const Booking = () => {
             case 'updatedTotalSalary':
                 setUpdatedTotalSalary(value || '');
                 break;
+            
             case 'distance':
                 setDistance(value || '');
                 openModal();
@@ -322,6 +309,56 @@ const Booking = () => {
         }
     };
     const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
+  
+    const handleUpdatedInsuranceAmount = (amount) => {
+        setInsuranceAmountBody(amount);
+    };
+
+    useEffect(() => {
+        console.log('SR:',showroomLocation );
+    }, [showroomLocation]);
+    useEffect(() => {
+        console.log('Updated Total Salary in State:', updatedTotalSalary);
+    }, [updatedTotalSalary]);
+
+    useEffect(() => {
+        setManualInput1(dropoffLocation ? dropoffLocation.name : '');
+    }, [dropoffLocation]);
+
+   
+    const handleUpdatedTotalSalary = (newTotalSalary) => {
+        if (newTotalSalary !== updatedTotalSalary) {
+            console.log('Setting Updated Total Salary in handleUpdatedTotalSalary:', newTotalSalary);
+            setUpdatedTotalSalary(newTotalSalary);
+        }
+    };
+    const handleManualChange1 = (field, value) => {
+        setDropoffLocation((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleLocationChange1 = (e) => {
+        const value = e.target.value;
+        setManualInput1(value);
+        handleInputChange('dropoffLocation', value);
+    };
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setManualInput(value);
+        handleInputChange('pickupLocation', value);
+    };
+ 
+    const updateShowroomLocation = (location) => {
+        setShowroomLocation(location);
+    };
+    const handleManualChange = (field, value) => {
+        setPickupLocation((prev) => ({ ...prev, [field]: value }));
+    };
     useEffect(() => {
         const fetchServiceTypes = async () => {
             try {
@@ -687,80 +724,109 @@ const Booking = () => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
                         <div style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                    Company
-                                </label>
-                                <select
-                                    id="company"
-                                    name="company"
-                                    value={company}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('company', e.target.value)}
-                                >
-                                    <option value="">Select Company</option>
-                                    <option value="rsa">RSA Work</option>
-                                    <option value="self">Payment Work</option>
-                                </select>
-                            </div>
-                            {company === 'self' ? (
-                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                        File Number
-                                    </label>
-                                    <input
-                                        id="fileNumber"
-                                        type="text"
-                                        name="fileNumber"
-                                        placeholder="Enter File Number"
-                                        className="form-input lg:w-[250px] w-2/3"
-                                        value={`PMNA${bookingId}`}
-                                        readOnly
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            backgroundColor: '#f1f1f1', // read-only background color
-                                        }}
-                                    />
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                        File Number
-                                    </label>
-                                    <input
-                                        id="fileNumber"
-                                        type="text"
-                                        name="fileNumber"
-                                        className="form-input lg:w-[250px] w-2/3"
-                                        placeholder="Enter File Number"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        value={fileNumber}
-                                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                                    />
-                                </div>
-                            )}
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                    Company
+                </label>
+                <select
+                    id="company"
+                    name="company"
+                    value={company}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                >
+                    <option value="">Select Company</option>
+                    <option value="rsa">RSA Work</option>
+                    <option value="self">Payment Work</option>
+                </select>
+            </div>
+            {company === 'rsa' && (
+    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+        <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+            Select Company
+        </label>
+        <select
+            id="selectedCompany"
+            name="selectedCompany"
+            style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                fontSize: '1rem',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+            onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+        >
+            <option value="">Select Company</option>
+            {companies.map((comp) => (
+                <option key={comp.id} value={comp.id}>{comp.companyName}</option>
+            ))}
+        </select>
+        {companies.length === 0 && <p>No companies available</p>}
+    </div>
+)}
+
+            {company === 'self' ? (
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        placeholder="Enter File Number"
+                        className="form-input lg:w-[250px] w-2/3"
+                        value={`PMNA${bookingId}`}
+                        readOnly
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#f1f1f1', // read-only background color
+                        }}
+                    />
+                </div>
+            ) : (
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        className="form-input lg:w-[250px] w-2/3"
+                        placeholder="Enter File Number"
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        value={fileNumber}
+                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                    />
+                </div>
+            )}
+           
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -882,18 +948,21 @@ const Booking = () => {
     >
         <IconPlus />
     </button>
+    
 </div>
+<div  style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px',background:"white" ,padding:"10px",borderRadius:"10px"}}> {showroomLocation}</div>
+
 
                             {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
-                            <div className="mt-4 flex items-center">
+                            {/* <div className="mt-4 flex items-center">
                                 <label htmlFor="insuranceAmountBody" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Insurance Amount
                                 </label>
                                 <div className="form-input flex-1">
                                     <input
-                                        id="insuranceAmountBody"
+                                        id="insuranceAmount"
                                         type="text"
-                                        name="insuranceAmountBody"
+                                        name="insuranceAmount"
                                         className="w-full"
                                         style={{
                                             padding: '0.5rem',
@@ -903,11 +972,11 @@ const Booking = () => {
                                             outline: 'none',
                                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                         }}
-                                        value={insuranceAmountBody}
+                                        value={insuranceAmount}
                                         readOnly
                                     />
                                 </div>
-                            </div>
+                            </div> */}
                             <div style={{ width: '100%' }}>
                                   
                                 {googleMapsLoaded && (
@@ -1395,7 +1464,7 @@ const Booking = () => {
                                                                     <tr>
                                                                         <th>Driver Name</th>
                                                                         <th>Company Name</th>
-                                                                        <th>Vehicle Number</th>
+                                                                        {/* <th>Vehicle Number</th> */}
                                                                         <th>Distance to Pickup (km)</th>
                                                                         <th>Duration (min)</th>
                                                                         <th>Select</th>
@@ -1405,7 +1474,7 @@ const Booking = () => {
                                                                     <tr>
                                                                         <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
                                                                         <td>{driver.companyName || 'Unknown Company'}</td>
-                                                                        <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td>
+                                                                        {/* <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td> */}
                                                                         <td>{pickupDistanceData.distance.toFixed(2)} km</td>
                                                                         <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
                                                                         <td>
@@ -1431,12 +1500,12 @@ const Booking = () => {
                         {selectedDriver && selectedDriverData && (
                             <React.Fragment>
                                 <div>
-                                    <VehicleSection
-                                        showroomLocation={showroomLocation}
-                                        totalSalary={totalSalary}
-                                        onUpdateTotalSalary={handleUpdatedTotalSalary}
-                                        onUpdateInsuranceAmount={handleUpdatedInsuranceAmount}
-                                    />
+                                <VehicleSection
+                    showroomLocation={showroomLocation}
+                    totalSalary={totalSalary}
+                    onUpdateTotalSalary={handleUpdatedTotalSalary}
+                    insuranceAmountBody={insuranceAmountBody}
+                />
                                     <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
 
                                     <div className="mt-4 flex items-center">
@@ -1491,6 +1560,7 @@ const Booking = () => {
                         <div className="flex items-center mt-4">
                             <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                 Service Vehicle Number
+
                             </label>
                             <input
                                 id="serviceVehicle"

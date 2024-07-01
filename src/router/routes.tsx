@@ -39,6 +39,10 @@ import PreviewExpense from '../pages/Report/generalReports/PreviewExpense';
 import Edit from '../pages/Report/generalReports/Edit';
 import CashCollectionReport from '../pages/CashCollectionReport.tsx/CashCollectionReport';
 import DriverReport from '../pages/DriverReport/DriverReport';
+import OrderDetails from '../pages/Status/OrderDetails';
+import CompanyCreatn from '../pages/Users/CompanyCreatn';
+import CompanyCreationAdd from '../pages/Users/CompanyCreationAdd';
+import CompanyDetails from '../pages/Users/CompanyDetails';
 
 
 
@@ -465,6 +469,18 @@ const routes = [
         element: <Company />,
     },
     {
+        path: '/users/companycreation',
+        element: <CompanyCreatn />,
+    },
+    {
+        path: '/users/companycreation/companycreationadd',
+        element: <CompanyCreationAdd />,
+    },
+    {
+        path: '/users/companycreation/companycreationadd/:id',
+        element: <CompanyCreationAdd />,
+    },
+    {
         path: '/users/driver',
         element: <Driver />,
     },
@@ -514,6 +530,10 @@ const routes = [
         path: "/users/driver/driverdetails/:id",
         element: <DriverDetails />,
     },
+    {
+        path: '/users/companycreation/companydetails/:id',
+        element: <CompanyDetails />,
+    },
        //Driver Reports
        {
         path: '/users/driver/driverdetails/cashcollection/:id',
@@ -529,6 +549,11 @@ const routes = [
         path: '/checkstatus/status',
         element: <StatusTable />,
     },
+    {
+        path: '/checkstatus/status/orderdetails/:id',
+        element: <OrderDetails />,
+    },
+    
     {
         path: '/baselocation/location',
         element: <BaseLocation />,

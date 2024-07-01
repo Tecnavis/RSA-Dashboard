@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+
+  import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
-const ViewMore = () => {
-    const { id } = useParams();
+const OrderDetails = () => {
+  const { id } = useParams();
     const navigate = useNavigate();
+    console.log('id', id);
     const [bookingDetails, setBookingDetails] = useState(null);
     const db = getFirestore();
     const { search } = useLocation();
@@ -15,11 +17,15 @@ const ViewMore = () => {
     const [staffName, setStaffName] = useState('Admin');
     const [ShowRoom, setShowRoom] = useState('');
 
+    console.log('first', bookingDetails);
+    
+    
     useEffect(() => {
         const fetchBookingDetails = async () => {
             try {
                 const docRef = doc(db, 'bookings', id);
                 const docSnap = await getDoc(docRef);
+                console.log('Document data:', docSnap.data());
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -73,26 +79,39 @@ const ViewMore = () => {
         setShowPickupDetails(false);
     };
 
-    const handleDeleteBooking = async () => {
-        const confirmDelete = window.confirm('Are you sure you want to delete this booking?');
-        if (confirmDelete) {
-            try {
-                await deleteDoc(doc(db, 'bookings', id));
-                console.log('Document successfully deleted!');
-                navigate('/bookings/newbooking');
-            } catch (error) {
-                console.error('Error deleting document:', error);
-            }
-        }
-    };
+   
 
     if (!bookingDetails) {
         return <div>Loading...</div>;
     }
 
+    const containerStyle = {
+        margin: '2rem',
+        padding: '1rem',
+        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+        borderRadius: '10px',
+    };
+
+    const tableStyle = {
+        width: '100%',
+        borderCollapse: 'collapse',
+    };
+
+    const thStyle = {
+        backgroundColor: '#f2f2f2',
+        padding: '8px',
+        textAlign: 'left',
+        fontWeight: 'bold',
+    };
+
+    const tdStyle = {
+        padding: '8px',
+        borderBottom: '1px solid #ddd',
+    };
+
     return (
-        <div className="container mx-auto my-8 p-4 bg-white shadow rounded-lg">
-            <h5 className="font-semibold text-lg mb-5">Booking Details</h5>
+        <div style={containerStyle}>
+            <h5 className="font-semibold text-lg dark:text-white-light mb-5">Booking Details </h5>
             <div className="flex mb-5">
                 <button onClick={togglePickupDetails} className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                     {showPickupDetails ? 'Close' : 'Show Pickup Details'}
@@ -110,9 +129,9 @@ const ViewMore = () => {
                         </div>
                     )}
                     {bookingDetails.photo && (
-                        <div className="my-4 flex">
+                        <div className="my-4 flex ">
                             <strong>Pickup Km Photo:</strong>
-                            <img src={bookingDetails.photo} alt="Pickup Km Photo" className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" />
+                            <img src={bookingDetails.photo} alt="Dropoff Km Photo" className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" />
                         </div>
                     )}
 
@@ -129,7 +148,7 @@ const ViewMore = () => {
                         )}
                     </div>
 
-                    <h2 className="text-xl font-bold mt-5">Vehicle Images (Pickup)</h2>
+                    <h2 className="text-xl font-bold mt-5">Vehicle Images(Pickup)</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {bookingDetails.vehicleImageURLs.length > 0 ? (
                             bookingDetails.vehicleImageURLs.map((url, index) => (
@@ -152,7 +171,7 @@ const ViewMore = () => {
                         </div>
                     )}
                     {bookingDetails.photodrop && (
-                        <div className="my-4 flex">
+                        <div className="my-4 flex ">
                             <strong>Dropoff Km Photo:</strong>
                             <img src={bookingDetails.photodrop} alt="Dropoff Km Photo" className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" />
                         </div>
@@ -162,15 +181,15 @@ const ViewMore = () => {
                         {bookingDetails.fuelBillImageURLs.length > 0 ? (
                             bookingDetails.fuelBillImageURLs.map((url, index) => (
                                 <div key={index} className="max-w-xs">
-                                    <img src={url} alt={`Fuel Bill Image ${index}`} className="w-full h-auto" />
+                                    <img src={url} alt={`RC Book Image ${index}`} className="w-full h-auto" />
                                 </div>
                             ))
                         ) : (
-                            <p className="col-span-3">No Fuel Bill Images available.</p>
+                            <p className="col-span-3">No RC Book Images available.</p>
                         )}
                     </div>
 
-                    <h2 className="text-xl font-bold mt-5">Vehicle Images (Dropoff)</h2>
+                    <h2 className="text-xl font-bold mt-5">Vehicle Images(Dropoff)</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {bookingDetails.vehicleImgURLs.length > 0 ? (
                             bookingDetails.vehicleImgURLs.map((url, index) => (
@@ -185,125 +204,120 @@ const ViewMore = () => {
                 </div>
             )}
 
-            <table className="w-full border-collapse mt-5">
+            <table style={tableStyle}>
                 <tbody>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Date & Time :</td>
-                        <td className="p-2">{bookingDetails.dateTime}</td>
+                        <td style={thStyle}>Date & Time :</td>
+                        <td style={tdStyle}>{bookingDetails.dateTime} </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Booking ID :</td>
-                        <td className="p-2">{bookingDetails.bookingId}</td>
+                        <td style={thStyle}>Booking ID :</td>
+                        <td style={tdStyle}>{bookingDetails.bookingId} </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Staff Name :</td>
-                        <td className="p-2">{staffName}</td>
+                        <td style={thStyle}>Staff Name</td>
+                        <td style={thStyle}>{staffName}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Edited person :</td>
-                        <td className="p-2">{bookingDetails.newStatus}, {bookingDetails.editedTime}</td>
+                        <td style={thStyle}>Edited person</td>
+                        <td style={thStyle}>{bookingDetails.newStatus} , {bookingDetails.editedTime} </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Amount without insurance :</td>
-                        <td className="p-2">{bookingDetails.totalSalary}</td>
+                        <td style={thStyle}>Amount without insurance :</td>
+                        <td style={tdStyle}>{bookingDetails.totalSalary} </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Payable Amount with insurance:</td>
-                        <td className="p-2">{bookingDetails.updatedTotalSalary}</td>
+                        <td style={thStyle}>Payable Amount with insurance:</td>
+                        <td style={tdStyle}>{bookingDetails.updatedTotalSalary} </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Company :</td>
-                        <td className="p-2">{bookingDetails.company}</td>
+                        <td style={thStyle}>Company :</td>
+                        <td style={tdStyle}>{bookingDetails.company}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Trapped Location :</td>
-                        <td className="p-2">{bookingDetails.trappedLocation}</td>
+                        <td style={thStyle}>TrappedLocation :</td>
+                        <td style={tdStyle}>{bookingDetails.trappedLocation}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Showroom :</td>
-                        <td className="p-2">{bookingDetails.showroomLocation}</td>
+                        <td style={thStyle}>Showroom :</td>
+                        <td style={tdStyle}>{bookingDetails.showroomLocation}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">File Number :</td>
-                        <td className="p-2">{bookingDetails.fileNumber}</td>
+                        <td style={thStyle}>File Number :</td>
+                        <td style={tdStyle}>{bookingDetails.fileNumber}</td>
+                    </tr>
+
+                    <tr>
+                        <td style={thStyle}>CustomerName :</td>
+                        <td style={tdStyle}>{bookingDetails.customerName}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Customer Name :</td>
-                        <td className="p-2">{bookingDetails.customerName}</td>
+                        <td style={thStyle}>Driver :</td>
+                        <td style={tdStyle}>{bookingDetails.driver}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Driver :</td>
-                        <td className="p-2">{bookingDetails.driver}</td>
+                        <td style={thStyle}>Customer VehicleNumber :</td>
+                        <td style={tdStyle}>{bookingDetails.vehicleNumber}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Customer Vehicle Number :</td>
-                        <td className="p-2">{bookingDetails.vehicleNumber}</td>
+                        <td style={thStyle}>Brand Name :</td>
+                        <td style={tdStyle}>{bookingDetails.vehicleModel}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Brand Name :</td>
-                        <td className="p-2">{bookingDetails.vehicleModel}</td>
+                        <td style={thStyle}>phoneNumber :</td>
+                        <td style={tdStyle}>{bookingDetails.phoneNumber}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Phone Number :</td>
-                        <td className="p-2">{bookingDetails.phoneNumber}</td>
+                        <td style={thStyle}>MobileNumber :</td>
+                        <td style={tdStyle}>{bookingDetails.mobileNumber}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Mobile Number :</td>
-                        <td className="p-2">{bookingDetails.mobileNumber}</td>
-                    </tr>
-                    <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Start Location:</td>
-                        <td className="p-2">
+                        <td style={thStyle}>Start Location:</td>
+                        <td style={tdStyle}>
                             {bookingDetails.baseLocation
                                 ? `${bookingDetails.baseLocation.name}, Lat: ${bookingDetails.baseLocation.lat}, Lng: ${bookingDetails.baseLocation.lng}`
                                 : 'Location not selected'}
                         </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Pickup Location:</td>
-                        <td className="p-2">
+                        <td style={thStyle}>Pickup Location:</td>
+                        <td style={tdStyle}>
                             {bookingDetails.pickupLocation
                                 ? `${bookingDetails.pickupLocation.name}, Lat: ${bookingDetails.pickupLocation.lat}, Lng: ${bookingDetails.pickupLocation.lng}`
                                 : 'Location not selected'}
                         </td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Dropoff Location:</td>
-                        <td className="p-2">
+                        <td style={thStyle}>DropOff Location:</td>
+                        <td style={tdStyle}>
                             {bookingDetails.dropoffLocation
                                 ? `${bookingDetails.dropoffLocation.name}, Lat: ${bookingDetails.dropoffLocation.lat}, Lng: ${bookingDetails.dropoffLocation.lng}`
                                 : 'Location not selected'}
                         </td>
                     </tr>
+
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Distance :</td>
-                        <td className="p-2">{bookingDetails.distance}</td>
+                        <td style={thStyle}>Distance :</td>
+                        <td style={tdStyle}>{bookingDetails.distance}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Service Type :</td>
-                        <td className="p-2">{bookingDetails.serviceType}</td>
+                        <td style={thStyle}>ServiceType :</td>
+                        <td style={tdStyle}>{bookingDetails.serviceType}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Service Vehicle Number :</td>
-                        <td className="p-2">{bookingDetails.serviceVehicle}</td>
+                        <td style={thStyle}>Service Vehicle Number :</td>
+                        <td style={tdStyle}>{bookingDetails.serviceVehicle}</td>
                     </tr>
                     <tr>
-                        <td className="bg-gray-100 p-2 font-semibold">Comments :</td>
-                        <td className="p-2">{bookingDetails.comments}</td>
+                        <td style={thStyle}>Comments :</td>
+                        <td style={tdStyle}>{bookingDetails.comments}</td>
                     </tr>
                 </tbody>
-            </table>
-
-            <div className="flex justify-end mt-5">
-                <button onClick={handleDeleteBooking} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                    Delete Booking
-                </button>
-                {/* <button onClick={handleUpdateBooking} className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Update
-                </button> */}
-            </div>
+             </table>
         </div>
     );
 };
 
-export default ViewMore;
+
+
+export default OrderDetails;

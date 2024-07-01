@@ -139,7 +139,7 @@ const Edit = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="xl:1/3 lg:w-2/5 sm:w-1/2">
+                        {/* <div className="xl:1/3 lg:w-2/5 sm:w-1/2">
                             <div className="flex items-center w-full justify-between mb-2">
                                 <div className="text-white-dark">Bank Name:</div>
                                 <div>
@@ -170,7 +170,7 @@ const Edit = () => {
                                     <input type="text" name="country" value={formValues.country} onChange={handleChange} className="form-input" />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
                 <div className="table-responsive mt-6">
