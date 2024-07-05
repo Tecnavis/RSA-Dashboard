@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { addDoc, collection, getFirestore, doc, updateDoc, getDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { collection, getFirestore, query, where, getDocs } from 'firebase/firestore';
 
-const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, insuranceAmountBody }) => {
+const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, onUpdateInsuranceAmount,adjustValueCallback }) => {
     const [showRoom, setShowRoom] = useState({
         availableServices: '',
         hasInsurance: '',
-        insuranceAmount: insuranceAmountBody,
+        insuranceAmount: '',
         insurance: '',
-        insuranceAmountBody: insuranceAmountBody,
+        insuranceAmountBody: '',
     });
     const [editRoomId, setEditRoomId] = useState(null);
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(totalSalary);
     const [adjustValue, setAdjustValue] = useState('');
-    console.log('showroomLocation', showroomLocation);
+
+    console.log("insuranceAmountVS", showRoom.insuranceAmount);
+    console.log("showroomLocation", showroomLocation);
+
     useEffect(() => {
-        if (showroomLocation) {
-            const fetchInsuranceAmount = async () => {
+        const fetchInsuranceAmount = async () => {
+            if (showroomLocation) {
                 const db = getFirestore();
                 const showroomsRef = collection(db, 'showroom');
                 const q = query(showroomsRef, where('Location', '==', showroomLocation));
@@ -25,10 +28,13 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach((doc) => {
                             const showroomData = doc.data();
+                            console.log('Fetched Insurance Amount:', showroomData.insuranceAmountBody); // Log the fetched insuranceAmountBody
+
                             setShowRoom((prevShowRoom) => ({
                                 ...prevShowRoom,
                                 insuranceAmount: showroomData.insuranceAmountBody,
                             }));
+                            onUpdateInsuranceAmount(showroomData.insuranceAmountBody);
                         });
                     } else {
                         console.log('No matching documents.');
@@ -36,17 +42,17 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
                 } catch (error) {
                     console.error('Error fetching documents:', error);
                 }
-            };
+            }
+        };
 
-            fetchInsuranceAmount();
-        }
-    }, [showroomLocation]);
+        fetchInsuranceAmount();
+    }, [showroomLocation, onUpdateInsuranceAmount]);
 
     useEffect(() => {
-        const newTotalSalary = totalSalary - showRoom.insuranceAmount;
+        const newTotalSalary = totalSalary - (showRoom.insuranceAmount ? parseFloat(showRoom.insuranceAmount) : 0);
+        setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
         onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-    }, [showRoom.insuranceAmount, totalSalary]);
-
+    }, [showRoom.insuranceAmount, totalSalary, onUpdateTotalSalary]);
 
     const handleServiceChange = (e) => {
         const { value } = e.target;
@@ -75,10 +81,13 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
     const handleAdjustValueChange = (e) => {
         const { value } = e.target;
         setAdjustValue(value);
+        adjustValueCallback(value); // Call the callback function with adjustValue
     };
+
     const applyAdjustment = () => {
         const adjustedSalary = parseFloat(adjustValue);
-        if (adjustedSalary > 0 && adjustedSalary > totalSalary) {
+        if (adjustedSalary > 0 && adjustedSalary > updatedTotalSalary) {
+            setUpdatedTotalSalary(adjustedSalary);
             onUpdateTotalSalary(adjustedSalary);
         }
     };
@@ -109,7 +118,7 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
                         className="mr-1"
                         style={{ marginRight: '5px' }}
                     />
-                    Body Shop
+                    Accident
                 </label>
                 {showRoom.availableServices === 'Body Shop' && (
                     <div className="mb-2" style={{ marginLeft: '10px', backgroundColor: '#ffeeba', padding: '10px', borderRadius: '5px', fontSize: '0.9em' }}>
@@ -152,9 +161,7 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
                         </label>
                         {showRoom.insurance === 'insurance' && (
                             <div className="mt-2" style={{ marginTop: '10px', fontSize: '0.9em' }}>
-                                <label htmlFor="insuranceAmount" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0" style={{ fontSize: '1em', color: '#333' }}>
-                                    Insurance Amount:
-                                </label>{' '}
+                                <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Insurance Amount:</label>
                                 <input
                                     type="number"
                                     name="insuranceAmount"
@@ -181,23 +188,15 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, in
             </div>
             <br />
             <div>
-            <label htmlFor="insuranceAmount" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0" style={{ fontSize: '1em', color: '#333' }}>
-        Insurance Amount:
-    </label> 
-                <div style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            outline: 'none',
-            background: 'white',
-
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}>{showRoom.insuranceAmount}</div>
+                <p>Insurance Amount: {showRoom.insuranceAmount}</p>
                 <div>
                     <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Adjustment Value:</label>
-                    <input type="number" value={adjustValue} onChange={handleAdjustValueChange} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                    <input
+                        type="number"
+                        value={adjustValue}
+                        onChange={handleAdjustValueChange}
+                        style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}
+                    />
                     <button
                         onClick={applyAdjustment}
                         style={{

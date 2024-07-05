@@ -43,6 +43,7 @@ import OrderDetails from '../pages/Status/OrderDetails';
 import CompanyCreatn from '../pages/Users/CompanyCreatn';
 import CompanyCreationAdd from '../pages/Users/CompanyCreationAdd';
 import CompanyDetails from '../pages/Users/CompanyDetails';
+import DriverInvoice from '../pages/CashCollectionReport.tsx/DriverInvoice';
 
 
 
@@ -540,6 +541,12 @@ const routes = [
         element: <CashCollectionReport />,
         
     },
+    {
+        path: '/users/driver/driverdetails/cashcollection/driverInvoice/:id',
+        element: <DriverInvoice />,
+        
+    },
+    
     {
         path: '/driverreport',
         element: <DriverReport />,

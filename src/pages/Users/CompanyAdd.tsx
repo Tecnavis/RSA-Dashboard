@@ -23,6 +23,7 @@ const CompanyAdd = () => {
     const [profileImage, setProfileImage] = useState(null); // State to store profile image file
     const [showPassword, setShowPassword] = useState(false);
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const [advancePayment, setAdvancePayment] = useState('');
 
     const storage = getStorage();
 
@@ -108,7 +109,9 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             setPassword(state.editData.password || '');
 
             setConfirmPassword(state.editData.confirmPassword || '');
+            setAdvancePayment(state.editData.advancePayment || '');
 
+            
             setPersonalPhone(state.editData.personalphone || '');
             setSalaryPerKm(state.editData.salaryPerKm || '');
             setBasicSalaryKm(state.editData.basicSalaryKm || '');
@@ -142,7 +145,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 driverName,
                 idnumber,
                 companyName,
-
+                advancePayment,
                 phone,
                 personalphone,
                 salaryPerKm,
@@ -217,12 +220,14 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                     <input id="idnumber" type="idnumber"  className="form-input" value={idnumber} onChange={(e) => setIdnumber(e.target.value)} />
                                 </div>
                                 <div>
+                                    <label htmlFor="advancePayment">AdvancePayment</label>
+                                    <input id="advancePayment" type="advancePayment" placeholder="" className="form-input" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} />
+                                </div>
+                                <div>
                                     <label htmlFor="phone">Phone</label>
                                     <input id="phone" type="phone" placeholder="" className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
                                 </div>
-                                
-
-                                <div>
+                                                                                                <div>
                                     <label htmlFor="personalphone">Personal PhoneNumber</label>
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
                                 </div>
@@ -273,7 +278,12 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
         </button>
     )}
                                    <div>
-    <div>
+  
+
+</div>
+</div>
+
+<div>
         <label style={{ cursor: 'pointer'}} className="flex items-center" onClick={() => setShowTable(true)}>
             <IconPlusCircle className="me-2"/>
             Add Service Type
@@ -310,7 +320,11 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 )}
 </div>
-{selectedServices.length > 0 && (
+
+ 
+
+                                <div className="sm:col-span-2 mt-3">
+                                {selectedServices.length > 0 && (
     <table style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
         <thead>
             <tr>
@@ -356,14 +370,6 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
         </tbody>
     </table>
 )}
-
-</div>
-</div>
-
-
- 
-
-                                <div className="sm:col-span-2 mt-3">
             <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}>
                 {editData ? 'Update' : 'Save'}
             </button>

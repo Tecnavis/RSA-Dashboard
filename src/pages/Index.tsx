@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux';
 import { IRootState } from '../store';
 import ReactApexChart from 'react-apexcharts';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
-import './Index.css'
+import './Index.css';
+
 const Index = () => {
     const isDark = useSelector((state: IRootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass === 'rtl');
@@ -140,11 +141,11 @@ const Index = () => {
             <div className="pt-5">
                 <div className="grid xl:grid-cols-1 gap-6 mb-6">
                     <div className="grid xl:grid-cols-4 gap-6 mb-6">
-                        <div className="panel bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg shadow-lg p-6">
+                        <div className={`panel bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg shadow-lg p-6 ${salesByCategory.series[0] > 0 ? 'blink' : ''}`} >
                             <h5 className="font-semibold text-lg mb-3">ShowRoom Booking</h5>
                             <p className="text-2xl">{salesByCategory.series[0]}</p>
                         </div>
-                        <div className="panel bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg shadow-lg p-6 blink">
+                        <div className="panel bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg shadow-lg p-6">
                             <h5 className="font-semibold text-lg mb-3">New Bookings</h5>
                             <p className="text-2xl">{salesByCategory.series[1]}</p>
                         </div>
@@ -158,32 +159,26 @@ const Index = () => {
                         </div>
                     </div>
 
-                    {/* <div className="panel bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 text-white rounded-lg shadow-lg p-6">
-                        <h5 className="font-semibold text-lg mb-3">Booking Statistics</h5>
-                        <p className="text-md">Here you can see the statistics of all bookings categorized by their status.</p>
-                    </div> */}
-
-<div className="panel h-full bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-lg p-6">
-    <div className="flex items-center justify-between mb-5">
-        <h5 className="font-semibold text-lg">Bookings By Category</h5>
-        <div className="flex space-x-2 rtl:space-x-reverse">
-            <button className="bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-700">Refresh</button>
-            <button className="bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-700">Export</button>
-        </div>
-    </div>
-    <div>
-        <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
-            {loading ? (
-                <div className="min-h-[325px] grid place-content-center bg-white dark:bg-gray-900 dark:bg-opacity-[0.08]">
-                    <span className="animate-spin border-2 border-gray-300 dark:border-gray-700 !border-l-transparent rounded-full w-5 h-5 inline-flex"></span>
-                </div>
-            ) : (
-                <ReactApexChart series={salesByCategory.series} options={salesByCategory.options} type="donut" height={460} />
-            )}
-        </div>
-    </div>
-</div>
-
+                    <div className="panel h-full bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-5">
+                            <h5 className="font-semibold text-lg">Bookings By Category</h5>
+                            <div className="flex space-x-2 rtl:space-x-reverse">
+                                <button className="bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-700">Refresh</button>
+                                <button className="bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-700">Export</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
+                                {loading ? (
+                                    <div className="min-h-[325px] grid place-content-center bg-white dark:bg-gray-900 dark:bg-opacity-[0.08]">
+                                        <span className="animate-spin border-2 border-gray-300 dark:border-gray-700 !border-l-transparent rounded-full w-5 h-5 inline-flex"></span>
+                                    </div>
+                                ) : (
+                                    <ReactApexChart series={salesByCategory.series} options={salesByCategory.options} type="donut" height={460} />
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

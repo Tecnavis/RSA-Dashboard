@@ -231,6 +231,10 @@ const StatusTable = () => {
                         <Value>{record.driver}</Value>
                     </DataItem>
                     <DataItem>
+                        <Label>Vehicle Number:</Label>
+                        <Value>{record.vehicleNumber}</Value>
+                    </DataItem>
+                    <DataItem>
                         <Label>Customer Name:</Label>
                         <Value>{record.customerName}</Value>
                     </DataItem>
@@ -288,6 +292,10 @@ const StatusTable = () => {
                     <DataItem>
                         <Label>Driver Name:</Label>
                         <Value>{record.driver}</Value>
+                    </DataItem>
+                    <DataItem>
+                        <Label>Vehicle Number:</Label>
+                        <Value>{record.vehicleNumber}</Value>
                     </DataItem>
                     <DataItem>
                         <Label>Customer Name:</Label>

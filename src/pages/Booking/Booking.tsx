@@ -73,7 +73,7 @@ const Booking = () => {
     const [trappedLocation, setTrappedLocation] = useState('');
     const [totalSalary, setTotalSalary] = useState(0);
     const [showroomLocation, setShowroomLocation] = useState('');
-    const [insuranceAmountBody, setInsuranceAmountBody] = useState('');
+    const [insuranceAmountBody, setInsuranceAmountBody] = useState(0);
     const [showrooms, setShowrooms] = useState<Showroom[]>([]);
     const [distance, setDistance] = useState('');
     const [drivers, setDrivers] = useState([]);
@@ -81,14 +81,17 @@ const Booking = () => {
     const [editData, setEditData] = useState(null);
     const [serviceTypes, setServiceTypes] = useState([]);
     const [showRooms, setShowRooms] = useState([]);
+    // const [adjustValue, setAdjustValue] = useState('');
+    const [manualDistance, setManualDistance] = useState(false);
+
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
     const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
-    console.log('updatedTotalSalarycheck', updatedTotalSalary);
+    // console.log('updatedTotalSalarycheck', updatedTotalSalary);
     useEffect(() => {
         setManualInput(pickupLocation ? pickupLocation.name : '');
     }, [pickupLocation]);
     console.log('vehicleNumber', vehicleNumber);
-    console.log('Insurance Amount Body:', insuranceAmountBody); // Debug log
+    console.log('Insurance Amount top:', insuranceAmountBody); // Debug log
 
     useEffect(() => {
         if (state && state.editData) {
@@ -97,6 +100,8 @@ const Booking = () => {
             setBookingId(editData.bookingId || '');
             setTrappedLocation(editData.trappedLocation || '');
             setInsuranceAmountBody(editData.insuranceAmountBody || '');
+            console.log('Insurance Amount Body:state', editData.insuranceAmountBody);
+
             setComments(editData.comments || '');
             setFileNumber(editData.fileNumber || '');
             setCompany(editData.company || '');
@@ -114,25 +119,31 @@ const Booking = () => {
             setShowrooms(editData.showrooms || []);
             setPickupLocation(editData.pickupLocation || '');
             setServiceType(editData.serviceType || '');
+            // setAdjustValue(editData.adjustValue || '');
+            // console.log('firstadjustValue', editData.adjustValue);
             setTotalSalary(editData.totalSalary || 0);
             setDropoffLocation(editData.dropoffLocation || '');
-    
-            // Calculate updatedTotalSalary based on totalSalary and insuranceAmountBody
-            const totalSalary = editData.totalSalary || 0;
-            const insuranceAmountBody = parseFloat(editData.insuranceAmountBody) || 0;
-            const updatedTotalSalary = totalSalary - insuranceAmountBody;
-            setUpdatedTotalSalary(updatedTotalSalary);
+
+            // const initialAdjustValue = editData.adjustValue || '';
+            // console.log('Initial Adjust Value:', initialAdjustValue);
+            // setAdjustValue(initialAdjustValue);
+
+            // const insuranceAmount = parseFloat(editData.insuranceAmountBody) || 0;
+            // const initialUpdatedTotalSalary = editData.totalSalary - insuranceAmount;
+            // setUpdatedTotalSalary(initialUpdatedTotalSalary);
+
+            console.log('state.editData', state.editData);
         }
     }, [state]);
-    
+
     useEffect(() => {
         if (company === 'rsa') {
             const fetchCompanies = async () => {
                 try {
                     const querySnapshot = await getDocs(collection(db, 'company'));
-                    const companyList = querySnapshot.docs.map(doc => ({
+                    const companyList = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     }));
                     console.log('Fetched companies:', companyList); // Add this line to check fetched companies
                     setCompanies(companyList);
@@ -140,11 +151,11 @@ const Booking = () => {
                     console.error('Error fetching companies:', error);
                 }
             };
-    
+
             fetchCompanies();
         }
     }, [company, db]);
-   
+
     useEffect(() => {
         const db = getFirestore();
         const showroomsRef = collection(db, 'showroom');
@@ -158,13 +169,19 @@ const Booking = () => {
 
         return () => unsubscribe();
     }, []);
+
     useEffect(() => {
         if (totalSalary && insuranceAmountBody) {
             const calculatedTotalSalary = totalSalary - parseFloat(insuranceAmountBody);
-            console.log("calculatedTotalSalarybb",calculatedTotalSalary)
             setUpdatedTotalSalary(calculatedTotalSalary);
         }
     }, [totalSalary, insuranceAmountBody]);
+    // const applyAdjustment = () => {
+    //     const adjustedValue = parseFloat(adjustValue);
+    //     if (adjustedValue > updatedTotalSalary) {
+    //         setUpdatedTotalSalary(adjustedValue.toFixed(2));
+    //     }
+    // };
     useEffect(() => {
         if (selectedDriver) {
             const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
@@ -173,6 +190,11 @@ const Booking = () => {
             }
         }
     }, [selectedDriver, serviceType, drivers]);
+    const handleAdjustValueChange = (adjustedValue) => {
+        
+            setUpdatedTotalSalary(adjustedValue);
+        }
+    
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
@@ -192,6 +214,14 @@ const Booking = () => {
                     setInsuranceAmountBody('');
                     setDropoffLocation('');
                 }
+                break;
+            case 'insuranceAmountBody':
+                console.log('insuranceAmountBody:', value);
+                setInsuranceAmountBody(value || '');
+                break;
+            case 'adjustValue':
+                console.log('adjustValueconsole:', value);
+                handleAdjustValueChange({ target: { value } });
                 break;
             case 'customerName':
                 setCustomerName(value || '');
@@ -217,10 +247,11 @@ const Booking = () => {
             case 'updatedTotalSalary':
                 setUpdatedTotalSalary(value || '');
                 break;
-            
+
             case 'distance':
                 setDistance(value || '');
-                openModal();
+                setManualDistance(true);
+                // openModal();
                 break;
             case 'serviceVehicle':
                 setServiceVehicle(value);
@@ -315,13 +346,13 @@ const Booking = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
-  
-    const handleUpdatedInsuranceAmount = (amount) => {
+
+    const handleInsuranceAmountBody = (amount) => {
         setInsuranceAmountBody(amount);
     };
 
     useEffect(() => {
-        console.log('SR:',showroomLocation );
+        console.log('SR:', showroomLocation);
     }, [showroomLocation]);
     useEffect(() => {
         console.log('Updated Total Salary in State:', updatedTotalSalary);
@@ -331,7 +362,6 @@ const Booking = () => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
     }, [dropoffLocation]);
 
-   
     const handleUpdatedTotalSalary = (newTotalSalary) => {
         if (newTotalSalary !== updatedTotalSalary) {
             console.log('Setting Updated Total Salary in handleUpdatedTotalSalary:', newTotalSalary);
@@ -352,7 +382,7 @@ const Booking = () => {
         setManualInput(value);
         handleInputChange('pickupLocation', value);
     };
- 
+
     const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
@@ -383,7 +413,7 @@ const Booking = () => {
 
         return () => unsubscribe();
     }, []);
-    
+
     const setupAutocomplete = (inputRef, setter) => {
         if (!inputRef) return;
 
@@ -612,7 +642,7 @@ const Booking = () => {
 
     useEffect(() => {
         if (pickupDistances.length > 0 && totalDistances.length > 0) {
-                const totalSalaries = drivers.map((driver) => {
+            const totalSalaries = drivers.map((driver) => {
                 const totalDistanceObj = totalDistances.find((dist) => dist.driverId === driver.id);
                 const totalDistance = totalDistanceObj ? totalDistanceObj.totalDistance : 0;
 
@@ -724,109 +754,109 @@ const Booking = () => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem' }}>
                         <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
                         <div style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                    Company
-                </label>
-                <select
-                    id="company"
-                    name="company"
-                    value={company}
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #ccc',
-                        borderRadius: '5px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                >
-                    <option value="">Select Company</option>
-                    <option value="rsa">RSA Work</option>
-                    <option value="self">Payment Work</option>
-                </select>
-            </div>
-            {company === 'rsa' && (
-    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-        <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-            Select Company
-        </label>
-        <select
-            id="selectedCompany"
-            name="selectedCompany"
-            style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-            onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-        >
-            <option value="">Select Company</option>
-            {companies.map((comp) => (
-                <option key={comp.id} value={comp.id}>{comp.companyName}</option>
-            ))}
-        </select>
-        {companies.length === 0 && <p>No companies available</p>}
-    </div>
-)}
-
-            {company === 'self' ? (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                        File Number
-                    </label>
-                    <input
-                        id="fileNumber"
-                        type="text"
-                        name="fileNumber"
-                        placeholder="Enter File Number"
-                        className="form-input lg:w-[250px] w-2/3"
-                        value={`PMNA${bookingId}`}
-                        readOnly
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            backgroundColor: '#f1f1f1', // read-only background color
-                        }}
-                    />
-                </div>
-            ) : (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                        File Number
-                    </label>
-                    <input
-                        id="fileNumber"
-                        type="text"
-                        name="fileNumber"
-                        className="form-input lg:w-[250px] w-2/3"
-                        placeholder="Enter File Number"
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        value={fileNumber}
-                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                    />
-                </div>
-            )}
-           
+                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                <label htmlFor="company" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                    Company
+                                </label>
+                                <select
+                                    id="company"
+                                    name="company"
+                                    value={company}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    onChange={(e) => handleInputChange('company', e.target.value)}
+                                >
+                                    <option value="">Select Company</option>
+                                    <option value="rsa">RSA Work</option>
+                                    <option value="self">Payment Work</option>
+                                </select>
+                            </div>
+                            {company === 'rsa' && (
+                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                    <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                        Select Company
+                                    </label>
+                                    <select
+                                        id="selectedCompany"
+                                        name="selectedCompany"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+                                    >
+                                        <option value="">Select Company</option>
+                                        {companies.map((comp) => (
+                                            <option key={comp.id} value={comp.id}>
+                                                {comp.companyName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {companies.length === 0 && <p>No companies available</p>}
+                                </div>
+                            )}
+                            {company === 'self' ? (
+                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                        File Number
+                                    </label>
+                                    <input
+                                        id="fileNumber"
+                                        type="text"
+                                        name="fileNumber"
+                                        placeholder="Enter File Number"
+                                        className="form-input lg:w-[250px] w-2/3"
+                                        value={`PMNA${bookingId}`}
+                                        readOnly
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            backgroundColor: '#f1f1f1', // read-only background color
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                        File Number
+                                    </label>
+                                    <input
+                                        id="fileNumber"
+                                        type="text"
+                                        name="fileNumber"
+                                        className="form-input lg:w-[250px] w-2/3"
+                                        placeholder="Enter File Number"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        value={fileNumber}
+                                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                                    />
+                                </div>
+                            )}
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -897,62 +927,62 @@ const Booking = () => {
                                 />
                             </div>{' '}
                             <div className="flex items-center mt-4">
-    <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Showrooms
-    </label>
-    {showrooms.length > 0 && (
-    <Select
-        id="showrooms"
-        name="showrooms"
-        value={showrooms.find(option => option.value === showroomLocation)}
-        options={showrooms.map(show => ({
-            value: show.Location,
-            label: show.Location
-        }))}
-        onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption.value)}
-        isSearchable={true}
-        placeholder="Select showroom"
-        styles={{
-            control: (provided) => ({
-                ...provided,
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }),
-            placeholder: (provided) => ({
-                ...provided,
-                fontSize: '1rem',
-            }),
-        }}
-    />
-)}
-    <button
-        onClick={() => setShowShowroomModal(true)}
-        style={{
-            borderRadius: '40px',
-            background: 'linear-gradient(135deg, #32CD32, #228B22)',
-            color: 'white',
-            margin: '10px',
-            padding: '10px 10px',
-            border: 'none',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer',
-            transition: 'background 0.3s ease',
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-    >
-        <IconPlus />
-    </button>
-    
-</div>
-<div  style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px',background:"white" ,padding:"10px",borderRadius:"10px"}}> {showroomLocation}</div>
-
-
+                                <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Showrooms
+                                </label>
+                                {showrooms.length > 0 && (
+                                    <Select
+                                        id="showrooms"
+                                        name="showrooms"
+                                        value={showrooms.find((option) => option.value === showroomLocation)}
+                                        options={showrooms.map((show) => ({
+                                            value: show.Location,
+                                            label: show.Location,
+                                        }))}
+                                        onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption.value)}
+                                        isSearchable={true}
+                                        placeholder="Select showroom"
+                                        styles={{
+                                            control: (provided) => ({
+                                                ...provided,
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '1rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }),
+                                            placeholder: (provided) => ({
+                                                ...provided,
+                                                fontSize: '1rem',
+                                            }),
+                                        }}
+                                    />
+                                )}
+                                <button
+                                    onClick={() => setShowShowroomModal(true)}
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'linear-gradient(135deg, #32CD32, #228B22)',
+                                        color: 'white',
+                                        margin: '10px',
+                                        padding: '10px 10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                >
+                                    <IconPlus />
+                                </button>
+                            </div>
+                            <div style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px', background: 'white', padding: '10px', borderRadius: '10px' }}>
+                                {' '}
+                                {showroomLocation}
+                            </div>
                             {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
                             {/* <div className="mt-4 flex items-center">
                                 <label htmlFor="insuranceAmountBody" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1148,51 +1178,50 @@ const Booking = () => {
                                                 <IconMapPin />
                                             </a>{' '}
                                         </div>
-                                       <div className="mt-4 flex items-center">
-    <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Start Location
-    </label>
-    <input
-        id="baseLocation"
-        type="text"
-        name="baseLocation"
-        className="form-input flex-1"
-        placeholder="select start location"
-        value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
-        style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            outline: 'none',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}
-        readOnly
-    />
-    <button
-        onClick={openModal1}
-        style={{
-            borderRadius: '40px',
-            background: 'transparent',
-            color: 'blue',
-            marginLeft: '10px',
-            padding: '10px',
-            border: 'none',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-            cursor: 'pointer',
-            transition: 'background 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
-        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
-    >
-        <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
-    </button>
-</div>
-
+                                        <div className="mt-4 flex items-center">
+                                            <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                                Start Location
+                                            </label>
+                                            <input
+                                                id="baseLocation"
+                                                type="text"
+                                                name="baseLocation"
+                                                className="form-input flex-1"
+                                                placeholder="select start location"
+                                                value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem',
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: '5px',
+                                                    fontSize: '1rem',
+                                                    outline: 'none',
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                }}
+                                                readOnly
+                                            />
+                                            <button
+                                                onClick={openModal1}
+                                                style={{
+                                                    borderRadius: '40px',
+                                                    background: 'transparent',
+                                                    color: 'blue',
+                                                    marginLeft: '10px',
+                                                    padding: '10px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #228B22, #006400)')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #32CD32, #228B22)')}
+                                            >
+                                                <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
+                                            </button>
+                                        </div>
 
                                         {isModalOpen1 && (
                                             <div
@@ -1288,7 +1317,7 @@ const Booking = () => {
                                 </label>
                                 <input
                                     id="distance"
-                                    type="string"
+                                    type="text"
                                     name="distance"
                                     className="form-input flex-1"
                                     style={{
@@ -1302,7 +1331,8 @@ const Booking = () => {
                                     }}
                                     onChange={(e) => handleInputChange('distance', e.target.value)}
                                     value={distance}
-                                    readOnly
+                                    readOnly={!manualDistance}
+                                    onClick={() => setManualDistance(true)}
                                 />
                             </div>
                             <div className="flex items-center mt-4">
@@ -1500,12 +1530,13 @@ const Booking = () => {
                         {selectedDriver && selectedDriverData && (
                             <React.Fragment>
                                 <div>
-                                <VehicleSection
-                    showroomLocation={showroomLocation}
-                    totalSalary={totalSalary}
-                    onUpdateTotalSalary={handleUpdatedTotalSalary}
-                    insuranceAmountBody={insuranceAmountBody}
-                />
+                                    <VehicleSection
+    showroomLocation={state.editData.showroomLocation}
+    totalSalary={totalSalary}
+                                        onUpdateTotalSalary={handleUpdatedTotalSalary}
+                                        onUpdateInsuranceAmount={handleInsuranceAmountBody}
+                                        adjustValueCallback={handleAdjustValueChange}
+                                    />
                                     <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
 
                                     <div className="mt-4 flex items-center">
@@ -1557,10 +1588,27 @@ const Booking = () => {
                                 </div>
                             </React.Fragment>
                         )}
+                        {/* <div>
+                            <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Adjustment Value:</label>
+                            <input type="number" value={adjustValue} onChange={handleAdjustValueChange} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                            <button
+                                onClick={applyAdjustment}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '5px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    marginLeft: '10px',
+                                }}
+                            >
+                                Apply
+                            </button>
+                        </div> */}
                         <div className="flex items-center mt-4">
                             <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                 Service Vehicle Number
-
                             </label>
                             <input
                                 id="serviceVehicle"
@@ -1651,15 +1699,14 @@ const Booking = () => {
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 gap-4">
-    <button
-        type="button"
-        className={`btn btn-primary bg-green-600 text-white py-2 w-full border-none rounded cursor-pointer ${editData ? 'hover:bg-green-700' : 'hover:bg-green-500'}`}
-        onClick={addOrUpdateItem}
-    >
-        {editData ? 'Update' : 'Save'}
-    </button>
-</div>
-
+                        <button
+                            type="button"
+                            className={`btn btn-primary bg-green-600 text-white py-2 w-full border-none rounded cursor-pointer ${editData ? 'hover:bg-green-700' : 'hover:bg-green-500'}`}
+                            onClick={addOrUpdateItem}
+                        >
+                            {editData ? 'Update' : 'Save'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
