@@ -108,6 +108,8 @@ const WithoutMapBooking = () => {
             setServiceVehicle(editData.serviceVehicle || '');
             setVehicleModel(editData.vehicleModel || '');
             setVehicleSection(editData.vehicleSection || '');
+            setUpdatedTotalSalary(editData.updatedTotalSalary || '');
+
             setShowroomLocation(editData.showroomLocation || '');
             setDistance(editData.distance || '');
             setSelectedDriver(editData.selectedDriver || '');
