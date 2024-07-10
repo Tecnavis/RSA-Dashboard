@@ -220,7 +220,7 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <input id="idnumber" type="idnumber"  className="form-input" value={idnumber} onChange={(e) => setIdnumber(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="advancePayment">AdvancePayment</label>
+                                    <label htmlFor="advancePayment">Credit Limit Amount</label>
                                     <input id="advancePayment" type="advancePayment" placeholder="" className="form-input" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} />
                                 </div>
                                 <div>
@@ -329,7 +329,7 @@ const [advancePayment, setAdvancePayment] = useState('');
         <thead>
             <tr>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Service Type</th>
-                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Salary</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Amount</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>KM for Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>SalaryPerKm</th>
             </tr>
@@ -343,7 +343,7 @@ const [advancePayment, setAdvancePayment] = useState('');
                             style={{ border: 'none', outline: 'none' }} // Set border and outline to none
                             type="text"
                             value={basicSalaries[service] || ""}
-                            placeholder='Enter Basic Salary'
+                            placeholder='Enter Basic Amount'
                             onChange={(e) => handleBasicSalaryChange(service, e)}
                         />
                     </td>

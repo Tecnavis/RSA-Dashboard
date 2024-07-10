@@ -68,7 +68,7 @@ console.log("driver",driver)
                         <td>{driver.password}</td>
                     </tr>
                     <tr>
-                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Advance Payment:</td>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Advance Payment/Credit Limit Amount:</td>
                         <td>{driver.advancePayment}</td>
                     </tr>
         
@@ -100,7 +100,7 @@ console.log("driver",driver)
         <thead>
             <tr>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Service Type</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Basic Salary</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Basic Amount</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>KM for Basic Salary</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>SalaryPerKm</th>
                 <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Vehicle Number</th>

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getFirestore, query, where, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect, useRef } from 'react';
 
-const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, onUpdateInsuranceAmount,adjustValueCallback }) => {
+const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, adjustValueCallback, insuranceAmountBody }) => {
     const [showRoom, setShowRoom] = useState({
         availableServices: '',
         hasInsurance: '',
@@ -9,50 +8,23 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, on
         insurance: '',
         insuranceAmountBody: '',
     });
-    const [editRoomId, setEditRoomId] = useState(null);
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(totalSalary);
     const [adjustValue, setAdjustValue] = useState('');
-
-    console.log("insuranceAmountVS", showRoom.insuranceAmount);
-    console.log("showroomLocation", showroomLocation);
+    const adjustmentApplied = useRef(false);
 
     useEffect(() => {
-        const fetchInsuranceAmount = async () => {
-            if (showroomLocation) {
-                const db = getFirestore();
-                const showroomsRef = collection(db, 'showroom');
-                const q = query(showroomsRef, where('Location', '==', showroomLocation));
-
-                try {
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach((doc) => {
-                            const showroomData = doc.data();
-                            console.log('Fetched Insurance Amount:', showroomData.insuranceAmountBody); // Log the fetched insuranceAmountBody
-
-                            setShowRoom((prevShowRoom) => ({
-                                ...prevShowRoom,
-                                insuranceAmount: showroomData.insuranceAmountBody,
-                            }));
-                            onUpdateInsuranceAmount(showroomData.insuranceAmountBody);
-                        });
-                    } else {
-                        console.log('No matching documents.');
-                    }
-                } catch (error) {
-                    console.error('Error fetching documents:', error);
-                }
+        if (!adjustmentApplied.current) {
+            const newTotalSalary = totalSalary - (insuranceAmountBody ? parseFloat(insuranceAmountBody) : 0);
+            console.log("Effect - totalSalary:", totalSalary);
+            console.log("Effect - insuranceAmountBody:", insuranceAmountBody);
+            console.log("Effect - newTotalSalary before update:", newTotalSalary);
+            if (newTotalSalary !== updatedTotalSalary) {
+                setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+                onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+                console.log("Effect - newTotalSalary after update:", newTotalSalary);
             }
-        };
-
-        fetchInsuranceAmount();
-    }, [showroomLocation, onUpdateInsuranceAmount]);
-
-    useEffect(() => {
-        const newTotalSalary = totalSalary - (showRoom.insuranceAmount ? parseFloat(showRoom.insuranceAmount) : 0);
-        setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-        onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-    }, [showRoom.insuranceAmount, totalSalary, onUpdateTotalSalary]);
+        }
+    }, [insuranceAmountBody, totalSalary, onUpdateTotalSalary, updatedTotalSalary]);
 
     const handleServiceChange = (e) => {
         const { value } = e.target;
@@ -86,11 +58,20 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, on
 
     const applyAdjustment = () => {
         const adjustedSalary = parseFloat(adjustValue);
-        if (adjustedSalary > 0 && adjustedSalary > updatedTotalSalary) {
+        console.log("Apply Adjustment - adjustValue:", adjustValue);
+        console.log("Apply Adjustment - adjustedSalary:", adjustedSalary);
+        console.log("Apply Adjustment - updatedTotalSalary before update:", updatedTotalSalary);
+        if (adjustedSalary > updatedTotalSalary) {
             setUpdatedTotalSalary(adjustedSalary);
             onUpdateTotalSalary(adjustedSalary);
+            adjustmentApplied.current = true;
+            console.log("Apply Adjustment - updatedTotalSalary after update:", adjustedSalary);
+        } else {
+            console.log("Adjustment value must be greater than current total salary.");
+            // You can optionally provide feedback or handle this case accordingly.
         }
     };
+    
 
     return (
         <div className="mb-5">
@@ -213,8 +194,27 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, on
                     </button>
                 </div>
             </div>
+            {/* <div className="form-input flex-1">
+                <input
+                    id="updatedTotalSalary"
+                    type="text"
+                    name="updatedTotalSalary"
+                    className="w-full text-danger"
+                    style={{
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '2rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    value={parseFloat(updatedTotalSalary).toFixed(2)}
+                    readOnly
+                />
+            </div> */}
         </div>
     );
 };
 
 export default VehicleSection;
+``

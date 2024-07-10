@@ -70,7 +70,7 @@ const Company = () => {
                                 <th>ID Number</th>
                                 <th>Phone Number</th>
                                 <th>Service Types</th>
-                                <th>Basic Salary</th>
+                                <th>Basic Amount</th>
                                 <th className="!text-center">Action</th>
                             </tr>
                         </thead>

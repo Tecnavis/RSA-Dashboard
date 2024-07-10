@@ -297,16 +297,7 @@ const [advancePayment, setAdvancePayment] = useState('');
             Add Service Type
         </label>
         {showTable && (
-  <div style={{ 
-    marginTop: '10px', 
-    padding: '10px', 
-    border: '1px solid #ccc', 
-    borderRadius: '5px', 
-    backgroundColor: '#f9f9f9',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Add box shadow for depth
-    maxWidth: '500px', // Limit maximum width for responsiveness
-    margin: 'auto' // Center the div horizontally
-}}>
+  <div>
     {renderServiceOptions()}
     <button 
         style={{ 
@@ -327,10 +318,6 @@ const [advancePayment, setAdvancePayment] = useState('');
 </div>
 
 )}
-</div>
-
-
-</div>
 {selectedServices.length > 0 && (
     <table style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
         <thead>
@@ -387,6 +374,10 @@ const [advancePayment, setAdvancePayment] = useState('');
         </tbody>
     </table>
 )}
+
+
+</div>
+</div>
                                 <div className="sm:col-span-2 mt-3">
             <button type="button" className="btn btn-primary" onClick={addOrUpdateItem}>
                 {editData ? 'Update' : 'Save'}

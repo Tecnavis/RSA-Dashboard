@@ -65,7 +65,7 @@ const CompanyDetails = () => {
                         <td>{driver.password}</td>
                     </tr>
                     <tr>
-                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Advance Payment:</td>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Credit Limit Amount:</td>
                         <td>{driver.advancePayment}</td>
                     </tr>
                 </tbody>
