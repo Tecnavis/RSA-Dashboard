@@ -16,7 +16,6 @@ import ShowroomModal from './ShowroomModal';
 import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
-
 interface Showroom {
     id: string;
     name: string;
@@ -84,12 +83,11 @@ interface Showroom {
     const [editData, setEditData] = useState(null);
     const [serviceTypes, setServiceTypes] = useState([]);
     const [showRooms, setShowRooms] = useState([]);
-    // const [adjustValue, setAdjustValue] = useState('');
     const [manualDistance, setManualDistance] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState([]);
 
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
     const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
-    // console.log('updatedTotalSalarycheck', updatedTotalSalary);
     useEffect(() => {
         setManualInput(pickupLocation ? pickupLocation.name : '');
     }, [pickupLocation]);
@@ -120,53 +118,57 @@ interface Showroom {
             setBaseLocation(editData.baseLocation || '');
             setShowrooms(editData.showrooms || []);
             setPickupLocation(editData.pickupLocation || '');
+            setUpdatedTotalSalary(editData.updatedTotalSalary || '');
+
             setServiceType(editData.serviceType || '');
             setTotalSalary(editData.totalSalary || 0);
             setDropoffLocation(editData.dropoffLocation || '')
+            setSelectedCompany(editData.selectedCompany || '');
+            console.log("editData.selectedCompany ",editData.selectedCompany )
             console.log('state.editData', state.editData);
         }
     }, [state]);
+     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch companies
+                const companiesCollection = collection(db, 'driver');
+                const companiesSnapshot = await getDocs(companiesCollection);
+                const companiesList = companiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(comp => comp.companyName !== 'RSA');
+                setCompanies(companiesList);
 
-    useEffect(() => {
-        if (company === 'rsa') {
-            const fetchCompanies = async () => {
-                try {
-                    const querySnapshot = await getDocs(collection(db, 'company'));
-                    const companyList = querySnapshot.docs.map((doc) => ({
+                // Subscribe to showrooms
+                const showroomsRef = collection(db, 'showroom');
+                const unsubscribe = onSnapshot(showroomsRef, (snapshot) => {
+                    const showRoomsData = snapshot.docs.map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
                     }));
-                    console.log('Fetched companies:', companyList); // Add this line to check fetched companies
-                    setCompanies(companyList);
-                } catch (error) {
-                    console.error('Error fetching companies:', error);
-                }
-            };
+                    setShowrooms(showRoomsData);
+                });
 
-            fetchCompanies();
-        }
-    }, [company, db]);
+                // Cleanup subscription on unmount
+                return () => unsubscribe();
 
-    useEffect(() => {
-        const db = getFirestore();
-        const showroomsRef = collection(db, 'showroom');
-        const unsubscribe = onSnapshot(showroomsRef, (snapshot) => {
-            const showRoomsData = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setShowrooms(showRoomsData);
-        });
+            } catch (error) {
+                console.error("Error fetching data: ", error);
+            }
+        };
 
-        return () => unsubscribe();
-    }, []);
+        fetchData();
+    }, [db]);
 
-    useEffect(() => {
-        if (totalSalary && insuranceAmountBody) {
-            const calculatedTotalSalary = totalSalary - parseFloat(insuranceAmountBody);
-            setUpdatedTotalSalary(calculatedTotalSalary);
-        }
-    }, [totalSalary, insuranceAmountBody]);
+    const handleUpdatedTotalSalary = (newTotalSalary) => {
+      console.log("updatedTotalSalary",newTotalSalary)
+      setUpdatedTotalSalary(newTotalSalary);
+  };
+
+  useEffect(() => {
+      if (totalSalary && insuranceAmountBody) {
+          const calculatedTotalSalary = totalSalary - parseFloat(insuranceAmountBody);
+          handleUpdatedTotalSalary(calculatedTotalSalary);
+      }
+  }, [totalSalary, insuranceAmountBody]);
  
     useEffect(() => {
         if (selectedDriver) {
@@ -201,10 +203,16 @@ interface Showroom {
                     setDropoffLocation('');
                 }
                 break;
-            case 'insuranceAmountBody':
-                console.log('insuranceAmountBody:', value);
-                setInsuranceAmountBody(value || '');
-                break;
+                case 'totalSalary':
+                  setTotalSalary(value || 0);
+                  const newCalculatedSalary = value - parseFloat(insuranceAmountBody);
+                  handleUpdatedTotalSalary(newCalculatedSalary);
+                  break;
+              case 'insuranceAmountBody':
+                  setInsuranceAmountBody(value || 0);
+                  const recalculatedTotalSalary = totalSalary - parseFloat(value);
+                  handleUpdatedTotalSalary(recalculatedTotalSalary);
+                  break;
             case 'adjustValue':
                 console.log('adjustValueconsole:', value);
                 handleAdjustValueChange({ target: { value } });
@@ -219,6 +227,14 @@ interface Showroom {
 
             case 'fileNumber':
                 setFileNumber(value || '');
+                break;
+                case 'selectedCompany':
+                  setSelectedCompany(value || '');
+                  break;
+                
+            case 'companies':
+                setCompanies(value || '');
+                console.log('first', value);
                 break;
             case 'bookingId':
                 setBookingId(value || '');
@@ -270,9 +286,7 @@ interface Showroom {
                     setPickupLocation({ ...pickupLocation, name: value.name });
                 }
                 break;
-            case 'totalSalary':
-                setTotalSalary(value || '');
-                break;
+           
             case 'vehicleSection':
                 setVehicleSection(value || '');
                 break;
@@ -348,12 +362,7 @@ interface Showroom {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
     }, [dropoffLocation]);
 
-    const handleUpdatedTotalSalary = (newTotalSalary) => {
-        if (newTotalSalary !== updatedTotalSalary) {
-            console.log('Setting Updated Total Salary in handleUpdatedTotalSalary:', newTotalSalary);
-            setUpdatedTotalSalary(newTotalSalary);
-        }
-    };
+  
     const handleManualChange1 = (field, value) => {
         setDropoffLocation((prev) => ({ ...prev, [field]: value }));
     };
@@ -631,13 +640,6 @@ interface Showroom {
             const totalSalaries = drivers.map((driver) => {
                 const totalDistanceObj = totalDistances.find((dist) => dist.driverId === driver.id);
                 const totalDistance = totalDistanceObj ? totalDistanceObj.totalDistance : 0;
-
-                console.log('Calculating salary for driver:', driver.id);
-                console.log('serviceDetails.salary:', serviceDetails.salary);
-                console.log('totalDistance:', totalDistance);
-                console.log('serviceDetails.basicSalaryKM:', serviceDetails.basicSalaryKM);
-                console.log('serviceDetails.salaryPerKM:', serviceDetails.salaryPerKM);
-
                 return calculateTotalSalary(serviceDetails.salary, totalDistance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
             });
 
@@ -721,112 +723,83 @@ interface Showroom {
     };
     return (
       <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
-          <div className="flex flex-wrap p-4">
-              <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
-              <div className="w-full">
-                  <div className="flex items-center mt-4">
-                      <label htmlFor="company" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800">
-                          Company
-                      </label>
-                                <select
-                                    id="company"
-                                    name="company"
-                                    value={company}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    onChange={(e) => handleInputChange('company', e.target.value)}
-                                >
-                                    <option value="">Select Company</option>
-                                    <option value="rsa">RSA Work</option>
-                                    <option value="self">Payment Work</option>
-                                </select>
-                            </div>
-                            {company === 'rsa' && (
-                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                    <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                        Select Company
-                                    </label>
-                                    <select
-                                        id="selectedCompany"
-                                        name="selectedCompany"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-                                    >
-                                        <option value="">Select Company</option>
-                                        {companies.map((comp) => (
-                                            <option key={comp.id} value={comp.id}>
-                                                {comp.companyName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {companies.length === 0 && <p>No companies available</p>}
-                                </div>
-                            )}
-                            {company === 'self' ? (
-                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                        File Number
-                                    </label>
-                                    <input
-                                        id="fileNumber"
-                                        type="text"
-                                        name="fileNumber"
-                                        placeholder="Enter File Number"
-                                        className="form-input lg:w-[250px] w-2/3"
-                                        value={`PMNA${bookingId}`}
-                                        readOnly
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            backgroundColor: '#f1f1f1', // read-only background color
-                                        }}
-                                    />
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                                    <label htmlFor="fileNumber" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                                        File Number
-                                    </label>
-                                    <input
-                                        id="fileNumber"
-                                        type="text"
-                                        name="fileNumber"
-                                        className="form-input lg:w-[250px] w-2/3"
-                                        placeholder="Enter File Number"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        value={fileNumber}
-                                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                                    />
-                                </div>
-                            )}
+            <div className="flex flex-wrap p-4 ">
+                <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
+                <div className="w-full">
+                <div className="flex items-center mt-4">
+                <label htmlFor="company" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                    Company
+                </label>
+                <select
+                    id="company"
+                    name="company"
+                    value={company}
+                    className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                >
+                    <option value="">Select Company</option>
+                    <option value="rsa">RSA Work</option>
+                    <option value="self">Payment Work</option>
+                </select>
+            </div>
+            {company === 'rsa' && (
+                <div className="mt-4">
+                    <div className="flex items-center">
+                        <label htmlFor="selectedCompany" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                            Select Company
+                        </label>
+                        <select
+                            id="selectedCompany"
+                            name="selectedCompany"
+                            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                            onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+                        >
+                            <option value="">Select Company</option>
+                            {companies.map((comp) => (
+                                <option key={comp.id} value={comp.companyName}>
+                                    {comp.companyName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="mt-4">
+                    <span className="font-semibold">Selected Company:</span> <span className="text-red-600">{selectedCompany}</span>
+                    </div>
+                    {companies.length === 0 && <p className="mt-2 text-red-600">No companies available</p>}
+                </div>
+            )}
+            {company === 'self' ? (
+                <div className="flex items-center mt-4">
+                    <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        placeholder="Enter File Number"
+                        className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100 focus:outline-none"
+                        value={`PMNA${bookingId}`}
+                        readOnly
+                    />
+                </div>
+            ) : (
+                <div className="flex items-center mt-4">
+                    <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                        placeholder="Enter File Number"
+                        value={fileNumber}
+                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                    />
+                </div>
+            )}
+
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Customer Name
@@ -1476,65 +1449,79 @@ interface Showroom {
                         </div>
                         {selectedDriver && selectedDriverData && (
                             <React.Fragment>
-                                <div>
-                                    <VehicleSection
-    showroomLocation={state.editData.showroomLocation}
-    totalSalary={totalSalary}
-                                        onUpdateTotalSalary={handleUpdatedTotalSalary}
-                                        onUpdateInsuranceAmount={handleInsuranceAmountBody}
-                                        adjustValueCallback={handleAdjustValueChange}
-                                    />
-                                    <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
+                            <div>
+                            <VehicleSection
+                                totalSalary={totalSalary}
+                                onUpdateTotalSalary={handleUpdatedTotalSalary}
+                                insuranceAmountBody={insuranceAmountBody}
+                                adjustValueCallback={handleAdjustValueChange}
+                            />
+                            <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
 
-                                    <div className="mt-4 flex items-center">
-                                        <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                            Total Amount without insurance
-                                        </label>
-                                        <div className="form-input flex-1">
-                                            <input
-                                                id="totalSalary"
-                                                type="text"
-                                                name="totalSalary"
-                                                className="w-full  text-bold"
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: '5px',
-                                                    fontSize: '1rem',
-                                                    outline: 'none',
-                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                }}
-                                                value={totalSalary}
-                                                readOnly
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex items-center">
-                                        <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                            Payable Amount (with insurance)
-                                        </label>
-                                        <div className="form-input flex-1">
-                                            <input
-                                                id="updatedTotalSalary"
-                                                type="text"
-                                                name="updatedTotalSalary"
-                                                className="w-full text-danger"
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: '5px',
-                                                    fontSize: '2rem',
-                                                    outline: 'none',
-                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                                }}
-                                                value={parseFloat(updatedTotalSalary).toFixed(2)}
-                                                readOnly
-                                            />
-                                        </div>
-                                    </div>
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Total Amount without insurance
+                                </label>
+                                <div className="form-input flex-1">
+                                    <input
+                                        id="totalSalary"
+                                        type="text"
+                                        name="totalSalary"
+                                        className="w-full  text-bold"
+                                        style={{
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        value={totalSalary}
+                                        readOnly
+                                    />
                                 </div>
-                            </React.Fragment>
-                        )}
+                            </div>
+                            <div className="mt-4 flex items-center">
+                <label htmlFor="insuranceAmountBody" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                    Insurance Amount Body
+                </label>
+                <div className="form-input flex-1">
+                    <input
+                        id="insuranceAmountBody"
+                        type="text"
+                        name="insuranceAmountBody"
+                        className="w-full"
+                        value={insuranceAmountBody}
+                        onChange={(e) => handleInputChange('insuranceAmountBody', e.target.value)}
+                    />
+                </div>
+            </div>
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Payable Amount (with insurance)
+                                </label>
+                                <div className="form-input flex-1">
+                                    <input
+                                        id="updatedTotalSalary"
+                                        type="text"
+                                        name="updatedTotalSalary"
+                                        className="w-full text-danger"
+                                        style={{
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '2rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        value={updatedTotalSalary}
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </React.Fragment>
+                )}
                      
                         <div className="flex items-center mt-4">
                             <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">

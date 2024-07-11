@@ -11,7 +11,6 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, ad
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(totalSalary);
     const [adjustValue, setAdjustValue] = useState('');
     const adjustmentApplied = useRef(false);
-
     useEffect(() => {
         if (!adjustmentApplied.current) {
             const newTotalSalary = totalSalary - (insuranceAmountBody ? parseFloat(insuranceAmountBody) : 0);
@@ -169,7 +168,6 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, ad
             </div>
             <br />
             <div>
-                <p>Insurance Amount: {showRoom.insuranceAmount}</p>
                 <div>
                     <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Adjustment Value:</label>
                     <input

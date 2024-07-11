@@ -40,6 +40,7 @@ const WithoutMapBooking = () => {
         serviceType: '',
         serviceVehicle: '',
         driver: '',
+        distance: '',
         vehicleNumber: '',
         vehicleModel: '',
         vehicleSection: '',
@@ -80,16 +81,14 @@ const WithoutMapBooking = () => {
     const [serviceTypes, setServiceTypes] = useState([]);
     const [showRooms, setShowRooms] = useState([]);
     const [disableFields, setDisableFields] = useState(false); // State to control field disabling
+        const [selectedCompany, setSelectedCompany] = useState([]);
 
-    const [manualDistance, setManualDistance] = useState(false);
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
     const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
     useEffect(() => {
         setManualInput(pickupLocation ? pickupLocation.name : '');
     }, [pickupLocation]);
-    console.log('vehicleNumber', vehicleNumber);
-    console.log('Insurance Amount top:', insuranceAmountBody); // Debug log
-
+   
     useEffect(() => {
         if (state && state.editData) {
             const editData = state.editData;
@@ -109,7 +108,8 @@ const WithoutMapBooking = () => {
             setVehicleModel(editData.vehicleModel || '');
             setVehicleSection(editData.vehicleSection || '');
             setUpdatedTotalSalary(editData.updatedTotalSalary || '');
-
+                        setSelectedCompany(editData.selectedCompany || '');
+console.log("editData.selectedCompany ",editData.selectedCompany )
             setShowroomLocation(editData.showroomLocation || '');
             setDistance(editData.distance || '');
             setSelectedDriver(editData.selectedDriver || '');
@@ -122,6 +122,13 @@ const WithoutMapBooking = () => {
             console.log('state.editData', state.editData);
         }
     }, [state]);
+    useEffect(() => {
+      if (trappedLocation === 'outsideOfRoad') {
+          setDisableFields(true);
+      } else {
+          setDisableFields(false);
+      }
+  }, [trappedLocation]);
     useEffect(() => {
       const fetchCompanies = async () => {
           const companiesCollection = collection(db, 'driver');
@@ -167,7 +174,7 @@ const WithoutMapBooking = () => {
     const handleAdjustValueChange = (adjustedValue) => {
         setUpdatedTotalSalary(adjustedValue);
     };
-
+   
     const handleInputChange = (field, value) => {
         console.log('Field:', field);
         console.log('Value:', value);
@@ -205,6 +212,10 @@ const WithoutMapBooking = () => {
             case 'customerName':
                 setCustomerName(value || '');
                 break;
+                case 'selectedCompany':
+                  setSelectedCompany(value || '');
+                  break;
+                
             case 'companies':
                 setCompanies(value || '');
                 console.log('first', value);
@@ -234,9 +245,9 @@ const WithoutMapBooking = () => {
                 break;
 
             case 'distance':
+              console.log("value",value)
                 setDistance(value || '');
-                setManualDistance(true);
-                // openModal();
+                
                 break;
             case 'serviceVehicle':
                 setServiceVehicle(value);
@@ -288,17 +299,7 @@ const WithoutMapBooking = () => {
             case 'selectedDriver':
                 console.log('Selected Driver ID:', value);
                 setSelectedDriver(value);
-                // Calculate total salary for the selected driver
-                // const selectedDriverTotalSalary = calculateTotalSalary(
-                //     serviceDetails.salary,
-                //     totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0,
-                //     serviceDetails.basicSalaryKM,
-                //     serviceDetails.salaryPerKM
-                // );
-                // Update the Total Salary field with the calculated total salary
-                // setTotalSalary(selectedDriverTotalSalary);
-                // const selectedDriverTotalDistance = totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0;
-                // setTotalDistance(selectedDriverTotalDistance);
+                
                 break;
             case 'selectedDriver':
                 setSelectedDriver(value);
@@ -314,9 +315,7 @@ const WithoutMapBooking = () => {
                 break;
         }
 
-        if (field === 'distance') {
-            // openModal(value);
-        } else if (field === 'serviceType') {
+       if (field === 'serviceType') {
             setServiceType(value || '');
             openModal();
         } else if (field === 'selectedDriver') {
@@ -456,14 +455,13 @@ const WithoutMapBooking = () => {
     }, [db, serviceType]);
 
     const [pickupDistances, setPickupDistances] = useState([]);
-    console.log('first', pickupDistances);
+    console.log('first34e2', pickupDistances);
 
-    const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
 
-    const calculateTotalSalary = (salary, totalDistance, basicSalaryKM, salaryPerKM) => {
+    const calculateTotalSalary = (salary, distance, basicSalaryKM, salaryPerKM) => {
         const numericBasicSalary = Number(salary) || 0;
-        const numericTotalDistance = Number(totalDistance) || 0;
+        const numericTotalDistance = Number(distance) || 0;
         const numericKmValueNumeric = Number(basicSalaryKM) || 0;
         const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
         console.log('numericBasicSalary', numericBasicSalary);
@@ -520,13 +518,7 @@ const WithoutMapBooking = () => {
     useEffect(() => {
         if (distance.length > 0) {
             const totalSalaries = drivers.map((driver) => {
-                console.log('Calculating salary for driver:', driver.id);
-                console.log('serviceDetails.salary:', serviceDetails.salary);
-                console.log('totalDistance:', distance);
-                console.log('serviceDetails.basicSalaryKM:', serviceDetails.basicSalaryKM);
-                console.log('serviceDetails.salaryPerKM:', serviceDetails.salaryPerKM);
-
-                return calculateTotalSalary(serviceDetails.salary, distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
+   return calculateTotalSalary(serviceDetails.salary, distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
             });
             const totalSalary = totalSalaries.reduce((acc, salary) => parseFloat(salary), 0);
             console.log('totalSalary', totalSalary);
@@ -534,7 +526,7 @@ const WithoutMapBooking = () => {
             setTotalSalary(totalSalary);
             setUpdatedTotalSalary(totalSalary);
         }
-    }, [pickupDistances, drivers, serviceDetails, totalDistances, distanceNumeric]);
+    }, [pickupDistances, drivers, serviceDetails,  distanceNumeric]);
 
     const renderServiceVehicle = (serviceVehicle, serviceType) => {
         if (serviceVehicle && serviceVehicle[serviceType]) {
@@ -556,6 +548,8 @@ const WithoutMapBooking = () => {
             } else if (company === 'rsa') {
                 finalFileNumber = fileNumber;
             }
+            console.log('Distance67587:', distance);
+
             const bookingData = {
                 ...bookingDetails,
                 driver: driverName,
@@ -567,7 +561,7 @@ const WithoutMapBooking = () => {
                 bookingId: `${bookingId}`,
                 createdAt: serverTimestamp(),
                 comments: comments || '',
-                totalDistance: totalDistance,
+                totalDistance: distance,
                 baseLocation: baseLocation || '',
                 showroomLocation: showroomLocation,
                 Location: Location || '',
@@ -585,6 +579,8 @@ const WithoutMapBooking = () => {
                 trappedLocation: trappedLocation || '',
                 updatedTotalSalary: updatedTotalSalary || '',
                 insuranceAmount: insuranceAmountBody || '',
+                selectedCompany: selectedCompany || '',
+
                 paymentStatus: 'Not Paid',
             };
             if (editData) {
@@ -613,74 +609,79 @@ const WithoutMapBooking = () => {
             <div className="flex flex-wrap p-4 ">
                 <h5 className="font-semibold text-lg dark:text-white-light mb-5 p-4">Book Now</h5>
                 <div className="w-full">
-                    <div className="flex items-center mt-4">
-                        <label htmlFor="company" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800">
-                            Company
+                <div className="flex items-center mt-4">
+                <label htmlFor="company" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                    Company
+                </label>
+                <select
+                    id="company"
+                    name="company"
+                    value={company}
+                    className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                >
+                    <option value="">Select Company</option>
+                    <option value="rsa">RSA Work</option>
+                    <option value="self">Payment Work</option>
+                </select>
+            </div>
+            {company === 'rsa' && (
+                <div className="mt-4">
+                    <div className="flex items-center">
+                        <label htmlFor="selectedCompany" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                            Select Company
                         </label>
                         <select
-                            id="company"
-                            name="company"
-                            value={company}
-                            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none"
-                            onChange={(e) => handleInputChange('company', e.target.value)}
+                            id="selectedCompany"
+                            name="selectedCompany"
+                            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                            onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
                         >
                             <option value="">Select Company</option>
-                            <option value="rsa">RSA Work</option>
-                            <option value="self">Payment Work</option>
+                            {companies.map((comp) => (
+                                <option key={comp.id} value={comp.companyName}>
+                                    {comp.companyName}
+                                </option>
+                            ))}
                         </select>
                     </div>
-                    {company === 'rsa' && (
-                        <div className="flex items-center mt-4">
-                            <label htmlFor="selectedCompany" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800">
-                                Select Company
-                            </label>
-                            <select
-                                id="selectedCompany"
-                                name="selectedCompany"
-                                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none"
-                                onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-                            >
-                                <option value="">Select Company</option>
-                                {companies.map((comp) => (
-                                    <option key={comp.id} value={comp.companyName}>
-                                        {comp.companyName}
-                                    </option>
-                                ))}
-                            </select>
-                            {companies.length === 0 && <p>No companies available</p>}
-                        </div>
-                    )}
-                    {company === 'self' ? (
-                        <div className="flex items-center mt-4">
-                            <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800">
-                                File Number
-                            </label>
-                            <input
-                                id="fileNumber"
-                                type="text"
-                                name="fileNumber"
-                                placeholder="Enter File Number"
-                                className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100"
-                                value={`PMNA${bookingId}`}
-                                readOnly
-                            />
-                        </div>
-                    ) : (
-                        <div className="flex items-center mt-4">
-                            <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800">
-                                File Number
-                            </label>
-                            <input
-                                id="fileNumber"
-                                type="text"
-                                name="fileNumber"
-                                className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm"
-                                placeholder="Enter File Number"
-                                value={fileNumber}
-                                onChange={(e) => handleInputChange('fileNumber', e.target.value)}
-                            />
-                        </div>
-                    )}
+                    <div className="mt-4">
+                    <span className="font-semibold">Selected Company:</span> <span className="text-red-600">{selectedCompany}</span>
+                    </div>
+                    {companies.length === 0 && <p className="mt-2 text-red-600">No companies available</p>}
+                </div>
+            )}
+            {company === 'self' ? (
+                <div className="flex items-center mt-4">
+                    <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        placeholder="Enter File Number"
+                        className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100 focus:outline-none"
+                        value={`PMNA${bookingId}`}
+                        readOnly
+                    />
+                </div>
+            ) : (
+                <div className="flex items-center mt-4">
+                    <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
+                        File Number
+                    </label>
+                    <input
+                        id="fileNumber"
+                        type="text"
+                        name="fileNumber"
+                        className="form-input lg:w-[250px] w-2/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                        placeholder="Enter File Number"
+                        value={fileNumber}
+                        onChange={(e) => handleInputChange('fileNumber', e.target.value)}
+                    />
+                </div>
+            )}
                     <div className="mt-4 flex items-center">
                         <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                             Customer Name
@@ -1105,11 +1106,14 @@ const WithoutMapBooking = () => {
                         <label htmlFor="distance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                             Distance (KM)
                         </label>
+                        
                         <input
                             id="distance"
-                            type="text"
+                            type="distance"
                             name="distance"
                             className="form-input flex-1"
+                            placeholder="Enter Distance"
+                            value={distance}
                             style={{
                                 width: '100%',
                                 padding: '0.5rem',
@@ -1120,9 +1124,6 @@ const WithoutMapBooking = () => {
                                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                             }}
                             onChange={(e) => handleInputChange('distance', e.target.value)}
-                            value={distance}
-                            readOnly={!manualDistance}
-                            onClick={() => setManualDistance(true)}
                         />
                     </div>
                     <div className="flex items-center mt-4">
@@ -1168,6 +1169,23 @@ const WithoutMapBooking = () => {
                             </label>
                         </div>
                     </div>
+                    {trappedLocation === 'outsideOfRoad' && (
+                <div className="flex items-center mt-4">
+                    <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                    Updated Total Amount
+                    </label>
+                    <input
+                        id="updatedTotalSalary"
+                        type="text"
+                        name="updatedTotalSalary"
+                        className="form-input flex-1"
+                        placeholder="Enter Total Salary"
+                        value={updatedTotalSalary}
+                        onChange={(e) => setUpdatedTotalSalary(e.target.value)}
+                        required
+                    />
+                </div>
+            )}
                     {!disableFields && (
 
                     <div className="flex items-center mt-4">
@@ -1322,9 +1340,8 @@ const WithoutMapBooking = () => {
                                 totalSalary={totalSalary}
                                 onUpdateTotalSalary={handleUpdatedTotalSalary}
                                 insuranceAmountBody={insuranceAmountBody}
-                                adjustValueCallback={handleAdjustValueChange}
+                                // adjustValueCallback={handleAdjustValueChange}
                             />
-                            <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
