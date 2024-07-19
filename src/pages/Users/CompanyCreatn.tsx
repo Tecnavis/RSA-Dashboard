@@ -14,22 +14,22 @@ const CompanyCreatn = () => {
     const navigate = useNavigate();
     console.log("data", items)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const querySnapshot = await getDocs(collection(db, 'company'));
-            setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-        };
-        fetchData().catch(console.error);
-    }, []);
     // useEffect(() => {
     //     const fetchData = async () => {
-    //         const driverCollection = collection(db, 'driver');
-    //         const q = query(driverCollection, where('companyName', '!=', 'RSA'));
-    //         const querySnapshot = await getDocs(q);
+    //         const querySnapshot = await getDocs(collection(db, 'driver'));
     //         setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     //     };
     //     fetchData().catch(console.error);
     // }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            const driverCollection = collection(db, 'driver');
+            const q = query(driverCollection, where('companyName', '==', 'company'));
+            const querySnapshot = await getDocs(q);
+            setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        };
+        fetchData().catch(console.error);
+    }, []);
 
     const handleDelete = async (userId: string) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this user?');
@@ -82,7 +82,7 @@ const CompanyCreatn = () => {
                                 return (
                                     <tr key={item.id}>
                                         <td>{index + 1}</td>
-                                        <td>{item.companyName}</td>
+                                        <td>{item.company}</td>
                                         <td>
                                             <div className="whitespace-nowrap">{item.driverName}</div>
                                         </td>

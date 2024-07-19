@@ -10,7 +10,10 @@ const CompanyCreationAdd = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [phone, setPhone] = useState('');
-    const [companyName, setCompanyName] = useState('');
+    const [company, setCompany] = useState('');
+    const [serviceVehicle, setServiceVehicle] = useState({});
+
+    const [companyName, setCompanyName] = useState("Company");
     const [errorMessage, setErrorMessage] = useState('');
 
     const [personalphone, setPersonalPhone] = useState('');
@@ -61,7 +64,10 @@ const [advancePayment, setAdvancePayment] = useState('');
         const updatedsalaryPerKm = { ...salaryPerKm, [service]: e.target.value };
         setSalaryPerKm(updatedsalaryPerKm);
     };
-   
+    const handleServiceVehicle = (service, e) => {
+        const updatedServiceVehicle= { ...serviceVehicle, [service]: e.target.value };
+        setServiceVehicle(updatedServiceVehicle);
+    };
     const handleProfileImageChange = (e) => {
         setProfileImage(e.target.files[0]); // Store the selected file
     };
@@ -111,12 +117,15 @@ const [advancePayment, setAdvancePayment] = useState('');
             setConfirmPassword(state.editData.confirmPassword || '');
             setAdvancePayment(state.editData.advancePayment || '');
 
-            
+            setServiceVehicle(state.editData.serviceVehicle || '');
+
             setPersonalPhone(state.editData.personalphone || '');
             setSalaryPerKm(state.editData.salaryPerKm || '');
             setBasicSalaryKm(state.editData.basicSalaryKm || '');
 
             setSelectedServices(state.editData.selectedServices || '');
+            setCompany(state.editData.company|| '');
+
             setCompanyName(state.editData.companyName || '');
 
             setBasicSalaries(state.editData.basicSalaries || '');
@@ -145,8 +154,11 @@ const [advancePayment, setAdvancePayment] = useState('');
                 driverName,
                 idnumber,
                 companyName,
+                company,
                 advancePayment,
                 phone,
+                serviceVehicle,
+
                 personalphone,
                 salaryPerKm,
                 basicSalaryKm,
@@ -158,11 +170,11 @@ const [advancePayment, setAdvancePayment] = useState('');
             };
 
             if (editData) {
-                const docRef = doc(db, 'company', editData.id);
+                const docRef = doc(db, 'driver', editData.id);
                 await updateDoc(docRef, itemData);
                 console.log('Document updated');
             } else {
-                const docRef = await addDoc(collection(db, 'company'), itemData);
+                const docRef = await addDoc(collection(db, 'driver'), itemData);
                 console.log('Document written with ID: ', docRef.id);
             }
 
@@ -212,8 +224,12 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="companyName">Company Name</label>
+                                    <label htmlFor="companyName">Section</label>
                                     <input id="companyName" type="text" placeholder="Enter Company Name" className="form-input" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label htmlFor="company">Company Name</label>
+                                    <input id="company" type="text" placeholder="Enter Company Name" className="form-input" value={company} onChange={(e) => setCompany(e.target.value)} />
                                 </div>
                                 <div>
                                     <label htmlFor="idnumber">ID number</label>
@@ -338,6 +354,8 @@ const [advancePayment, setAdvancePayment] = useState('');
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>KM for Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>SalaryPerKm</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Vehicle Number</th>
+
             </tr>
         </thead>
         <tbody>
@@ -370,6 +388,14 @@ const [advancePayment, setAdvancePayment] = useState('');
                             onChange={(e) => handleSalaryPerKmChange(service, e)}
                         />
                         <span style={{ position: 'absolute', right: '45px', top: '50%', transform: 'translateY(-50%)', color: '#555'}}>/km</span>
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px', position: 'relative' }}>
+                        <input
+                            style={{ border: 'none', outline: 'none' }} // Set border and outline to none, adjust width to leave space for "KM"
+                            type="text"
+                            value={serviceVehicle[service] || ""}
+                            onChange={(e) => handleServiceVehicle(service, e)}
+                        />
                     </td>
                 </tr>
             ))}

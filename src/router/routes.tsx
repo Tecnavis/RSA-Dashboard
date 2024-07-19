@@ -44,6 +44,10 @@ import CompanyCreatn from '../pages/Users/CompanyCreatn';
 import CompanyCreationAdd from '../pages/Users/CompanyCreationAdd';
 import CompanyDetails from '../pages/Users/CompanyDetails';
 import DriverInvoice from '../pages/CashCollectionReport.tsx/DriverInvoice';
+import DriverSalaryReport from '../pages/DriverReport/DriverSalaryReport';
+import SalaryReport from '../pages/DriverReport/SalaryReport';
+import DriverSalaryInvoice from '../pages/DriverReport/DriverSalaryInvoice';
+import EditSalary from '../pages/DriverReport/EditSalary';
 
 
 
@@ -253,6 +257,10 @@ const routes = [
     {
         path: '/general/sales/preview/edit/:id',
         element: <Edit />,
+    },
+    {
+        path: '/editsalary/:id',
+        element: <EditSalary />,
     },
  
     // components page
@@ -546,10 +554,22 @@ const routes = [
         element: <DriverInvoice />,
         
     },
-    
+    {
+        path: '/driverreport/salaryreport/driversalaryInvoice',
+        element: <DriverSalaryInvoice />,
+        
+    },
     {
         path: '/driverreport',
         element: <DriverReport />,
+    },
+    {
+        path: '/driverreport/driversalaryreport',
+        element: <DriverSalaryReport />,
+    },
+    {
+        path: '/driverreport/salaryreport/:id',
+        element: <SalaryReport />,
     },
       //Status pages
       {

@@ -12,7 +12,7 @@ const CompanyDetails = () => {
     useEffect(() => {
         const fetchDriver = async () => {
             try {
-                const docRef = doc(db, 'company', id); // Construct reference to the document with the provided ID
+                const docRef = doc(db, 'driver', id); // Construct reference to the document with the provided ID
                 const docSnap = await getDoc(docRef); // Fetch the document snapshot
 
                 if (docSnap.exists()) {
@@ -50,7 +50,7 @@ const CompanyDetails = () => {
                     </tr>
                     <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Company Name:</td>
-                        <td>{driver.companyName}</td>
+                        <td>{driver.company}</td>
                     </tr>
                     <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Phone Number:</td>

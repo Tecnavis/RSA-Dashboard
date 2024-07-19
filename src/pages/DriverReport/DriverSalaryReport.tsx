@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import IconMultipleForwardRight from '../../components/Icon/IconMultipleForwardRight';
-import { Link } from 'react-router-dom';
 import IconEdit from '../../components/Icon/IconEdit';
-import IconDollarSignCircle from '../../components/Icon/IconDollarSignCircle';
-import IconDollarSign from '../../components/Icon/IconDollarSign';
-import IconMenuMore from '../../components/Icon/Menu/IconMenuMore';
-import IconCpuBolt from '../../components/Icon/IconCpuBolt';
-import IconMenuComponents from '../../components/Icon/Menu/IconMenuComponents';
-import IconPhoneCall from '../../components/Icon/IconPhoneCall';
-import { Button } from '@mantine/core';
+import { Link } from 'react-router-dom';
+import IconMultipleForwardRight from '../../components/Icon/IconMultipleForwardRight';
 
-const DriverReport = () => {
+const DriverSalaryReport = () => {
     const [drivers, setDrivers] = useState([]);
 
     const [editDriverId, setEditDriverId] = useState(null);
@@ -73,7 +66,7 @@ const filteredDrivers = drivers.filter((driver) =>
 );
     return (
         <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-semibold mb-4">Driver Report</h2>
+        <h2 className="text-2xl font-semibold mb-4">Driver Cash Collection Report</h2>
         <div className="mb-4 w-full">
             <input
                 type="text"
@@ -134,32 +127,21 @@ const filteredDrivers = drivers.filter((driver) =>
                                     driver.advancePayment
                                 )}
                             </td>
-                            <td className="border px-4 py-2 flex gap-2 items-center">
-    {editDriverId === driver.id ? (
-        <button onClick={handleSaveDriverClick} className="text-green-500 hover:text-green-700">
-            Save
-        </button>
-    ) : (
-        <button onClick={() => handleEditDriverClick(driver)} className="text-green-500 hover:text-blue-700">
-            <IconEdit className="inline-block w-5 h-5" />
-        </button>
-    )}
-
-    <Link
-        to={`/users/driver/driverdetails/cashcollection/${driver.id}`}
-        className="text-blue-500 hover:text-blue-700 bg-blue-100 px-2 py-1 rounded-md shadow-md"
-    >
-        View Cash Collection Report
-    </Link>
-
-    <Link
-                                    to={`/driverreport/salaryreport/${driver.id}`}
-                                    className="text-blue-500 hover:text-blue-700 bg-blue-100 px-2 py-1 rounded-md shadow-md"
-    >
-        View Salary Details
-    </Link>
-</td>
-
+                            <td className="border px-4 py-2 flex gap-2">
+                                {editDriverId === driver.id ? (
+                                    <button onClick={handleSaveDriverClick} className="text-green-500 hover:text-green-700">Save</button>
+                                ) : (
+                                    <button onClick={() => handleEditDriverClick(driver)} className="text-green-500 hover:text-blue-700">
+                                        <IconEdit className="inline-block w-5 h-5" />
+                                    </button>
+                                )}
+                                <Link
+                                    to={`/driverreport/driversalaryreport/salaryreport/${driver.id}`}
+                                    className="text-blue-500 hover:text-blue-700"
+                                >
+                                    <IconMultipleForwardRight className="inline-block w-5 h-5"/>
+                                </Link>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -171,4 +153,5 @@ const filteredDrivers = drivers.filter((driver) =>
 
 
 
-export default DriverReport;
+
+export default DriverSalaryReport;

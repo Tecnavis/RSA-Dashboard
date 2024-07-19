@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { GoogleMap } from '@react-google-maps/api';
+import { GoogleMap, useGoogleMap } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
 import { query, where } from 'firebase/firestore';
 import { serverTimestamp } from 'firebase/firestore';
-import useGoogleMaps from './GoogleMaps';
 import MyMapComponent from './MyMapComponent';
 import VehicleSection from './VehicleSection';
 import IconPlus from '../../components/Icon/IconPlus';
@@ -14,6 +13,8 @@ import ShowroomModal from './ShowroomModal';
 import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
+import useGoogleMaps from './GoogleMaps';
+
 interface Showroom {
     id: string;
     name: string;
@@ -141,36 +142,41 @@ const MapBooking = () => {
         }
     }, [trappedLocation]);
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch companies
-                const companiesCollection = collection(db, 'driver');
-                const companiesSnapshot = await getDocs(companiesCollection);
-                const companiesList = companiesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((comp) => comp.companyName !== 'RSA');
-                setCompanies(companiesList);
-
-                // Subscribe to showrooms
-                const showroomsRef = collection(db, 'showroom');
-                const unsubscribe = onSnapshot(showroomsRef, (snapshot) => {
-                    const showRoomsData = snapshot.docs.map((doc) => ({
+        if (company === 'rsa') {
+            const fetchCompanies = async () => {
+                try {
+                    const driverCollection = collection(db, 'driver');
+                    const q = query(driverCollection, where('companyName', '==', 'Company'));
+                    const querySnapshot = await getDocs(q);
+                    const companyList = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data(),
-                    }));
-                    setShowrooms(showRoomsData);
-                });
+                        ...doc.data()
+                    })) as Company[];
+                    setCompanies(companyList);
+                } catch (error) {
+                    console.error('Error fetching companies:', error);
+                }
+            };
 
-                // Cleanup subscription on unmount
-                return () => unsubscribe();
-            } catch (error) {
-                console.error('Error fetching data: ', error);
-            }
-        };
+            fetchCompanies();
+        }
+    }, [company, db]);
 
-        fetchData();
-    }, [db]);
 
+    useEffect(() => {
+        const db = getFirestore();
+        const showroomsRef = collection(db, 'showroom');
+        const unsubscribe = onSnapshot(showroomsRef, (snapshot) => {
+            const showRoomsData = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setShowrooms(showRoomsData);
+        });
+
+        return () => unsubscribe();
+    }, []);
     const handleUpdatedTotalSalary = (newTotalSalary) => {
-        console.log('updatedTotalSalary', newTotalSalary);
         setUpdatedTotalSalary(newTotalSalary);
     };
 
@@ -194,8 +200,7 @@ const MapBooking = () => {
     };
 
     const handleInputChange = (field, value) => {
-        console.log('Field:', field);
-        console.log('Value:', value);
+        
 
         switch (field) {
             case 'showroomLocation':
@@ -224,7 +229,6 @@ const MapBooking = () => {
                 handleUpdatedTotalSalary(recalculatedTotalSalary);
                 break;
             case 'adjustValue':
-                console.log('adjustValueconsole:', value);
                 handleAdjustValueChange({ target: { value } });
                 break;
             case 'customerName':
@@ -244,7 +248,6 @@ const MapBooking = () => {
 
             case 'companies':
                 setCompanies(value || '');
-                console.log('first', value);
                 break;
             case 'bookingId':
                 setBookingId(value || '');
@@ -257,13 +260,13 @@ const MapBooking = () => {
                 break;
 
             case 'updatedTotalSalary':
+                console.log("updatedTotalSalary",updatedTotalSalary)
                 setUpdatedTotalSalary(value || '');
                 break;
 
             case 'distance':
                 setDistance(value || '');
                 setManualDistance(true);
-                // openModal();
                 break;
             case 'serviceVehicle':
                 setServiceVehicle(value);
@@ -313,7 +316,6 @@ const MapBooking = () => {
                 setTrappedLocation(value || '');
                 break;
             case 'selectedDriver':
-                console.log('Selected Driver ID:', value);
                 setSelectedDriver(value);
                 // Calculate total salary for the selected driver
                 const selectedDriverTotalSalary = calculateTotalSalary(
@@ -347,7 +349,6 @@ const MapBooking = () => {
             setServiceType(value || '');
             openModal();
         } else if (field === 'selectedDriver') {
-            console.log('Selected Driver ID:', value);
             setSelectedDriver(value || '');
         }
     };
@@ -364,10 +365,8 @@ const MapBooking = () => {
     };
 
     useEffect(() => {
-        console.log('SR:', showroomLocation);
     }, [showroomLocation]);
     useEffect(() => {
-        console.log('Updated Total Salary in State:', updatedTotalSalary);
     }, [updatedTotalSalary]);
 
     useEffect(() => {
@@ -461,7 +460,6 @@ const MapBooking = () => {
                         const distances = response.rows.map((row, index) => {
                             return row.elements[index].distance.value / 1000; // Distance in km
                         });
-                        console.log('Distances:', distances);
 
                         const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
 
@@ -500,7 +498,6 @@ const MapBooking = () => {
                     })
                     .filter(Boolean);
 
-                console.log('Filtered Drivers:', filteredDrivers);
                 setDrivers(filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
@@ -531,7 +528,6 @@ const MapBooking = () => {
                     return;
                 }
                 const details = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))[0];
-                console.log('Fetched service details: ', details);
                 setServiceDetails(details);
             } catch (error) {
                 console.error('Error fetching service details:', error);
@@ -547,13 +543,7 @@ const MapBooking = () => {
         const numericTotalDistance = Number(totalDistance) || 0;
         const numericKmValueNumeric = Number(basicSalaryKM) || 0;
         const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
-        console.log('numericBasicSalary', numericBasicSalary);
-        console.log('numericTotalDistance', numericTotalDistance);
-
-        console.log('numericKmValueNumeric', numericKmValueNumeric);
-
-        console.log('numericPerKmValueNumeric', numericPerKmValueNumeric);
-
+      
         if (numericTotalDistance > numericKmValueNumeric) {
             return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
         } else {
@@ -765,31 +755,34 @@ const MapBooking = () => {
                         </select>
                     </div>
                     {company === 'rsa' && (
-                        <div className="mt-4">
-                            <div className="flex items-center">
-                                <label htmlFor="selectedCompany" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
-                                    Select Company
-                                </label>
-                                <select
-                                    id="selectedCompany"
-                                    name="selectedCompany"
-                                    className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-                                    onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-                                >
-                                    <option value="">Select Company</option>
-                                    {companies.map((comp) => (
-                                        <option key={comp.id} value={comp.companyName}>
-                                            {comp.companyName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="mt-4">
-                                <span className="font-semibold">Selected Company:</span> <span className="text-red-600">{selectedCompany}</span>
-                            </div>
-                            {companies.length === 0 && <p className="mt-2 text-red-600">No companies available</p>}
-                        </div>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                    <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                        Select Company
+                    </label>
+                    <select
+                        id="selectedCompany"
+                        name="selectedCompany"
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+                    >
+                        <option value="">Select Company</option>
+                        {companies.map((comp) => (
+                            <option key={comp.id} value={comp.id}>
+                                {comp.company}
+                            </option>
+                        ))}
+                    </select>
+                    {companies.length === 0 && <p>No companies available</p>}
+                </div>
+            )}
                     {company === 'self' ? (
                         <div className="flex items-center mt-4">
                             <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
@@ -1486,6 +1479,7 @@ const MapBooking = () => {
                     <React.Fragment>
                         <div>
                             <VehicleSection
+                            showroomLocation={showroomLocation}
                                 totalSalary={totalSalary}
                                 onUpdateTotalSalary={handleUpdatedTotalSalary}
                                 insuranceAmountBody={insuranceAmountBody}

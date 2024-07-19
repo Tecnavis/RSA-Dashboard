@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, adjustValueCallback, insuranceAmountBody }) => {
+const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, adjustValueCallback, insuranceAmountBody, onInsuranceAmountBodyChange }) => {
     const [showRoom, setShowRoom] = useState({
         availableServices: '',
         hasInsurance: '',
@@ -11,16 +11,13 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, ad
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(totalSalary);
     const [adjustValue, setAdjustValue] = useState('');
     const adjustmentApplied = useRef(false);
+
     useEffect(() => {
         if (!adjustmentApplied.current) {
             const newTotalSalary = totalSalary - (insuranceAmountBody ? parseFloat(insuranceAmountBody) : 0);
-            console.log("Effect - totalSalary:", totalSalary);
-            console.log("Effect - insuranceAmountBody:", insuranceAmountBody);
-            console.log("Effect - newTotalSalary before update:", newTotalSalary);
             if (newTotalSalary !== updatedTotalSalary) {
                 setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
                 onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-                console.log("Effect - newTotalSalary after update:", newTotalSalary);
             }
         }
     }, [insuranceAmountBody, totalSalary, onUpdateTotalSalary, updatedTotalSalary]);
@@ -57,21 +54,21 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, ad
 
     const applyAdjustment = () => {
         const adjustedSalary = parseFloat(adjustValue);
-        console.log("Apply Adjustment - adjustValue:", adjustValue);
-        console.log("Apply Adjustment - adjustedSalary:", adjustedSalary);
-        console.log("Apply Adjustment - updatedTotalSalary before update:", updatedTotalSalary);
         if (adjustedSalary > updatedTotalSalary) {
             setUpdatedTotalSalary(adjustedSalary);
             onUpdateTotalSalary(adjustedSalary);
             adjustmentApplied.current = true;
-            console.log("Apply Adjustment - updatedTotalSalary after update:", adjustedSalary);
         } else {
-            console.log("Adjustment value must be greater than current total salary.");
-            // You can optionally provide feedback or handle this case accordingly.
+            const password = prompt("Enter password to apply the adjustment:Password=Adjust");
+            if (password === "Adjust") {
+                setUpdatedTotalSalary(adjustedSalary);
+                onUpdateTotalSalary(adjustedSalary);
+                adjustmentApplied.current = true;
+            } else {
+                alert("Incorrect password. Adjustment not applied.");
+            }
         }
     };
-    
-
     return (
         <div className="mb-5">
             <h1>Service Category</h1>
@@ -215,4 +212,4 @@ const VehicleSection = ({ showroomLocation, totalSalary, onUpdateTotalSalary, ad
 };
 
 export default VehicleSection;
-``
+
