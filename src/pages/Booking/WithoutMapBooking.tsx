@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { GoogleMap } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
 import { v4 as uuid } from 'uuid';
 import { query, where } from 'firebase/firestore';
 import { serverTimestamp } from 'firebase/firestore';
-import useGoogleMaps from './GoogleMaps';
-import MyMapComponent from './MyMapComponent';
 import VehicleSection from './VehicleSection';
 import IconPlus from '../../components/Icon/IconPlus';
 import ShowroomModal from './ShowroomModal';
-import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
 import BaseLocationWithout from '../BaseLocation/BaseLocationWithout';
+import useGoogleMaps from './GoogleMaps';
 interface Showroom {
     id: string;
     name: string;
@@ -40,6 +37,7 @@ const WithoutMapBooking = () => {
         mobileNumber: '',
         totalSalary: '',
         serviceType: '',
+        vehicleType: '',
         serviceVehicle: '',
         driver: '',
         vehicleNumber: '',
@@ -56,6 +54,8 @@ const WithoutMapBooking = () => {
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [vehicleType, setVehicleType] = useState('');
+
     const [company, setCompany] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
@@ -105,6 +105,8 @@ const WithoutMapBooking = () => {
             setCompany(editData.company || '');
             setCustomerName(editData.customerName || '');
             setPhoneNumber(editData.phoneNumber || '');
+            setVehicleType(editData.vehicleType || '');
+
             setMobileNumber(editData.mobileNumber || '');
             setVehicleNumber(editData.vehicleNumber || '');
             setServiceVehicle(editData.serviceVehicle || '');
@@ -117,7 +119,7 @@ const WithoutMapBooking = () => {
             setShowrooms(editData.showrooms || []);
             setPickupLocation(editData.pickupLocation || '');
             setUpdatedTotalSalary(editData.updatedTotalSalary || '');
-            console.log("updatedTotalSalaryyy",editData.updatedTotalSalary)
+            console.log('updatedTotalSalaryyy', editData.updatedTotalSalary);
 
             setServiceType(editData.serviceType || '');
             setTotalSalary(editData.totalSalary || 0);
@@ -150,7 +152,7 @@ const WithoutMapBooking = () => {
                     const querySnapshot = await getDocs(q);
                     const companyList = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     })) as Company[];
                     setCompanies(companyList);
                 } catch (error) {
@@ -161,7 +163,6 @@ const WithoutMapBooking = () => {
             fetchCompanies();
         }
     }, [company, db]);
-
 
     useEffect(() => {
         const showroomsRef = collection(db, 'showroom');
@@ -199,8 +200,6 @@ const WithoutMapBooking = () => {
     };
 
     const handleInputChange = (field, value) => {
-        
-
         switch (field) {
             case 'showroomLocation':
                 setShowroomLocation(value);
@@ -290,6 +289,10 @@ const WithoutMapBooking = () => {
             case 'phoneNumber':
                 setPhoneNumber(value || '');
                 break;
+            case 'vehicleType':
+                setVehicleType(value || '');
+                break;
+
             case 'pickupLocation':
                 if (typeof value === 'string') {
                     setPickupLocation({ ...pickupLocation, name: value });
@@ -305,7 +308,7 @@ const WithoutMapBooking = () => {
                 setVehicleModel(value || '');
                 break;
             case 'baseLocation':
-                console.log("baseLocation",baseLocation)
+                console.log('baseLocation', baseLocation);
                 setBaseLocation(value || '');
                 break;
 
@@ -314,7 +317,7 @@ const WithoutMapBooking = () => {
 
                 setTrappedLocation(value || '');
                 break;
-           
+
             case 'selectedDriver':
                 setSelectedDriver(value);
                 const selectedDriverDetails = drivers.find((driver) => driver.id === value);
@@ -329,7 +332,7 @@ const WithoutMapBooking = () => {
                 break;
         }
 
-       if (field === 'serviceType') {
+        if (field === 'serviceType') {
             setServiceType(value || '');
             openModal();
         } else if (field === 'selectedDriver') {
@@ -348,10 +351,8 @@ const WithoutMapBooking = () => {
         setInsuranceAmountBody(amount);
     };
 
-    useEffect(() => {
-    }, [showroomLocation]);
-    useEffect(() => {
-    }, [updatedTotalSalary]);
+    useEffect(() => {}, [showroomLocation]);
+    useEffect(() => {}, [updatedTotalSalary]);
 
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
@@ -402,10 +403,6 @@ const WithoutMapBooking = () => {
 
         return () => unsubscribe();
     }, []);
-
-   
-
-   
 
     useEffect(() => {
         const fetchDrivers = async () => {
@@ -477,49 +474,43 @@ const WithoutMapBooking = () => {
         const numericTotalDistance = Number(totalDistance) || 0;
         const numericKmValueNumeric = Number(basicSalaryKM) || 0;
         const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
-      console.log("numericBasicSalary",numericBasicSalary)
-      console.log("numericTotalDistance",numericTotalDistance)
+        console.log('numericBasicSalary', numericBasicSalary);
+        console.log('numericTotalDistance', numericTotalDistance);
 
-      console.log("numericKmValueNumeric",numericKmValueNumeric)
+        console.log('numericKmValueNumeric', numericKmValueNumeric);
 
-      console.log("numericPerKmValueNumeric",numericPerKmValueNumeric)
+        console.log('numericPerKmValueNumeric', numericPerKmValueNumeric);
 
         if (numericTotalDistance > numericKmValueNumeric) {
-            console.log("numericBasicSalaryy",numericTotalDistance - numericKmValueNumeric)
+            console.log('numericBasicSalaryy', numericTotalDistance - numericKmValueNumeric);
 
             return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
         } else {
             return numericBasicSalary;
         }
     };
-  
+
     useEffect(() => {
         if (drivers.length > 0) {
             const totalDistances = drivers.map((driver) => {
                 return { driverId: driver.id, totalDistance: distanceNumeric };
             });
             console.log('Total Distances:', totalDistances);
-    
+
             const totalSalaries = drivers.map((driver) => {
-                return parseFloat(calculateTotalSalary(
-                    serviceDetails.salary, 
-                    distanceNumeric, 
-                    serviceDetails.basicSalaryKM, 
-                    serviceDetails.salaryPerKM
-                ).toFixed(2));
+                return parseFloat(calculateTotalSalary(serviceDetails.salary, distanceNumeric, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2));
             });
-    
-            const totalSalary = totalSalaries.reduce((acc, salary) =>  salary, 0);
+
+            const totalSalary = totalSalaries.reduce((acc, salary) => salary, 0);
             console.log('totalSalary', totalSalary);
-    
+
             setTotalDistances(totalDistances); // Set totalDistances state
             setTotalSalary(totalSalary);
             // setUpdatedTotalSalary(totalSalary);
         }
     }, [drivers, serviceDetails, distanceNumeric]);
-    
-    
-const renderServiceVehicle = (serviceVehicle, serviceType) => {
+
+    const renderServiceVehicle = (serviceVehicle, serviceType) => {
         if (serviceVehicle && serviceVehicle[serviceType]) {
             return serviceVehicle[serviceType];
         } else {
@@ -560,6 +551,7 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                 customerName: customerName || '',
                 mobileNumber: mobileNumber || '',
                 phoneNumber: phoneNumber || '',
+                vehicleType: vehicleType || '',
                 serviceType: serviceType || '',
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
@@ -594,7 +586,7 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
         }
     };
     return (
-               <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
+        <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
             <div className="flex justify-end w-full mb-4">
                 <div
                     style={{
@@ -633,34 +625,34 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                         </select>
                     </div>
                     {company === 'rsa' && (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                    <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                        Select Company
-                    </label>
-                    <select
-                        id="selectedCompany"
-                        name="selectedCompany"
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-                    >
-                        <option value="">Select Company</option>
-                        {companies.map((comp) => (
-                            <option key={comp.id} value={comp.id}>
-                                {comp.company}
-                            </option>
-                        ))}
-                    </select>
-                    {companies.length === 0 && <p>No companies available</p>}
-                </div>
-            )}
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                            <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                Select Company
+                            </label>
+                            <select
+                                id="selectedCompany"
+                                name="selectedCompany"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+                            >
+                                <option value="">Select Company</option>
+                                {companies.map((comp) => (
+                                    <option key={comp.id} value={comp.id}>
+                                        {comp.company}
+                                    </option>
+                                ))}
+                            </select>
+                            {companies.length === 0 && <p>No companies available</p>}
+                        </div>
+                    )}
                     {company === 'self' ? (
                         <div className="flex items-center mt-4">
                             <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
@@ -818,300 +810,300 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                     {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
                     <div style={{ width: '100%' }}>
                           
-                    <div>
-    <div className="flex items-center mt-4">
-        <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            Pickup Location
-        </label>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Pickup Location"
-                onChange={handleLocationChange}
-                value={manualInput}
-            />
-        </div>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Latitude"
-                value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
-                onChange={(e) => handleManualChange('lat', e.target.value)}
-            />
-        </div>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Longitude"
-                value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
-                onChange={(e) => handleManualChange('lng', e.target.value)}
-            />
-        </div>
-        <a
-            href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-                borderRadius: '40px',
-                background: 'transparent',
-                color: 'blue',
-                marginLeft: '10px',
-                padding: '10px',
-                border: 'none',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                cursor: 'pointer',
-                transition: 'background 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-        >
-            <IconMapPin />
-        </a>
-    </div>
+                        <div>
+                            <div className="flex items-center mt-4">
+                                <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Pickup Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Pickup Location"
+                                        onChange={handleLocationChange}
+                                        value={manualInput}
+                                    />
+                                </div>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Latitude"
+                                        value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
+                                        onChange={(e) => handleManualChange('lat', e.target.value)}
+                                    />
+                                </div>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Longitude"
+                                        value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
+                                        onChange={(e) => handleManualChange('lng', e.target.value)}
+                                    />
+                                </div>
+                                <a
+                                    href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin />
+                                </a>
+                            </div>
 
-    <div className="flex items-center mt-4">
-        <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            Dropoff Location
-        </label>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Dropoff Location"
-                onChange={handleLocationChange1}
-                value={manualInput1}
-            />
-        </div>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Latitude"
-                value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
-                onChange={(e) => handleManualChange1('lat', e.target.value)}
-            />
-        </div>
-        <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-            <input
-                className="form-input flex-1"
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                type="text"
-                placeholder="Longitude"
-                value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
-                onChange={(e) => handleManualChange1('lng', e.target.value)}
-            />
-        </div>
-        <a
-            href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-                borderRadius: '40px',
-                background: 'transparent',
-                color: 'blue',
-                marginLeft: '10px',
-                padding: '10px',
-                border: 'none',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                cursor: 'pointer',
-                transition: 'background 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-        >
-            <IconMapPin />
-        </a>
-    </div>
-    <div className="mt-4 flex items-center">
-    <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-        Start Location
-    </label>
-    <input
-        id="baseLocation"
-        type="text"
-        name="baseLocation"
-        className="form-input flex-1"
-        placeholder="select start location"
-        value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
-        style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            outline: 'none',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}
-        readOnly
-    />
-    <button
-        onClick={openModal1}
-        style={{
-            borderRadius: '40px',
-            background: 'transparent',
-            color: 'blue',
-            marginLeft: '10px',
-            padding: '10px',
-            border: 'none',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-            cursor: 'pointer',
-            transition: 'background 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-        onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-    >
-        <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
-    </button>
-</div>
+                            <div className="flex items-center mt-4">
+                                <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Dropoff Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Dropoff Location"
+                                        onChange={handleLocationChange1}
+                                        value={manualInput1}
+                                    />
+                                </div>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Latitude"
+                                        value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
+                                        onChange={(e) => handleManualChange1('lat', e.target.value)}
+                                    />
+                                </div>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Longitude"
+                                        value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
+                                        onChange={(e) => handleManualChange1('lng', e.target.value)}
+                                    />
+                                </div>
+                                <a
+                                    href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin />
+                                </a>
+                            </div>
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Start Location
+                                </label>
+                                <input
+                                    id="baseLocation"
+                                    type="text"
+                                    name="baseLocation"
+                                    className="form-input flex-1"
+                                    placeholder="select start location"
+                                    value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    readOnly
+                                />
+                                <button
+                                    onClick={openModal1}
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
+                                </button>
+                            </div>
 
-{isModalOpen1 && (
-    <div
-        className="modal"
-        style={{
-            position: 'fixed',
-            zIndex: 1,
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '100%',
-            overflow: 'auto',
-            backgroundColor: 'rgb(0,0,0)',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-        }}
-    >
-        <div
-            className="modal-content"
-            style={{
-                backgroundColor: '#fefefe',
-                margin: '15% auto',
-                padding: '20px',
-                border: '1px solid #888',
-                width: '80%',
-                boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-                borderRadius: '10px',
-            }}
-        >
-            <div
-                className="modal-header"
-                style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    borderBottom: '1px solid #eee',
-                    paddingBottom: '10px',
-                }}
-            >
-                <span
-                    className="close"
-                    onClick={closeModal1}
-                    style={{
-                        color: '#aaa',
-                        fontSize: '28px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        transition: '0.3s',
-                    }}
-                >
-                    &times;
-                </span>
-            </div>
-            <div className="modal-body">
-                <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
-            </div>
-            <div
-                className="modal-footer"
-                style={{
-                    padding: '10px',
-                    borderTop: '1px solid #eee',
-                    textAlign: 'right',
-                }}
-            >
-                <button
-                    onClick={closeModal1}
-                    style={{
-                        padding: '10px 20px',
-                        border: 'none',
-                        borderRadius: '5px',
-                        background: '#f44336',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        transition: 'background 0.3s ease',
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
-                    onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
-                >
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-)}
- </div>
- </div>
+                            {isModalOpen1 && (
+                                <div
+                                    className="modal"
+                                    style={{
+                                        position: 'fixed',
+                                        zIndex: 1,
+                                        left: 0,
+                                        top: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        overflow: 'auto',
+                                        backgroundColor: 'rgb(0,0,0)',
+                                        backgroundColor: 'rgba(0,0,0,0.4)',
+                                    }}
+                                >
+                                    <div
+                                        className="modal-content"
+                                        style={{
+                                            backgroundColor: '#fefefe',
+                                            margin: '15% auto',
+                                            padding: '20px',
+                                            border: '1px solid #888',
+                                            width: '80%',
+                                            boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+                                            borderRadius: '10px',
+                                        }}
+                                    >
+                                        <div
+                                            className="modal-header"
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                borderBottom: '1px solid #eee',
+                                                paddingBottom: '10px',
+                                            }}
+                                        >
+                                            <span
+                                                className="close"
+                                                onClick={closeModal1}
+                                                style={{
+                                                    color: '#aaa',
+                                                    fontSize: '28px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    transition: '0.3s',
+                                                }}
+                                            >
+                                                &times;
+                                            </span>
+                                        </div>
+                                        <div className="modal-body">
+                                            <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
+                                        </div>
+                                        <div
+                                            className="modal-footer"
+                                            style={{
+                                                padding: '10px',
+                                                borderTop: '1px solid #eee',
+                                                textAlign: 'right',
+                                            }}
+                                        >
+                                            <button
+                                                onClick={closeModal1}
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    background: '#f44336',
+                                                    color: '#fff',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
+                                                }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div className="mt-4 flex items-center">
                         <label htmlFor="distance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                             Distance (KM)
@@ -1251,82 +1243,81 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                                 />
                             </div>
                             <ReactModal
-    isOpen={isModalOpen}
-    onRequestClose={closeModal}
-    style={{
-        overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        },
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '10px',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-            padding: '20px',
-            overflow: 'auto',
-        },
-    }}
->
-    <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-        <button
-            onClick={closeModal}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-            style={{ marginLeft: 'auto', marginRight: '20px' }}
-        >
-            OK
-        </button>
-    </div>
+                                isOpen={isModalOpen}
+                                onRequestClose={closeModal}
+                                style={{
+                                    overlay: {
+                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    },
+                                    content: {
+                                        top: '50%',
+                                        left: '50%',
+                                        right: 'auto',
+                                        bottom: 'auto',
+                                        transform: 'translate(-50%, -50%)',
+                                        borderRadius: '10px',
+                                        maxWidth: '90vw',
+                                        maxHeight: '80vh',
+                                        boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                                        padding: '20px',
+                                        overflow: 'auto',
+                                    },
+                                }}
+                            >
+                                <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                                    <button
+                                        onClick={closeModal}
+                                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                                        style={{ marginLeft: 'auto', marginRight: '20px' }}
+                                    >
+                                        OK
+                                    </button>
+                                </div>
 
-    <div style={{ marginTop: '10px' }}>
-        <div className="grid grid-cols-1 gap-4">
-            {drivers
-                .sort((a, b) => {
-                    if (a.companyName === 'RSA' && b.companyName !== 'RSA') {
-                        return -1;
-                    }
-                    if (a.companyName !== 'RSA' && b.companyName === 'RSA') {
-                        return 1;
-                    }
-                    return 0;
-                })
-                .map((driver) => (
-                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                        <table className="panel p-4 w-full">
-                            <thead>
-                                <tr>
-                                    <th>Driver Name</th>
-                                    <th>Company Name</th>
-                                    <th>Select</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
-                                    <td>{driver.companyName || 'Unknown Company'}</td>
-                                    <td>
-                                        <input
-                                            type="radio"
-                                            name="selectedDriver"
-                                            value={driver.id}
-                                            checked={selectedDriver === driver.id}
-                                            onChange={() => handleInputChange('selectedDriver', driver.id)}
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                ))}
-        </div>
-    </div>
-</ReactModal>
-
+                                <div style={{ marginTop: '10px' }}>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {drivers
+                                            .sort((a, b) => {
+                                                if (a.companyName === 'RSA' && b.companyName !== 'RSA') {
+                                                    return -1;
+                                                }
+                                                if (a.companyName !== 'RSA' && b.companyName === 'RSA') {
+                                                    return 1;
+                                                }
+                                                return 0;
+                                            })
+                                            .map((driver) => (
+                                                <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                                    <table className="panel p-4 w-full">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Driver Name</th>
+                                                                <th>Company Name</th>
+                                                                <th>Select</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
+                                                                <td>{driver.companyName || 'Unknown Company'}</td>
+                                                                <td>
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="selectedDriver"
+                                                                        value={driver.id}
+                                                                        checked={selectedDriver === driver.id}
+                                                                        onChange={() => handleInputChange('selectedDriver', driver.id)}
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </ReactModal>
                         </div>
                     )}
                 </div>
@@ -1334,7 +1325,7 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                     <React.Fragment>
                         <div>
                             <VehicleSection
-                            showroomLocation={showroomLocation}
+                                showroomLocation={showroomLocation}
                                 totalSalary={totalSalary}
                                 onUpdateTotalSalary={handleUpdatedTotalSalary}
                                 insuranceAmountBody={insuranceAmountBody}
@@ -1405,91 +1396,19 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                         </div>
                     </React.Fragment>
                 )}
-                {!disableFields && (
-                    <div className="flex items-center mt-4">
-                        <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Service Vehicle Number
-                        </label>
-                        <input
-                            id="serviceVehicle"
-                            type="text"
-                            name="serviceVehicle"
-                            className="form-input flex-1"
-                            placeholder="Enter Service Vehicle Number"
-                            value={serviceVehicle}
-                            onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            required
-                        />
-                    </div>
-                )}
-                {!disableFields && (
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Customer Vehicle Number
-                        </label>
-                        &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-                        <input
-                            id="vehicleNumber"
-                            type="text"
-                            name="vehicleNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter vehicle number"
-                            value={vehicleNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
-                        />
-                    </div>
-                )}
-                &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-                {!disableFields && (
-                    <div className="flex items-center mt-4">
-                        <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Brand Name
-                        </label>
-                        <input
-                            id="vehicleModel"
-                            name="vehicleModel"
-                            className="form-input flex-1"
-                            value={vehicleModel}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
-                        />
-                    </div>
-                )}
-            </div>
-            {!disableFields && (
-                <div className="mt-4 flex items-center">
-                    <textarea
-                        id="reciever-name"
-                        name="reciever-name"
+                <div className="flex items-center mt-4">
+                    <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Service Vehicle Number
+                    </label>
+                    &nbsp; &nbsp;&nbsp;
+                    <input
+                        id="serviceVehicle"
+                        type="text"
+                        name="serviceVehicle"
                         className="form-input flex-1"
-                        placeholder="Comments"
-                        value={comments}
+                        placeholder="Enter Service Vehicle Number"
+                        value={serviceVehicle}
+                        onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
                         style={{
                             width: '100%',
                             padding: '0.5rem',
@@ -1499,10 +1418,100 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                             outline: 'none',
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                         }}
-                        onChange={(e) => handleInputChange('comments', e.target.value)}
+                        required
                     />
                 </div>
-            )}
+                &nbsp; &nbsp; &nbsp;
+                <div className="mt-4 flex items-center">
+                    <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Customer Vehicle Number
+                    </label>
+                    <input
+                        id="vehicleNumber"
+                        type="text"
+                        name="vehicleNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter vehicle number"
+                        value={vehicleNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
+                    />
+                </div>
+                <div className="mt-4 flex items-center">
+                    <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Vehicle Type(2 or 3 or 4 wheeler)
+                    </label>
+                    <input
+                        id="vehicleType"
+                        type="text"
+                        name="vehicleType"
+                        className="form-input flex-1"
+                        placeholder="Enter vehicle Type"
+                        value={vehicleType}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleType', e.target.value)}
+                    />
+                </div>
+                {/* &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; */}
+                <div className="flex items-center mt-4">
+                    <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Brand Name
+                    </label>
+                    <input
+                        id="vehicleModel"
+                        name="vehicleModel"
+                        className="form-input flex-1"
+                        value={vehicleModel}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="mt-4 flex items-center">
+                <textarea
+                    id="reciever-name"
+                    name="reciever-name"
+                    className="form-input flex-1"
+                    placeholder="Comments"
+                    value={comments}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    onChange={(e) => handleInputChange('comments', e.target.value)}
+                />
+            </div>
+
             <div className="mt-4 grid grid-cols-1 gap-4">
                 <button
                     type="button"
@@ -1513,8 +1522,6 @@ const renderServiceVehicle = (serviceVehicle, serviceType) => {
                 </button>
             </div>
         </div>
-    
-
     );
 };
 

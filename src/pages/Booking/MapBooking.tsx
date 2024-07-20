@@ -41,6 +41,8 @@ const MapBooking = () => {
         totalSalary: '',
         serviceType: '',
         serviceVehicle: '',
+        vehicleType: '',
+
         driver: '',
         vehicleNumber: '',
         vehicleModel: '',
@@ -53,6 +55,8 @@ const MapBooking = () => {
     const openModal1 = () => setIsModalOpen1(true);
     const closeModal1 = () => setIsModalOpen1(false);
     const [Location, setLocation] = useState('');
+    const [vehicleType, setVehicleType] = useState('');
+
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -109,6 +113,8 @@ const MapBooking = () => {
             setMobileNumber(editData.mobileNumber || '');
             setVehicleNumber(editData.vehicleNumber || '');
             setServiceVehicle(editData.serviceVehicle || '');
+            setVehicleType(editData.vehicleType || '');
+
             setVehicleModel(editData.vehicleModel || '');
             setVehicleSection(editData.vehicleSection || '');
             setShowroomLocation(editData.showroomLocation || '');
@@ -123,7 +129,6 @@ const MapBooking = () => {
             setTotalSalary(editData.totalSalary || 0);
             setDropoffLocation(editData.dropoffLocation || '');
             setSelectedCompany(editData.selectedCompany || '');
-          
         }
     }, [state]);
     useEffect(() => {
@@ -150,7 +155,7 @@ const MapBooking = () => {
                     const querySnapshot = await getDocs(q);
                     const companyList = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     })) as Company[];
                     setCompanies(companyList);
                 } catch (error) {
@@ -161,7 +166,6 @@ const MapBooking = () => {
             fetchCompanies();
         }
     }, [company, db]);
-
 
     useEffect(() => {
         const db = getFirestore();
@@ -200,8 +204,6 @@ const MapBooking = () => {
     };
 
     const handleInputChange = (field, value) => {
-        
-
         switch (field) {
             case 'showroomLocation':
                 setShowroomLocation(value);
@@ -238,7 +240,9 @@ const MapBooking = () => {
                 setCompany(value);
                 setFileNumber(value === 'self' ? bookingId : '');
                 break;
-
+            case 'vehicleType':
+                setVehicleType(value || '');
+                break;
             case 'fileNumber':
                 setFileNumber(value || '');
                 break;
@@ -260,7 +264,7 @@ const MapBooking = () => {
                 break;
 
             case 'updatedTotalSalary':
-                console.log("updatedTotalSalary",updatedTotalSalary)
+                console.log('updatedTotalSalary', updatedTotalSalary);
                 setUpdatedTotalSalary(value || '');
                 break;
 
@@ -364,10 +368,8 @@ const MapBooking = () => {
         setInsuranceAmountBody(amount);
     };
 
-    useEffect(() => {
-    }, [showroomLocation]);
-    useEffect(() => {
-    }, [updatedTotalSalary]);
+    useEffect(() => {}, [showroomLocation]);
+    useEffect(() => {}, [updatedTotalSalary]);
 
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
@@ -543,7 +545,7 @@ const MapBooking = () => {
         const numericTotalDistance = Number(totalDistance) || 0;
         const numericKmValueNumeric = Number(basicSalaryKM) || 0;
         const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
-      
+
         if (numericTotalDistance > numericKmValueNumeric) {
             return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
         } else {
@@ -682,6 +684,8 @@ const MapBooking = () => {
                 customerName: customerName || '',
                 mobileNumber: mobileNumber || '',
                 phoneNumber: phoneNumber || '',
+                vehicleType: vehicleType || '',
+
                 serviceType: serviceType || '',
                 serviceVehicle: serviceVehicle || '',
                 vehicleModel: vehicleModel || '',
@@ -717,7 +721,7 @@ const MapBooking = () => {
     };
     return (
         <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
-            <div className="flex justify-end w-full mb-4">
+            <div className="flex justify-end w-full mb-4 ">
                 <div
                     style={{
                         margin: '5px 0',
@@ -755,34 +759,34 @@ const MapBooking = () => {
                         </select>
                     </div>
                     {company === 'rsa' && (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                    <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
-                        Select Company
-                    </label>
-                    <select
-                        id="selectedCompany"
-                        name="selectedCompany"
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
-                    >
-                        <option value="">Select Company</option>
-                        {companies.map((comp) => (
-                            <option key={comp.id} value={comp.id}>
-                                {comp.company}
-                            </option>
-                        ))}
-                    </select>
-                    {companies.length === 0 && <p>No companies available</p>}
-                </div>
-            )}
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+                            <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                                Select Company
+                            </label>
+                            <select
+                                id="selectedCompany"
+                                name="selectedCompany"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    fontSize: '1rem',
+                                    outline: 'none',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                                onChange={(e) => handleInputChange('selectedCompany', e.target.value)}
+                            >
+                                <option value="">Select Company</option>
+                                {companies.map((comp) => (
+                                    <option key={comp.id} value={comp.id}>
+                                        {comp.company}
+                                    </option>
+                                ))}
+                            </select>
+                            {companies.length === 0 && <p>No companies available</p>}
+                        </div>
+                    )}
                     {company === 'self' ? (
                         <div className="flex items-center mt-4">
                             <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
@@ -1451,7 +1455,7 @@ const MapBooking = () => {
                                                                 <tr>
                                                                     <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
                                                                     <td>{driver.companyName || 'Unknown Company'}</td>
-                                                                    // <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td>
+                                                                    {/* // <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td> */}
                                                                     <td>{pickupDistanceData.distance.toFixed(2)} km</td>
                                                                     <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
                                                                     <td>
@@ -1479,13 +1483,12 @@ const MapBooking = () => {
                     <React.Fragment>
                         <div>
                             <VehicleSection
-                            showroomLocation={showroomLocation}
+                                showroomLocation={showroomLocation}
                                 totalSalary={totalSalary}
                                 onUpdateTotalSalary={handleUpdatedTotalSalary}
                                 insuranceAmountBody={insuranceAmountBody}
                                 adjustValueCallback={handleAdjustValueChange}
                             />
-                            <p>Insurance Amount BodyRF: {insuranceAmountBody}</p>
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1551,91 +1554,19 @@ const MapBooking = () => {
                         </div>
                     </React.Fragment>
                 )}
-                {!disableFields && (
-                    <div className="flex items-center mt-4">
-                        <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Service Vehicle Number
-                        </label>
-                        <input
-                            id="serviceVehicle"
-                            type="text"
-                            name="serviceVehicle"
-                            className="form-input flex-1"
-                            placeholder="Enter Service Vehicle Number"
-                            value={serviceVehicle}
-                            onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            required
-                        />
-                    </div>
-                )}
-                {!disableFields && (
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Customer Vehicle Number
-                        </label>
-                        &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-                        <input
-                            id="vehicleNumber"
-                            type="text"
-                            name="vehicleNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter vehicle number"
-                            value={vehicleNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
-                        />
-                    </div>
-                )}
-                &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-                {!disableFields && (
-                    <div className="flex items-center mt-4">
-                        <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Brand Name
-                        </label>
-                        <input
-                            id="vehicleModel"
-                            name="vehicleModel"
-                            className="form-input flex-1"
-                            value={vehicleModel}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
-                        />
-                    </div>
-                )}
-            </div>
-            {!disableFields && (
-                <div className="mt-4 flex items-center">
-                    <textarea
-                        id="reciever-name"
-                        name="reciever-name"
+                <div className="flex items-center mt-4">
+                    <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Service Vehicle Number
+                    </label>
+                    &nbsp; &nbsp;&nbsp;
+                    <input
+                        id="serviceVehicle"
+                        type="text"
+                        name="serviceVehicle"
                         className="form-input flex-1"
-                        placeholder="Comments"
-                        value={comments}
+                        placeholder="Enter Service Vehicle Number"
+                        value={serviceVehicle}
+                        onChange={(e) => handleInputChange('serviceVehicle', e.target.value)}
                         style={{
                             width: '100%',
                             padding: '0.5rem',
@@ -1645,10 +1576,100 @@ const MapBooking = () => {
                             outline: 'none',
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                         }}
-                        onChange={(e) => handleInputChange('comments', e.target.value)}
+                        required
                     />
                 </div>
-            )}
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                <div className="mt-4 flex items-center">
+                    <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Customer Vehicle Number
+                    </label>
+                    <input
+                        id="vehicleNumber"
+                        type="text"
+                        name="vehicleNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter vehicle number"
+                        value={vehicleNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
+                    />
+                </div>
+                <div className="mt-4 flex items-center">
+                    <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Vehicle Type(2 or 3 or 4 wheeler)
+                    </label>
+                    <input
+                        id="vehicleType"
+                        type="text"
+                        name="vehicleType"
+                        className="form-input flex-1"
+                        placeholder="Enter vehicle Type"
+                        value={vehicleType}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleType', e.target.value)}
+                    />
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                <div className="flex items-center mt-4">
+                    <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Brand Name
+                    </label>
+                    <input
+                        id="vehicleModel"
+                        name="vehicleModel"
+                        className="form-input flex-1"
+                        value={vehicleModel}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="mt-4 flex items-center">
+                <textarea
+                    id="reciever-name"
+                    name="reciever-name"
+                    className="form-input flex-1"
+                    placeholder="Comments"
+                    value={comments}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                    onChange={(e) => handleInputChange('comments', e.target.value)}
+                />
+            </div>
+
             <div className="mt-4 grid grid-cols-1 gap-4">
                 <button
                     type="button"

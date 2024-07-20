@@ -26,11 +26,12 @@ const Company = () => {
             const driverCollection = collection(db, 'driver');
             const q = query(driverCollection, where('companyName', '!=', 'RSA'));
             const querySnapshot = await getDocs(q);
-            setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+            const filteredDocs = querySnapshot.docs.filter(doc => doc.data().companyName !== 'Company');
+            setItems(filteredDocs.map((doc) => ({ id: doc.id, ...doc.data() })));
         };
         fetchData().catch(console.error);
     }, []);
-
+    
     const handleDelete = async (userId: string) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this user?');
         if (confirmDelete) {

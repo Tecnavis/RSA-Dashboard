@@ -56,7 +56,7 @@ const ShowroomModal = ({ updateShowroomLocation }) => {
         e.preventDefault();
         try {
             await addDoc(collection(db, 'showroom'), {
-                Location: Location,
+                Location: ShowRoom,
                 ShowRoom: ShowRoom,
                 description: Description,
                 userName: UserName,

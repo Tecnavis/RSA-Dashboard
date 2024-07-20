@@ -24,7 +24,7 @@ const CompanyCreatn = () => {
     useEffect(() => {
         const fetchData = async () => {
             const driverCollection = collection(db, 'driver');
-            const q = query(driverCollection, where('companyName', '==', 'company'));
+            const q = query(driverCollection, where('companyName', '==', 'Company'));
             const querySnapshot = await getDocs(q);
             setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
         };
