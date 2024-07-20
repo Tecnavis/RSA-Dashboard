@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import Modal from 'react-modal';
 import IconMenuInvoice from '../../components/Icon/Menu/IconMenuInvoice';
-import { parse, format } from 'date-fns';
 
 const CashCollectionReport = () => {
     const { id } = useParams();
@@ -180,21 +179,15 @@ const CashCollectionReport = () => {
             setFilteredBookings(bookings);
             return;
         }
-    
-        const monthNumber = parseInt(selectedMonth, 10); // Convert month string to number
-        if (isNaN(monthNumber)) return;
-    
+
         const filtered = bookings.filter(booking => {
-            // Parse dateTime using the correct format
-            const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
-            // Extract month from date
-            const bookingMonth = bookingDate.getMonth() + 1; // getMonth returns 0 for January, so add 1
-            return bookingMonth === monthNumber;
+            const bookingDate = new Date(booking.dateTime);
+            const bookingMonth = bookingDate.getMonth() + 1; // Months are 0-based in JS Date
+            return bookingMonth.toString() === selectedMonth;
         });
-    
+
         setFilteredBookings(filtered);
     };
-    
 
     const calculateMonthlyTotals = () => {
         const totalAmount = filteredBookings.reduce((acc, booking) => acc + (parseFloat(booking.amount) || 0), 0);
@@ -314,7 +307,7 @@ const CashCollectionReport = () => {
                         disabled={booking.approved}
                     />
                 </td>
-                <td>{format(parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date()), 'dd/MM/yyyy, h:mm:ss a')}</td>
+                <td className="py-2 px-4 border-b">{new Date(booking.dateTime).toLocaleString()}</td>
                 <td className="py-2 px-4 border-b">{booking.amount}</td>
                 <td className="py-2 px-4 border-b">
                     <input

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import IconEdit from '../../components/Icon/IconEdit'; // Import your IconEdit component here
 import InvoiceModal from './InvoiceModal';
-import { parse, format } from 'date-fns';
 const SalaryReport = () => {
     const { id } = useParams();
     const [bookings, setBookings] = useState([]);
@@ -69,8 +68,8 @@ const SalaryReport = () => {
     useEffect(() => {
         if (selectedMonth) {
             const filtered = bookings.filter((booking) => {
-                const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
-                const bookingMonth = format(bookingDate, 'MMMM');
+                const bookingDate = new Date(booking.dateTime);
+                const bookingMonth = bookingDate.toLocaleString('default', { month: 'long' });
                 return bookingMonth === selectedMonth;
             });
             setFilteredBookings(filtered);
@@ -336,7 +335,7 @@ const SalaryReport = () => {
                 {filteredBookings.map((booking) => (
                     <tr key={booking.id}>
                         <td className="border px-4 py-2">{booking.fileNumber}</td>
-                        <td>{format(parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date()), 'dd/MM/yyyy, h:mm:ss a')}</td>
+                        <td className="border px-4 py-2">{new Date(booking.dateTime).toLocaleDateString()}</td>
                         <td className="border px-4 py-2">{booking.serviceType}</td>
                         <td className="border px-4 py-2">{booking.serviceVehicle}</td>
                         <td className="border px-4 py-2">{booking.totalDriverSalary}</td>
