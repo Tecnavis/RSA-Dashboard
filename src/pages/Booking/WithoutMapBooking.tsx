@@ -11,7 +11,8 @@ import ShowroomModal from './ShowroomModal';
 import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
 import BaseLocationWithout from '../BaseLocation/BaseLocationWithout';
-import useGoogleMaps from './GoogleMaps';
+import { format } from 'date-fns';
+
 interface Showroom {
     id: string;
     name: string;
@@ -25,7 +26,6 @@ const WithoutMapBooking = () => {
         const newBookingId = uuid().substring(0, 6);
         setBookingId(newBookingId);
     }, []);
-    const googleMapsLoaded = useGoogleMaps();
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
     const [companies, setCompanies] = useState([]);
 
@@ -547,78 +547,93 @@ const WithoutMapBooking = () => {
             return 'Unknown Vehicle';
         }
     };
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+        const year = date.getFullYear();
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = (hours % 12 || 12).toString().padStart(2, '0');
+    
+        return `${day}/${month}/${year}, ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    };
+    
     const addOrUpdateItem = async () => {
         if (validateForm()) {
-        try {
-            const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
-            const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-            const currentDate = new Date();
-            const dateTime = currentDate.toLocaleString();
-            let finalFileNumber = '';
-
-            if (company === 'self') {
-                finalFileNumber = `PMNA${bookingId}`;
-            } else if (company === 'rsa') {
-                finalFileNumber = fileNumber;
+            try {
+                const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
+                const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
+                const currentDate = new Date();
+                const dateTime = formatDate(currentDate); // Use the formatted date
+    
+                let finalFileNumber = '';
+    
+                if (company === 'self') {
+                    finalFileNumber = `PMNA${bookingId}`;
+                } else if (company === 'rsa') {
+                    finalFileNumber = fileNumber;
+                }
+                const bookingData = {
+                    ...bookingDetails,
+                    driver: driverName,
+                    totalSalary: totalSalary,
+                    pickupLocation: pickupLocation,
+                    dropoffLocation: dropoffLocation,
+                    status: 'booking added',
+                    dateTime: dateTime, // Use the formatted date
+                    bookingId: `${bookingId}`,
+                    createdAt: serverTimestamp(),
+                    comments: comments || '',
+                    totalDistance: totalDistance,
+                    distance: distance,
+    
+                    baseLocation: baseLocation || '',
+                    showroomLocation: showroomLocation,
+                    Location: Location || '',
+                    company: company || '',
+                    customerName: customerName || '',
+                    totalDriverSalary: totalDriverSalary || '',
+    
+                    mobileNumber: mobileNumber || '',
+                    phoneNumber: phoneNumber || '',
+                    vehicleType: vehicleType || '',
+                    serviceType: serviceType || '',
+                    serviceVehicle: serviceVehicle || '',
+                    vehicleModel: vehicleModel || '',
+                    vehicleSection: vehicleSection || '',
+                    vehicleNumber: vehicleNumber || '',
+                    fileNumber: finalFileNumber,
+                    selectedDriver: selectedDriver || '',
+                    trappedLocation: trappedLocation || '',
+                    updatedTotalSalary: updatedTotalSalary || '',
+                    insuranceAmount: insuranceAmountBody || '',
+                    paymentStatus: 'Not Paid',
+                };
+                if (editData) {
+                    bookingData.newStatus = 'Edited by Admin';
+                    bookingData.editedTime = formatDate(new Date());
+                }
+                console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
+    
+                if (editData) {
+                    const docRef = doc(db, 'bookings', editData.id);
+                    await updateDoc(docRef, bookingData);
+                    console.log('Document updated');
+                } else {
+                    const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+                    console.log('Document written with ID: ', docRef.id);
+                    console.log('Document added');
+                }
+    
+                navigate('/bookings/newbooking');
+            } catch (e) {
+                console.error('Error adding/updating document: ', e);
             }
-            const bookingData = {
-                ...bookingDetails,
-                driver: driverName,
-                totalSalary: totalSalary,
-                pickupLocation: pickupLocation,
-                dropoffLocation: dropoffLocation,
-                status: 'booking added',
-                dateTime: currentDateTime,
-                bookingId: `${bookingId}`,
-                createdAt: serverTimestamp(),
-                comments: comments || '',
-                totalDistance: totalDistance,
-                distance: distance,
-
-                baseLocation: baseLocation || '',
-                showroomLocation: showroomLocation,
-                Location: Location || '',
-                company: company || '',
-                customerName: customerName || '',
-                totalDriverSalary: totalDriverSalary || '',
-
-                mobileNumber: mobileNumber || '',
-                phoneNumber: phoneNumber || '',
-                vehicleType: vehicleType || '',
-                serviceType: serviceType || '',
-                serviceVehicle: serviceVehicle || '',
-                vehicleModel: vehicleModel || '',
-                vehicleSection: vehicleSection || '',
-                vehicleNumber: vehicleNumber || '',
-                fileNumber: finalFileNumber,
-                selectedDriver: selectedDriver || '',
-                trappedLocation: trappedLocation || '',
-                updatedTotalSalary: updatedTotalSalary || '',
-                insuranceAmount: insuranceAmountBody || '',
-                paymentStatus: 'Not Paid',
-            };
-            if (editData) {
-                bookingData.newStatus = 'Edited by Admin';
-                bookingData.editedTime = currentDate.toLocaleString();
-            }
-            console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
-
-            if (editData) {
-                const docRef = doc(db, 'bookings', editData.id);
-                await updateDoc(docRef, bookingData);
-                console.log('Document updated');
-            } else {
-                const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-                console.log('Document written with ID: ', docRef.id);
-                console.log('Document added');
-            }
-
-            navigate('/bookings/newbooking');
-        } catch (e) {
-            console.error('Error adding/updating document: ', e);
         }
     };
-}
+    
     return (
         <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4">
@@ -1038,7 +1053,7 @@ const WithoutMapBooking = () => {
                                             </span>
                                         </div>
                                         <div className="modal-body">
-                                            <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
+                                            <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} />
                                         </div>
                                         <div
                                             className="modal-footer"
