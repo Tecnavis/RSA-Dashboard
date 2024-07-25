@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Autocomplete, TextField, Box, Button, Typography } from '@mui/material';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { GoogleMap, useGoogleMap } from '@react-google-maps/api';
 import ReactModal from 'react-modal';
@@ -14,11 +16,13 @@ import BaseLocationModal from '../BaseLocation/BaseLocationModal';
 import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
 import useGoogleMaps from './GoogleMaps';
-
+import MapView from './Map';
+import { backgroundClip } from 'html2canvas/dist/types/css/property-descriptors/background-clip';
 interface Showroom {
     id: string;
     name: string;
 }
+const API_KEY = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k';
 
 const MapBooking = () => {
     const db = getFirestore();
@@ -72,8 +76,16 @@ const MapBooking = () => {
     const [selectedDriver, setSelectedDriver] = useState(null);
     const [serviceDetails, setServiceDetails] = useState('');
     const [serviceType, setServiceType] = useState('');
-    const [pickupLocation, setPickupLocation] = useState(null);
-    const [dropoffLocation, setDropoffLocation] = useState(null);
+
+    const [pickupLocation, setPickupLocation] = useState('');
+    const [dropoffLocation, setDropoffLocation] = useState('');
+    const [pickupOptions, setPickupOptions] = useState([]);
+    const [dropoffOptions, setDropoffOptions] = useState([]);
+    const [pickupCoords, setPickupCoords] = useState({ lat: undefined, lng: undefined });
+
+    const [dropoffCoords, setDropoffCoords] = useState({ lat: undefined, lng: undefined });
+    const [directions, setDirections] = useState(null);
+
     const [baseLocation, setBaseLocation] = useState(null);
     const [trappedLocation, setTrappedLocation] = useState('');
     const [totalSalary, setTotalSalary] = useState(0);
@@ -96,6 +108,7 @@ const MapBooking = () => {
     console.log('first', pickupDistances);
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (state && state.editData) {
@@ -146,6 +159,28 @@ const MapBooking = () => {
             setDisableFields(false);
         }
     }, [trappedLocation]);
+    const validateForm = () => {
+        let tempErrors = {};
+        let isValid = true;
+
+        if (!phoneNumber.trim()) {
+            tempErrors['phoneNumber'] = 'Phone number is required';
+            isValid = false;
+        } else if (!/^\d{10}$/.test(phoneNumber)) {
+            tempErrors['phoneNumber'] = 'Phone number is invalid, must be 10 digits';
+            isValid = false;
+        }
+        if (!mobileNumber.trim()) {
+            tempErrors['mobileNumber'] = 'Mobile number is required';
+            isValid = false;
+        } else if (!/^\d{10}$/.test(phoneNumber)) {
+            tempErrors['mobileNumber'] = 'Mobile number is invalid, must be 10 digits';
+            isValid = false;
+        }
+
+        setErrors(tempErrors);
+        return isValid;
+    };
     useEffect(() => {
         if (company === 'rsa') {
             const fetchCompanies = async () => {
@@ -653,74 +688,154 @@ const MapBooking = () => {
         }
     };
     const addOrUpdateItem = async () => {
-        try {
-            const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
-            const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
-            const currentDate = new Date();
-            const dateTime = currentDate.toLocaleString();
-            let finalFileNumber = '';
+        if (validateForm()) {
+            try {
+                const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
+                const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
+                const currentDate = new Date();
+                const dateTime = currentDate.toLocaleString();
+                let finalFileNumber = '';
 
-            if (company === 'self') {
-                finalFileNumber = `PMNA${bookingId}`;
-            } else if (company === 'rsa') {
-                finalFileNumber = fileNumber;
+                if (company === 'self') {
+                    finalFileNumber = `PMNA${bookingId}`;
+                } else if (company === 'rsa') {
+                    finalFileNumber = fileNumber;
+                }
+                const bookingData = {
+                    ...bookingDetails,
+                    driver: driverName,
+                    totalSalary: totalSalary,
+                    pickupLocation: pickupLocation,
+                    dropoffLocation: dropoffLocation,
+                    status: 'booking added',
+                    dateTime: currentDateTime,
+                    bookingId: `${bookingId}`,
+                    createdAt: serverTimestamp(),
+                    comments: comments || '',
+                    totalDistance: totalDistance,
+                    baseLocation: baseLocation || '',
+                    showroomLocation: showroomLocation,
+                    Location: Location || '',
+                    company: company || '',
+                    customerName: customerName || '',
+                    mobileNumber: mobileNumber || '',
+                    phoneNumber: phoneNumber || '',
+                    vehicleType: vehicleType || '',
+
+                    serviceType: serviceType || '',
+                    serviceVehicle: serviceVehicle || '',
+                    vehicleModel: vehicleModel || '',
+                    vehicleSection: vehicleSection || '',
+                    vehicleNumber: vehicleNumber || '',
+                    fileNumber: finalFileNumber,
+                    selectedDriver: selectedDriver || '',
+                    trappedLocation: trappedLocation || '',
+                    updatedTotalSalary: updatedTotalSalary || '',
+                    insuranceAmount: insuranceAmountBody || '',
+                    paymentStatus: 'Not Paid',
+                };
+                if (editData) {
+                    bookingData.newStatus = 'Edited by Admin';
+                    bookingData.editedTime = currentDate.toLocaleString();
+                }
+                console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
+
+                if (editData) {
+                    const docRef = doc(db, 'bookings', editData.id);
+                    await updateDoc(docRef, bookingData);
+                    console.log('Document updated');
+                } else {
+                    const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+                    console.log('Document written with ID: ', docRef.id);
+                    console.log('Document added');
+                }
+
+                navigate('/bookings/newbooking');
+            } catch (e) {
+                console.error('Error adding/updating document: ', e);
             }
-            const bookingData = {
-                ...bookingDetails,
-                driver: driverName,
-                totalSalary: totalSalary,
-                pickupLocation: pickupLocation,
-                dropoffLocation: dropoffLocation,
-                status: 'booking added',
-                dateTime: currentDateTime,
-                bookingId: `${bookingId}`,
-                createdAt: serverTimestamp(),
-                comments: comments || '',
-                totalDistance: totalDistance,
-                baseLocation: baseLocation || '',
-                showroomLocation: showroomLocation,
-                Location: Location || '',
-                company: company || '',
-                customerName: customerName || '',
-                mobileNumber: mobileNumber || '',
-                phoneNumber: phoneNumber || '',
-                vehicleType: vehicleType || '',
-
-                serviceType: serviceType || '',
-                serviceVehicle: serviceVehicle || '',
-                vehicleModel: vehicleModel || '',
-                vehicleSection: vehicleSection || '',
-                vehicleNumber: vehicleNumber || '',
-                fileNumber: finalFileNumber,
-                selectedDriver: selectedDriver || '',
-                trappedLocation: trappedLocation || '',
-                updatedTotalSalary: updatedTotalSalary || '',
-                insuranceAmount: insuranceAmountBody || '',
-                paymentStatus: 'Not Paid',
-            };
-            if (editData) {
-                bookingData.newStatus = 'Edited by Admin';
-                bookingData.editedTime = currentDate.toLocaleString();
-            }
-            console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
-
-            if (editData) {
-                const docRef = doc(db, 'bookings', editData.id);
-                await updateDoc(docRef, bookingData);
-                console.log('Document updated');
-            } else {
-                const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-                console.log('Document written with ID: ', docRef.id);
-                console.log('Document added');
-            }
-
-            navigate('/bookings/newbooking');
-        } catch (e) {
-            console.error('Error adding/updating document: ', e);
         }
     };
+
+    //-----------------------------------------------------------------
+    const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
+
+    const getAutocompleteResults = async (inputText, setOptions) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            if (response.data && Array.isArray(response.data.predictions)) {
+                const predictionsWithCoords = await Promise.all(
+                    response.data.predictions.map(async (prediction) => {
+                        const placeDetails = await getPlaceDetails(prediction.place_id);
+                        return {
+                            label: prediction.description,
+                            lat: placeDetails.geometry.location.lat,
+                            lng: placeDetails.geometry.location.lng,
+                            ...prediction,
+                        };
+                    })
+                );
+                setOptions(predictionsWithCoords);
+            } else {
+                setOptions([]);
+            }
+        } catch (error) {
+            console.error('Error fetching autocomplete results:', error);
+            setOptions([]);
+        }
+    };
+
+    const getPlaceDetails = async (placeId) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            return response.data.result;
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+            return { geometry: { location: { lat: undefined, lng: undefined } } };
+        }
+    };
+
+    const handlePickupChange = (event, newValue) => {
+        if (newValue) {
+            setPickupLocation(newValue.label);
+            setPickupCoords({ lat: newValue.lat, lng: newValue.lng });
+        } else {
+            setPickupCoords({ lat: undefined, lng: undefined });
+        }
+        setPickupOptions([]);
+    };
+
+    useEffect(() => {
+        console.log('Pickup Location:', pickupLocation);
+    }, [pickupLocation]);
+    
+    const handleDirections = async () => {
+        if (!pickupLocation || !dropoffLocation) return;
+
+        try {
+            const response = await axios.post(`https://api.olamaps.io/routing/v1/directions`, null, {
+                params: {
+                    origin: `${pickupCoords.lat},${pickupCoords.lng}`,
+                    destination: `${dropoffCoords.lat},${dropoffCoords.lng}`,
+                    api_key: api_key,
+                },
+                headers: {
+                    'X-Request-Id': 'YOUR_REQUEST_ID', // Replace with your actual request ID
+                },
+            });
+
+            if (response.status === 200) {
+                setDirections(response.data);
+            } else {
+                console.error('Error fetching directions:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error making the API request:', error);
+        }
+    };
+
     return (
-        <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
+        <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4 ">
                 <div
                     style={{
@@ -818,75 +933,7 @@ const MapBooking = () => {
                             />
                         </div>
                     )}
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Customer Name
-                        </label>
-                        <input
-                            id="customerName"
-                            type="text"
-                            name="customerName"
-                            className="form-input flex-1"
-                            placeholder="Enter Name"
-                            value={customerName}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('customerName', e.target.value)}
-                        />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="phoneNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Phone Number
-                        </label>
-                        <input
-                            id="phoneNumber"
-                            type="phoneNumber"
-                            name="phoneNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter Phone number"
-                            value={phoneNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                        />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="mobileNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Mobile Number
-                        </label>
-                        <input
-                            id="mobileNumber"
-                            type="text"
-                            name="mobileNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter Mobile number"
-                            value={mobileNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
-                        />
-                    </div>{' '}
+
                     <div className="flex items-center mt-4">
                         <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                             Showrooms
@@ -944,186 +991,68 @@ const MapBooking = () => {
                     {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
                     <div style={{ width: '100%' }}>
                           
-                        {googleMapsLoaded && (
-                            <div>
-                                <div className="flex items-center mt-4">
-                                    <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Pickup Location
-                                    </label>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="Pickup Location"
-                                            ref={(node) => setupAutocomplete(node, setPickupLocation)}
-                                            onChange={handleLocationChange}
-                                            value={manualInput}
-                                        />
-                                    </div>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="Latitude"
-                                            value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
-                                            onChange={(e) => handleManualChange('lat', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="Longitude"
-                                            value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
-                                            onChange={(e) => handleManualChange('lng', e.target.value)}
-                                        />
-                                    </div>
-                                    <a
-                                        href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            borderRadius: '40px',
-                                            background: 'transparent',
-                                            color: 'blue',
-                                            marginLeft: '10px',
-                                            padding: '10px',
-                                            border: 'none',
-                                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.3s ease',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                        onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-                                        onMouseOut={(e) => (e.currentTarget.style.background = 'trnsparent')}
-                                    >
-                                        <IconMapPin />
-                                    </a>{' '}
-                                </div>
+                        {/* {googleMapsLoaded && ( */}
+                        <div>
+                        <div className="flex items-center mt-4">
+                        <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Pickup Location
+                                </label>
+                            <Box  style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                           
+                                        }}>
+                                <Autocomplete
+                                    value={{ label: pickupLocation }}
+                                    onInputChange={(event, newInputValue) => {
+                                        setPickupLocation(newInputValue);
+                                        if (newInputValue) {
+                                            getAutocompleteResults(newInputValue, setPickupOptions);
+                                        } else {
+                                            setPickupOptions([]);
+                                        }
+                                    }}
+                                    onChange={handlePickupChange}
+                                    sx={{ width: 300 }}
+                                    options={pickupOptions}
+                                    getOptionLabel={(option) => option.label}
+                                    renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
+                                />
+                                {pickupCoords.lat && <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>}
 
-                                <div className="flex items-center mt-4">
-                                    <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Dropoff Location
-                                    </label>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="dropoff Location"
-                                            ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                                            onChange={handleLocationChange1}
-                                            value={manualInput1}
-                                        />
-                                    </div>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="Latitude"
-                                            value={dropoffLocation && dropoffLocation.lat ? dropoffLocation.lat : ''}
-                                            onChange={(e) => handleManualChange1('lat', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        <input
-                                            className="form-input flex-1"
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.5rem',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '5px',
-                                                fontSize: '1rem',
-                                                outline: 'none',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                            }}
-                                            type="text"
-                                            placeholder="Longitude"
-                                            value={dropoffLocation && dropoffLocation.lng ? dropoffLocation.lng : ''}
-                                            onChange={(e) => handleManualChange1('lng', e.target.value)}
-                                        />
-                                    </div>
-                                    <a
-                                        href={`https://www.google.co.in/maps/@${dropoffLocation?.lat || '11.0527369'},${dropoffLocation?.lng || '76.0747136'},15z?entry=ttu`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            borderRadius: '40px',
-                                            background: 'transparent',
-                                            color: 'blue',
-                                            marginLeft: '10px',
-                                            padding: '10px',
-                                            border: 'none',
-                                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.3s ease',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                        onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-                                        onMouseOut={(e) => (e.currentTarget.style.background = 'trnsparent')}
-                                    >
-                                        <IconMapPin />
-                                    </a>{' '}
-                                </div>
-                                <div className="mt-4 flex items-center">
-                                    <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                        Start Location
-                                    </label>
+                            </Box>
+                            </div>
+                            <div className="flex items-center mt-4">
+                                <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Drop off Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                  
+                            <input
+                             style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            }}
+                            value={showroomLocation} />
+</div>
+</div>
+                            {/* <div className="flex items-center mt-4">
+                                <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Pickup Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     <input
-                                        id="baseLocation"
-                                        type="text"
-                                        name="baseLocation"
                                         className="form-input flex-1"
-                                        placeholder="select start location"
-                                        value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
                                         style={{
                                             width: '100%',
                                             padding: '0.5rem',
@@ -1133,118 +1062,172 @@ const MapBooking = () => {
                                             outline: 'none',
                                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                         }}
-                                        readOnly
+                                        type="text"
+                                        placeholder="Pickup Location"
+                                        ref={(node) => setupAutocomplete(node, setPickupLocation)}
+                                        onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
+                                        value={pickupLocation ? pickupLocation.name : ''}
                                     />
-                                    <button
-                                        onClick={openModal1}
-                                        style={{
-                                            borderRadius: '40px',
-                                            background: 'transparent',
-                                            color: 'blue',
-                                            marginLeft: '10px',
-                                            padding: '10px',
-                                            border: 'none',
-                                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.3s ease',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                        onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-                                        onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-                                    >
-                                        <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
-                                    </button>
+                                    {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
                                 </div>
+                            </div>
 
-                                {isModalOpen1 && (
-                                    <div
-                                        className="modal"
+                            <div className="flex items-center mt-4">
+                                <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Drop off Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    <input
+                                        className="form-input flex-1"
                                         style={{
-                                            position: 'fixed',
-                                            zIndex: 1,
-                                            left: 0,
-                                            top: 0,
                                             width: '100%',
-                                            height: '100%',
-                                            overflow: 'auto',
-                                            backgroundColor: 'rgb(0,0,0)',
-                                            backgroundColor: 'rgba(0,0,0,0.4)',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Drop off Location"
+                                        ref={(node) => setupAutocomplete(node, setDropoffLocation)}
+                                        onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
+                                        value={dropoffLocation ? dropoffLocation.name : ''}
+                                    />
+                                    {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
+                                </div>
+                            </div> */}
+
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Start Location
+                                </label>
+                                <input
+                                    id="baseLocation"
+                                    type="text"
+                                    name="baseLocation"
+                                    className="form-input flex-1"
+                                    placeholder="select start location"
+                                    value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    readOnly
+                                />
+                                <button
+                                    onClick={openModal1}
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
+                                </button>
+                            </div>
+
+                            {isModalOpen1 && (
+                                <div
+                                    className="modal"
+                                    style={{
+                                        position: 'fixed',
+                                        zIndex: 1,
+                                        left: 0,
+                                        top: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        overflow: 'auto',
+                                        backgroundColor: 'rgb(0,0,0)',
+                                        backgroundColor: 'rgba(0,0,0,0.4)',
+                                    }}
+                                >
+                                    <div
+                                        className="modal-content"
+                                        style={{
+                                            backgroundColor: '#fefefe',
+                                            margin: '15% auto',
+                                            padding: '20px',
+                                            border: '1px solid #888',
+                                            width: '80%',
+                                            boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+                                            borderRadius: '10px',
                                         }}
                                     >
                                         <div
-                                            className="modal-content"
+                                            className="modal-header"
                                             style={{
-                                                backgroundColor: '#fefefe',
-                                                margin: '15% auto',
-                                                padding: '20px',
-                                                border: '1px solid #888',
-                                                width: '80%',
-                                                boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-                                                borderRadius: '10px',
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                borderBottom: '1px solid #eee',
+                                                paddingBottom: '10px',
                                             }}
                                         >
-                                            <div
-                                                className="modal-header"
+                                            <span
+                                                className="close"
+                                                onClick={closeModal1}
                                                 style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'flex-end',
-                                                    borderBottom: '1px solid #eee',
-                                                    paddingBottom: '10px',
+                                                    color: '#aaa',
+                                                    fontSize: '28px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    transition: '0.3s',
                                                 }}
                                             >
-                                                <span
-                                                    className="close"
-                                                    onClick={closeModal1}
-                                                    style={{
-                                                        color: '#aaa',
-                                                        fontSize: '28px',
-                                                        fontWeight: 'bold',
-                                                        cursor: 'pointer',
-                                                        transition: '0.3s',
-                                                    }}
-                                                >
-                                                    &times;
-                                                </span>
-                                            </div>
-                                            <div className="modal-body">
-                                                <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
-                                            </div>
-                                            <div
-                                                className="modal-footer"
+                                                &times;
+                                            </span>
+                                        </div>
+                                        <div className="modal-body">
+                                            <BaseLocationModal pickupCoords={pickupCoords} onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} api_key={api_key}/>
+                                        </div>
+                                        <div
+                                            className="modal-footer"
+                                            style={{
+                                                padding: '10px',
+                                                borderTop: '1px solid #eee',
+                                                textAlign: 'right',
+                                            }}
+                                        >
+                                            <button
+                                                onClick={closeModal1}
                                                 style={{
-                                                    padding: '10px',
-                                                    borderTop: '1px solid #eee',
-                                                    textAlign: 'right',
+                                                    padding: '10px 20px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    background: '#f44336',
+                                                    color: '#fff',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease',
                                                 }}
+                                                onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
+                                                onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
                                             >
-                                                <button
-                                                    onClick={closeModal1}
-                                                    style={{
-                                                        padding: '10px 20px',
-                                                        border: 'none',
-                                                        borderRadius: '5px',
-                                                        background: '#f44336',
-                                                        color: '#fff',
-                                                        cursor: 'pointer',
-                                                        transition: 'background 0.3s ease',
-                                                    }}
-                                                    onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
-                                                    onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
-                                                >
-                                                    Close
-                                                </button>{' '}
-                                            </div>
+                                                Close
+                                            </button>{' '}
                                         </div>
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                <GoogleMap>
-                                    <MyMapComponent map={map} pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} baseLocation={baseLocation} />
-                                </GoogleMap>
-                            </div>
-                        )}
+                            <MapView />
+                        </div>
+                        {/* )} */}
                     </div>
                     <div className="mt-4 flex items-center">
                         <label htmlFor="distance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1554,11 +1537,11 @@ const MapBooking = () => {
                         </div>
                     </React.Fragment>
                 )}
-                <div className="flex items-center mt-4">
+                <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Service Vehicle Number
                     </label>
-                    &nbsp; &nbsp;&nbsp;
+
                     <input
                         id="serviceVehicle"
                         type="text"
@@ -1579,8 +1562,78 @@ const MapBooking = () => {
                         required
                     />
                 </div>
-                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-                <div className="mt-4 flex items-center">
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Customer Name
+                    </label>
+                    <input
+                        id="customerName"
+                        type="text"
+                        name="customerName"
+                        className="form-input flex-1"
+                        placeholder="Enter Name"
+                        value={customerName}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    />
+                </div>
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="phoneNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Phone Number
+                    </label>
+                    <input
+                        id="phoneNumber"
+                        type="phoneNumber"
+                        name="phoneNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter Phone number"
+                        value={phoneNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                    />
+                    {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+                </div>
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="mobileNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Mobile Number
+                    </label>
+                    <input
+                        id="mobileNumber"
+                        type="text"
+                        name="mobileNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter Mobile number"
+                        value={mobileNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
+                    />
+                    {errors.mobileNumber && <p className="text-red-500 text-sm mt-1">{errors.mobileNumber}</p>}
+                </div>{' '}
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Customer Vehicle Number
                     </label>
@@ -1603,7 +1656,7 @@ const MapBooking = () => {
                         onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
                     />
                 </div>
-                <div className="mt-4 flex items-center">
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Vehicle Type(2 or 3 or 4 wheeler)
                     </label>
@@ -1626,8 +1679,7 @@ const MapBooking = () => {
                         onChange={(e) => handleInputChange('vehicleType', e.target.value)}
                     />
                 </div>
-                &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-                <div className="flex items-center mt-4">
+                <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Brand Name
                     </label>

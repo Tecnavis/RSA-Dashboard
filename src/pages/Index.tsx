@@ -25,12 +25,14 @@ const Index = () => {
                 const newBookingsShowRoom = bookings.filter(booking => booking.status === 'booking added' && booking.bookingStatus === 'ShowRoom Booking').length;
                 const newBookingsOther = bookings.filter(booking => booking.status === 'booking added' && booking.bookingStatus !== 'ShowRoom Booking').length;
                 const pendingBookings = bookings.filter(booking => [
+                   'called to customer',
                     'Order Received',
-                    'Contacted Customer',
+                    'On the way to pickup location',
                     'Vehicle Picked',
                     'Vehicle Confirmed',
                     'To DropOff Location',
-                    'Vehicle dropoff'
+                    'On the way to dropoff location',
+                    'Vehicle Dropped'
                 ].includes(booking.status)).length;
                 const completedBookings = bookings.filter(booking => booking.status === 'Order Completed').length;
 

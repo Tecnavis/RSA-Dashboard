@@ -6,6 +6,15 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
 import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc, where, query } from 'firebase/firestore';
+import IconMenu from '../../components/Icon/IconMenu';
+import IconMenuDashboard from '../../components/Icon/Menu/IconMenuDashboard';
+import IconMenuComponents from '../../components/Icon/Menu/IconMenuComponents';
+import IconMenuElements from '../../components/Icon/Menu/IconMenuElements';
+import IconMenuMore from '../../components/Icon/Menu/IconMenuMore';
+import IconMenuDatatables from '../../components/Icon/Menu/IconMenuDatatables';
+import IconMenuNotes from '../../components/Icon/Menu/IconMenuNotes';
+import IconMenuTodo from '../../components/Icon/Menu/IconMenuTodo';
+import IconMenuScrumboard from '../../components/Icon/Menu/IconMenuScrumboard';
 
 const Driver = () => {
     const [items, setItems] = useState([] as any);
@@ -110,7 +119,7 @@ const Driver = () => {
                                                 <li>
                                                     <Tippy content="More">
                                                         <Link to={`/users/driver/driverdetails/${item.id}`}>
-                                                            <button style={{ background: "violet", border: "none", color: "white", padding: "15px 32px", textAlign: "center", textDecoration: "none", display: "inline-block", fontSize: "16px", margin: "4px 2px", cursor: "pointer", borderRadius: "10px" }}>ViewMore</button>
+                                                        <IconMenuScrumboard className='text-success'/>
                                                         </Link>
                                                     </Tippy>
                                                 </li>

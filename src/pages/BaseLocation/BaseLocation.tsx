@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import './BaseLocationForm.css'; // Import the CSS file
-import MyMapComponent from './MyMapComponent';
+import axios from 'axios';
+import { Autocomplete, TextField, Box, Typography } from '@mui/material';
 import Tippy from '@tippyjs/react';
 import IconPencil from '../../components/Icon/IconPencil';
 import IconTrashLines from '../../components/Icon/IconTrashLines';
 import { useNavigate } from 'react-router-dom';
 
 const BaseLocation = () => {
+    const [baseLocation, setBaseLocation] = useState(null);
+    const [baseOptions, setBaseOptions] = useState([]);
+    const [baseCoords, setBaseCoords] = useState({ lat: undefined, lng: undefined });
+
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
-    const [baseLocation, setBaseLocation] = useState(null);
     const [baseLocationName, setBaseLocationName] = useState('');
     const [savedBaseLocation, setSavedBaseLocation] = useState(null);
     const [items, setItems] = useState([]);
@@ -22,7 +26,7 @@ const BaseLocation = () => {
     const handleMapClick = (location) => {
         setLat(location.lat);
         setLng(location.lng);
-        setBaseLocation(location);
+        setBaseCoords(location);
     };
 
     useEffect(() => {
@@ -30,7 +34,6 @@ const BaseLocation = () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'baselocation'));
                 const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-                console.log('Fetched data:', data);
                 setItems(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -47,11 +50,7 @@ const BaseLocation = () => {
         if (editing) {
             try {
                 await updateDoc(doc(db, 'baselocation', currentItemId), baseLocationDetails);
-                setItems((prevItems) =>
-                    prevItems.map((item) =>
-                        item.id === currentItemId ? { ...item, ...baseLocationDetails } : item
-                    )
-                );
+                setItems((prevItems) => prevItems.map((item) => (item.id === currentItemId ? { ...item, ...baseLocationDetails } : item)));
                 setEditing(false);
                 setCurrentItemId(null);
             } catch (error) {
@@ -70,12 +69,14 @@ const BaseLocation = () => {
         setBaseLocationName('');
         setLat('');
         setLng('');
+        window.location.reload();
+
     };
 
     const handleDelete = async (id) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this base location?');
         if (confirmDelete) {
-            const password = window.prompt('Please enter the password to confirm deletion:BASELOCATION(password)');
+            const password = window.prompt('Please enter the password to confirm deletion:');
             if (password === 'BASELOCATION') {
                 try {
                     await deleteDoc(doc(db, 'baselocation', id));
@@ -88,49 +89,113 @@ const BaseLocation = () => {
             }
         }
     };
-    
 
     const handleEdit = (item) => {
-        const password = window.prompt('Please enter the password to edit this base location:BASELOCATION(password)');
+        const password = window.prompt('Please enter the password to edit this base location:');
         if (password === 'BASELOCATION') {
             setEditing(true);
             setCurrentItemId(item.id);
             setBaseLocationName(item.name);
             setLat(item.lat);
             setLng(item.lng);
-            setBaseLocation({ lat: item.lat, lng: item.lng });
+            setBaseCoords({ lat: item.lat, lng: item.lng });
         } else {
             alert('Incorrect password. Edit cancelled.');
         }
     };
-    
+
+    const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
+
+    const getAutocompleteResults = async (inputText, setOptions) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            if (response.data && Array.isArray(response.data.predictions)) {
+                const predictionsWithCoords = await Promise.all(
+                    response.data.predictions.map(async (prediction) => {
+                        const placeDetails = await getPlaceDetails(prediction.place_id);
+                        const locationName = prediction.description.split(',')[0]; // Extract the location name
+                        return {
+                            label: locationName,
+                            lat: placeDetails.geometry.location.lat,
+                            lng: placeDetails.geometry.location.lng,
+                            ...prediction,
+                        };
+                    })
+                );
+                setOptions(predictionsWithCoords);
+            } else {
+                setOptions([]);
+            }
+        } catch (error) {
+            console.error('Error fetching autocomplete results:', error);
+            setOptions([]);
+        }
+    };
+
+    const getPlaceDetails = async (placeId) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            return response.data.result;
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+            return { geometry: { location: { lat: undefined, lng: undefined } } };
+        }
+    };
+
+    const handleBaseChange = (event, newValue) => {
+        if (newValue) {
+            setBaseLocation(newValue);
+            setLat(newValue.lat);
+            setLng(newValue.lng);
+            setBaseCoords({ lat: newValue.lat, lng: newValue.lng });
+        } else {
+            setBaseCoords({ lat: undefined, lng: undefined });
+        }
+        setBaseOptions([]);
+    };
 
     return (
         <div className="base-location-form-container">
             <form onSubmit={handleFormSubmit} className="base-location-form">
                 <div className="form-group">
                     <label htmlFor="baseLocationName">Base Location Name:</label>
-                    <input
-                        type="text"
-                        id="baseLocationName"
-                        value={baseLocationName}
-                        onChange={(e) => setBaseLocationName(e.target.value)}
-                        required
-                        className="form-control"
-                    />
+                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" sx={{ gap: 2 }}>
+                        <Autocomplete
+                            value={baseLocation}
+                            onInputChange={(event, newInputValue) => {
+                                setBaseLocationName(newInputValue);
+                                if (newInputValue) {
+                                    getAutocompleteResults(newInputValue, setBaseOptions);
+                                } else {
+                                    setBaseOptions([]);
+                                }
+                            }}
+                            onChange={handleBaseChange}
+                            sx={{ width: 300 }}
+                            options={baseOptions}
+                            getOptionLabel={(option) => option.label}
+                            isOptionEqualToValue={(option, value) => option.label === value.label}
+                            renderInput={(params) => <TextField {...params} label="Base Location" variant="outlined" />}
+                        />
+                        {baseCoords.lat && baseCoords.lng && <Typography>{`Base Location Lat/Lng: ${baseCoords.lat}, ${baseCoords.lng}`}</Typography>}
+                    </Box>
                 </div>
                 <button type="submit" className="btn btn-primary">
                     {editing ? 'Update Base Location' : 'Save Base Location'}
                 </button>
             </form>
-            <div className="map-container">
-                <MyMapComponent baseLocation={baseLocation} onMapClick={handleMapClick} />
-            </div>
+            {/* <div className="map-container">
+                <MyMapComponent baseLocation={baseCoords} onMapClick={handleMapClick} />
+            </div> */}
             {savedBaseLocation && (
                 <div className="base-location-details">
                     <h3>Base Location Details</h3>
-                    <p><strong>Location:</strong> {savedBaseLocation.name}</p>
-                    <p><strong>Coordinates:</strong> ({savedBaseLocation.lat}, {savedBaseLocation.lng})</p>
+                    <p>
+                        <strong>Location:</strong> {savedBaseLocation.name}
+                    </p>
+                    <p>
+                        <strong>Coordinates:</strong> ({savedBaseLocation.lat}, {savedBaseLocation.lng})
+                    </p>
                 </div>
             )}
             <div className="table-responsive mb-5">
@@ -157,23 +222,25 @@ const BaseLocation = () => {
                                 <td>
                                     <div className="whitespace-nowrap">{item.lng}</div>
                                 </td>
-                                <td className="text-center">
-                                    <ul className="flex items-center justify-center gap-2">
-                                        <li>
-                                            <Tippy content="Edit">
-                                                <button type="button" onClick={() => handleEdit(item)}>
-                                                    <IconPencil className="text-primary" />
-                                                </button>
-                                            </Tippy>
-                                        </li>
-                                        <li>
-                                            <Tippy content="Delete">
-                                                <button type="button" onClick={() => handleDelete(item.id)}>
-                                                    <IconTrashLines className="text-danger" />
-                                                </button>
-                                            </Tippy>
-                                        </li>
-                                    </ul>
+                                <td className="!text-center">
+                                    <div className="flex items-center justify-center gap-x-2">
+                                        <Tippy content="Edit">
+                                            <button
+                                                className="btn btn-secondary"
+                                                onClick={() => handleEdit(item)}
+                                            >
+                                                <IconPencil />
+                                            </button>
+                                        </Tippy>
+                                        <Tippy content="Delete">
+                                            <button
+                                                className="btn btn-danger"
+                                                onClick={() => handleDelete(item.id)}
+                                            >
+                                                <IconTrashLines />
+                                            </button>
+                                        </Tippy>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

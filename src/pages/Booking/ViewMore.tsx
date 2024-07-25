@@ -11,10 +11,16 @@ const ViewMore = () => {
     const [showPickupDetails, setShowPickupDetails] = useState(false);
     const [showDropoffDetails, setShowDropoffDetails] = useState(false);
     const queryParams = new URLSearchParams(search);
-    const [editData, setEditData] = useState(null);
     const [staffName, setStaffName] = useState('Admin');
-    const [ShowRoom, setShowRoom] = useState('');
-
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState({
+        dropoffTime: '',
+        driverSalary: 'No',
+        companyAmount: 'No',
+        amount: '',
+        distance: '',
+        remark: '',
+    });
     useEffect(() => {
         const fetchBookingDetails = async () => {
             try {
@@ -85,7 +91,28 @@ const ViewMore = () => {
             }
         }
     };
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevData => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
 
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const docRef = doc(db, 'bookings', id);
+            await updateDoc(docRef, {
+                ...formData,
+                bookingStatus: 'Completed', // Update the status to completed
+            });
+            console.log('Booking successfully updated!');
+            setShowForm(false);
+        } catch (error) {
+            console.error('Error updating document:', error);
+        }
+    };
     if (!bookingDetails) {
         return <div>Loading...</div>;
     }
@@ -100,6 +127,7 @@ const ViewMore = () => {
                 <button onClick={toggleDropoffDetails} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                     {showDropoffDetails ? 'Close' : 'Show Dropoff Details'}
                 </button>
+               
             </div>
 
             {showPickupDetails && (
@@ -293,14 +321,104 @@ const ViewMore = () => {
                     </tr>
                 </tbody>
             </table>
-
+            {showForm && (
+            <form onSubmit={handleFormSubmit} className="mt-8">
+                <div className="mb-4">
+                    <label htmlFor="dropoffTime" className="block text-sm font-medium text-gray-700">
+                        Dropoff Time
+                    </label>
+                    <input
+                        type="datetime-local"
+                        id="dropoffTime"
+                        name="dropoffTime"
+                        value={formData.dropoffTime}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
+                <div className="mb-4">
+                    <label htmlFor="driverSalary" className="block text-sm font-medium text-gray-700">
+                        Driver Salary
+                    </label>
+                    <select
+                        id="driverSalary"
+                        name="driverSalary"
+                        value={formData.driverSalary}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div className="mb-4">
+                    <label htmlFor="companyAmount" className="block text-sm font-medium text-gray-700">
+                        Company Amount
+                    </label>
+                    <select
+                        id="companyAmount"
+                        name="companyAmount"
+                        value={formData.companyAmount}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div className="mb-4">
+                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                        Amount
+                    </label>
+                    <input
+                        type="number"
+                        id="amount"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
+                <div className="mb-4">
+                    <label htmlFor="distance" className="block text-sm font-medium text-gray-700">
+                        Distance
+                    </label>
+                    <input
+                        type="number"
+                        id="distance"
+                        name="distance"
+                        value={formData.distance}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
+                <div className="mb-4">
+                    <label htmlFor="remark" className="block text-sm font-medium text-gray-700">
+                        Remark
+                    </label>
+                    <textarea
+                        id="remark"
+                        name="remark"
+                        value={formData.remark}
+                        onChange={handleFormChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    />
+                </div>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Submit
+                </button>
+            </form>
+        )}
             <div className="flex justify-end mt-5">
                 <button onClick={handleDeleteBooking} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                     Delete Booking
                 </button>
-                {/* <button onClick={handleUpdateBooking} className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Update
-                </button> */}
+                <button onClick={() => setShowForm(!showForm)} className="ml-4 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                    {showForm ? 'Close Form' : 'Booking Completed'}
+                </button>
             </div>
         </div>
     );

@@ -275,9 +275,10 @@ const SalesSummary = () => {
                 </div>
 
                 <div className="mb-4.5 px-5 mt-4">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                        Total Amount: <span className="text-primary">{totalAmount.toFixed(2)}</span>
-                    </h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+    Total Amount: <span className="text-primary">{(typeof totalAmount === 'number' ? totalAmount.toFixed(2) : '0.00')}</span>
+</h2>
+
                 </div>
             </div>
         </div>

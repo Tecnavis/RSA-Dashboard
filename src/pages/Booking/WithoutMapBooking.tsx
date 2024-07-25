@@ -33,6 +33,7 @@ const WithoutMapBooking = () => {
         company: '',
         fileNumber: '',
         customerName: '',
+        totalDriverSalary:'',
         phoneNumber: '',
         mobileNumber: '',
         totalSalary: '',
@@ -55,6 +56,7 @@ const WithoutMapBooking = () => {
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [vehicleType, setVehicleType] = useState('');
+        const [totalDriverSalary, setTotalDriverSalary] = useState('');
 
     const [company, setCompany] = useState('');
     const [customerName, setCustomerName] = useState('');
@@ -91,7 +93,7 @@ const WithoutMapBooking = () => {
     const [pickupDistances, setPickupDistances] = useState([]);
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
-
+    const [errors, setErrors] = useState({});
     useEffect(() => {
         if (state && state.editData) {
             const editData = state.editData;
@@ -103,6 +105,8 @@ const WithoutMapBooking = () => {
             setComments(editData.comments || '');
             setFileNumber(editData.fileNumber || '');
             setCompany(editData.company || '');
+                        setTotalDriverSalary(editData.totalDriverSalary || '');
+
             setCustomerName(editData.customerName || '');
             setPhoneNumber(editData.phoneNumber || '');
             setVehicleType(editData.vehicleType || '');
@@ -143,6 +147,28 @@ const WithoutMapBooking = () => {
             setDisableFields(false);
         }
     }, [trappedLocation]);
+    const validateForm = () => {
+        let tempErrors = {};
+        let isValid = true;
+
+        if (!phoneNumber.trim()) {
+            tempErrors['phoneNumber'] = 'Phone number is required';
+            isValid = false;
+        } else if (!/^\d{10}$/.test(phoneNumber)) {
+            tempErrors['phoneNumber'] = 'Phone number is invalid, must be 10 digits';
+            isValid = false;
+        }
+        if (!mobileNumber.trim()) {
+            tempErrors['mobileNumber'] = 'Mobile number is required';
+            isValid = false;
+        } else if (!/^\d{10}$/.test(phoneNumber)) {
+            tempErrors['mobileNumber'] = 'Mobile number is invalid, must be 10 digits';
+            isValid = false;
+        }
+
+        setErrors(tempErrors);
+        return isValid;
+    };
     useEffect(() => {
         if (company === 'rsa') {
             const fetchCompanies = async () => {
@@ -232,6 +258,10 @@ const WithoutMapBooking = () => {
             case 'customerName':
                 setCustomerName(value || '');
                 break;
+                case 'totalDriverSalary':
+                setTotalDriverSalary(value || '');
+                break;
+                
             case 'company':
                 setCompany(value);
                 setFileNumber(value === 'self' ? bookingId : '');
@@ -518,6 +548,7 @@ const WithoutMapBooking = () => {
         }
     };
     const addOrUpdateItem = async () => {
+        if (validateForm()) {
         try {
             const selectedDriverObject = drivers.find((driver) => driver.id === selectedDriver);
             const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
@@ -549,6 +580,8 @@ const WithoutMapBooking = () => {
                 Location: Location || '',
                 company: company || '',
                 customerName: customerName || '',
+                totalDriverSalary: totalDriverSalary || '',
+
                 mobileNumber: mobileNumber || '',
                 phoneNumber: phoneNumber || '',
                 vehicleType: vehicleType || '',
@@ -585,8 +618,9 @@ const WithoutMapBooking = () => {
             console.error('Error adding/updating document: ', e);
         }
     };
+}
     return (
-        <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100">
+        <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4">
                 <div
                     style={{
@@ -684,75 +718,7 @@ const WithoutMapBooking = () => {
                             />
                         </div>
                     )}
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Customer Name
-                        </label>
-                        <input
-                            id="customerName"
-                            type="text"
-                            name="customerName"
-                            className="form-input flex-1"
-                            placeholder="Enter Name"
-                            value={customerName}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('customerName', e.target.value)}
-                        />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="phoneNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Phone Number
-                        </label>
-                        <input
-                            id="phoneNumber"
-                            type="phoneNumber"
-                            name="phoneNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter Phone number"
-                            value={phoneNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                        />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                        <label htmlFor="mobileNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Mobile Number
-                        </label>
-                        <input
-                            id="mobileNumber"
-                            type="text"
-                            name="mobileNumber"
-                            className="form-input flex-1"
-                            placeholder="Enter Mobile number"
-                            value={mobileNumber}
-                            style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
-                        />
-                    </div>{' '}
+
                     <div className="flex items-center mt-4">
                         <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                             Showrooms
@@ -1396,11 +1362,11 @@ const WithoutMapBooking = () => {
                         </div>
                     </React.Fragment>
                 )}
-                <div className="flex items-center mt-4">
+                <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Service Vehicle Number
                     </label>
-                    &nbsp; &nbsp;&nbsp;
+
                     <input
                         id="serviceVehicle"
                         type="text"
@@ -1421,8 +1387,101 @@ const WithoutMapBooking = () => {
                         required
                     />
                 </div>
-                &nbsp; &nbsp; &nbsp;
-                <div className="mt-4 flex items-center">
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="totalDriverSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                    Driver Salary
+                    </label>
+                    <input
+                        id="totalDriverSalary"
+                        type="text"
+                        name="totalDriverSalary"
+                        className="form-input flex-1"
+                        placeholder="Enter Driver Salary"
+                        value={totalDriverSalary}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('totalDriverSalary', e.target.value)}
+                    />
+                </div>
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Customer Name
+                    </label>
+                    <input
+                        id="customerName"
+                        type="text"
+                        name="customerName"
+                        className="form-input flex-1"
+                        placeholder="Enter Name"
+                        value={customerName}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    />
+                </div>
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="phoneNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Phone Number
+                    </label>
+                    <input
+                        id="phoneNumber"
+                        type="phoneNumber"
+                        name="phoneNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter Phone number"
+                        value={phoneNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                    />
+                    {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+                </div>
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="mobileNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                        Mobile Number
+                    </label>
+                    <input
+                        id="mobileNumber"
+                        type="text"
+                        name="mobileNumber"
+                        className="form-input flex-1"
+                        placeholder="Enter Mobile number"
+                        value={mobileNumber}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
+                    />
+                    {errors.mobileNumber && <p className="text-red-500 text-sm mt-1">{errors.mobileNumber}</p>}
+                </div>{' '}
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="vehicleNumber" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Customer Vehicle Number
                     </label>
@@ -1445,7 +1504,7 @@ const WithoutMapBooking = () => {
                         onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
                     />
                 </div>
-                <div className="mt-4 flex items-center">
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Vehicle Type(2 or 3 or 4 wheeler)
                     </label>
@@ -1468,8 +1527,7 @@ const WithoutMapBooking = () => {
                         onChange={(e) => handleInputChange('vehicleType', e.target.value)}
                     />
                 </div>
-                {/* &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; */}
-                <div className="flex items-center mt-4">
+                <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Brand Name
                     </label>

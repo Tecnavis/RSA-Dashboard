@@ -6,6 +6,7 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
 import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc, where, query } from 'firebase/firestore';
+import IconMenuScrumboard from '../../components/Icon/Menu/IconMenuScrumboard';
 
 const CompanyCreatn = () => {
     const [items, setItems] = useState([] as any);
@@ -121,7 +122,7 @@ const CompanyCreatn = () => {
                                                 <li>
                                                     <Tippy content="More">
                                                         <Link to={`/users/companycreation/companydetails/${item.id}`}>
-                                                            <button style={{ background: "violet", border: "none", color: "white", padding: "15px 32px", textAlign: "center", textDecoration: "none", display: "inline-block", fontSize: "16px", margin: "4px 2px", cursor: "pointer", borderRadius: "10px" }}>ViewMore</button>
+                                                        <IconMenuScrumboard className='text-success'/>
                                                         </Link>
                                                     </Tippy>
                                                 </li>

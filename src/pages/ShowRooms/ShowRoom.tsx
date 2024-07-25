@@ -4,24 +4,8 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './ShowRoom.css';
 import IconPrinter from '../../components/Icon/IconPrinter';
 
-const setupAutocomplete = (inputRef, setter) => {
-    if (!inputRef) return;
-
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-    autocomplete.setFields(['geometry', 'name']);
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        if (place.geometry) {
-            const location = {
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                name: place.name,
-            };
-            setter(location);
-        }
-    });
-};
-
+import { Autocomplete, TextField, Box, Typography } from '@mui/material';
+import axios from 'axios';
 const keralaDistricts = [
     'Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod',
     'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad',
@@ -57,7 +41,9 @@ const ShowRoom = () => {
     const [filteredRecords, setFilteredRecords] = useState([]);
     const listRef = useRef();
     const formRef = useRef(null);
-
+    const [baseOptions, setBaseOptions] = useState([]);
+    const [baseLocation, setBaseLocation] = useState(null);
+   const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k';
     useEffect(() => {
         const term = searchTerm.toLowerCase();
         const filtered = existingShowRooms.filter(record =>
@@ -233,22 +219,66 @@ const ShowRoom = () => {
         fetchShowRooms();
     }, []);
 
-    useEffect(() => {
-        setupAutocomplete(locationInputRef.current, (location) => {
-            setShowRoom((prev) => ({
-                ...prev,
-                Location: location.name,
-                locationLatLng: { lat: location.lat, lng: location.lng },
-            }));
-        });
-    }, []);
-
     const handlePrint = () => {
         const originalContents = document.body.innerHTML;
         const printContents = listRef.current.innerHTML;
         document.body.innerHTML = printContents;
         window.print();
         document.body.innerHTML = originalContents;
+    };
+    const getAutocompleteResults = async (inputText, setOptions) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            if (response.data && Array.isArray(response.data.predictions)) {
+                const predictionsWithCoords = await Promise.all(
+                    response.data.predictions.map(async (prediction) => {
+                        const placeDetails = await getPlaceDetails(prediction.place_id);
+                        const locationName = prediction.description.split(',')[0]; // Extract the location name
+                        return {
+                            label: locationName,
+                            lat: placeDetails.geometry.location.lat,
+                            lng: placeDetails.geometry.location.lng,
+                            ...prediction,
+                        };
+                    })
+                );
+                setOptions(predictionsWithCoords);
+            } else {
+                setOptions([]);
+            }
+        } catch (error) {
+            console.error('Error fetching autocomplete results:', error);
+            setOptions([]);
+        }
+    };
+
+    const getPlaceDetails = async (placeId) => {
+        try {
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            return response.data.result;
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+            return { geometry: { location: { lat: undefined, lng: undefined } } };
+        }
+    };
+
+    // Handle Location Selection
+    const handleLocationChange = (event, newValue) => {
+        if (newValue) {
+            setBaseLocation(newValue);
+            setShowRoom((prevShowRoom) => ({
+                ...prevShowRoom,
+                locationLatLng: { lat: newValue.lat, lng: newValue.lng },
+                Location: newValue.label
+            }));
+        } else {
+            setShowRoom((prevShowRoom) => ({
+                ...prevShowRoom,
+                locationLatLng: { lat: '', lng: '' },
+                Location: ''
+            }));
+        }
+        setBaseOptions([]);
     };
     return (
         <div className="mb-5">
@@ -430,16 +460,27 @@ const ShowRoom = () => {
                     <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '1em', color: '#333' }}>
                         Location
                     </label>
-                    <input
-                        type="text"
-                        name="Location"
-                        value={showRoom.Location}
-                        onChange={handleChange}
-                        ref={locationInputRef}
-                        className="form-input w-full"
-                        required
-                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '1em' }}
-                    />
+                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" sx={{ gap: 2 }}>
+                        <Autocomplete
+                            value={baseLocation}
+                            onInputChange={(event, newInputValue) => {
+                                if (newInputValue) {
+                                    getAutocompleteResults(newInputValue, setBaseOptions);
+                                } else {
+                                    setBaseOptions([]);
+                                }
+                            }}
+                            onChange={handleLocationChange}
+                            sx={{ width: 300 }}
+                            options={baseOptions}
+                            getOptionLabel={(option) => option.label}
+                            isOptionEqualToValue={(option, value) => option.label === value.label}
+                            renderInput={(params) => <TextField {...params} label="Location" variant="outlined" />}
+                        />
+                        {showRoom.locationLatLng.lat && showRoom.locationLatLng.lng && (
+                            <Typography>{`Location Lat/Lng: ${showRoom.locationLatLng.lat}, ${showRoom.locationLatLng.lng}`}</Typography>
+                        )}
+                    </Box>
                 </div>
 
                 <div className="mb-4" style={{ marginBottom: '16px' }}>
