@@ -479,36 +479,36 @@ const MapBooking = () => {
         setupAutocomplete(document.getElementById('dropoffLocationInput'), setDropoffLocation);
     }, []);
 
-    useEffect(() => {
-        if (baseLocation && pickupLocation && dropoffLocation) {
-            const service = new window.google.maps.DistanceMatrixService();
+    // useEffect(() => {
+    //     if (baseLocation && pickupLocation && dropoffLocation) {
+    //         const service = new window.google.maps.DistanceMatrixService();
 
-            const origins = [baseLocation, pickupLocation, dropoffLocation];
-            const destinations = [pickupLocation, dropoffLocation, baseLocation];
+    //         const origins = [baseLocation, pickupLocation, dropoffLocation];
+    //         const destinations = [pickupLocation, dropoffLocation, baseLocation];
 
-            service.getDistanceMatrix(
-                {
-                    origins,
-                    destinations,
-                    travelMode: 'DRIVING',
-                },
-                (response, status) => {
-                    if (status === 'OK') {
-                        const distances = response.rows.map((row, index) => {
-                            return row.elements[index].distance.value / 1000; // Distance in km
-                        });
+    //         service.getDistanceMatrix(
+    //             {
+    //                 origins,
+    //                 destinations,
+    //                 travelMode: 'DRIVING',
+    //             },
+    //             (response, status) => {
+    //                 if (status === 'OK') {
+    //                     const distances = response.rows.map((row, index) => {
+    //                         return row.elements[index].distance.value / 1000; // Distance in km
+    //                     });
 
-                        const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
+    //                     const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
 
-                        setDistance(`${totalDistance} km`);
-                        setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
-                    } else {
-                        console.error('Error calculating distances:', status);
-                    }
-                }
-            );
-        }
-    }, [baseLocation, pickupLocation, dropoffLocation]);
+    //                     setDistance(`${totalDistance} km`);
+    //                     setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
+    //                 } else {
+    //                     console.error('Error calculating distances:', status);
+    //                 }
+    //             }
+    //         );
+    //     }
+    // }, [baseLocation, pickupLocation, dropoffLocation]);
 
     useEffect(() => {
         const fetchDrivers = async () => {
