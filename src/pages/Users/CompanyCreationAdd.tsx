@@ -236,7 +236,7 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <input id="idnumber" type="idnumber"  className="form-input" value={idnumber} onChange={(e) => setIdnumber(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label htmlFor="advancePayment">AdvancePayment</label>
+                                    <label htmlFor="advancePayment">Credit Limit Amount</label>
                                     <input id="advancePayment" type="advancePayment" placeholder="" className="form-input" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} />
                                 </div>
                                 <div>

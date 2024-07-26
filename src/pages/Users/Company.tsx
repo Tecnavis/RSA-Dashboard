@@ -5,34 +5,30 @@ import IconPencil from '../../components/Icon/IconPencil';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import IconUserPlus from '../../components/Icon/IconUserPlus';
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, addDoc, where, query } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, where, query } from 'firebase/firestore';
 import IconMenuScrumboard from '../../components/Icon/Menu/IconMenuScrumboard';
 
 const Company = () => {
     const [items, setItems] = useState([] as any);
-    const [editData, setEditData] = useState(null);
     const db = getFirestore();
     const navigate = useNavigate();
-    console.log("data", items)
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         const querySnapshot = await getDocs(collection(db, 'driver'));
-    //         setItems(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    //     };
-    //     fetchData().catch(console.error);
-    // }, []);
+    // Fetch data from Firestore
     useEffect(() => {
         const fetchData = async () => {
             const driverCollection = collection(db, 'driver');
             const q = query(driverCollection, where('companyName', '!=', 'RSA'));
             const querySnapshot = await getDocs(q);
             const filteredDocs = querySnapshot.docs.filter(doc => doc.data().companyName !== 'Company');
-            setItems(filteredDocs.map((doc) => ({ id: doc.id, ...doc.data() })));
+            const fetchedItems = filteredDocs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
+            const filteredItems = fetchedItems.filter(item => !deletedItemIds.includes(item.id));
+            setItems(filteredItems);
         };
         fetchData().catch(console.error);
     }, []);
-    
+
+    // Handle delete operation
     const handleDelete = async (userId: string) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this user?');
         if (confirmDelete) {
@@ -41,12 +37,15 @@ const Company = () => {
 
             if (driver && enteredIdNumber === driver.idnumber) {
                 setItems((prevItems: any) => prevItems.filter((item: any) => item.id !== userId));
+                const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
+                localStorage.setItem('deletedItems', JSON.stringify([...deletedItemIds, userId]));
             } else {
                 window.alert('ID number is incorrect. Deletion aborted.');
             }
         }
     };
 
+    // Handle edit operation
     const handleEdit = (item) => {
         navigate(`/users/company-add/${item.id}`, { state: { editData: item } });
     };

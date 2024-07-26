@@ -334,7 +334,7 @@ const MapBooking = () => {
                 setPhoneNumber(value || '');
                 break;
                 case 'pickupLocation':
-                    console.log("pickupLocationpickupLocation",pickupLocation)
+                    console.log("pickupLocation",pickupLocation)
                     setPickupLocation(value || '');
                     break;
 
