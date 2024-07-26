@@ -60,7 +60,8 @@ const MapBooking = () => {
     const closeModal1 = () => setIsModalOpen1(false);
     const [Location, setLocation] = useState('');
     const [vehicleType, setVehicleType] = useState('');
-
+    const [lat, setLat] = useState('');
+    const [lng, setLng] = useState('');
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -78,6 +79,7 @@ const MapBooking = () => {
     const [serviceType, setServiceType] = useState('');
 
     const [pickupLocation, setPickupLocation] = useState('');
+    console.log(pickupLocation)
     const [dropoffLocation, setDropoffLocation] = useState('');
     const [pickupOptions, setPickupOptions] = useState([]);
     const [dropoffOptions, setDropoffOptions] = useState([]);
@@ -331,13 +333,10 @@ const MapBooking = () => {
             case 'phoneNumber':
                 setPhoneNumber(value || '');
                 break;
-            case 'pickupLocation':
-                if (typeof value === 'string') {
-                    setPickupLocation({ ...pickupLocation, name: value });
-                } else {
-                    setPickupLocation({ ...pickupLocation, name: value.name });
-                }
-                break;
+                case 'pickupLocation':
+                    console.log("pickupLocationpickupLocation",pickupLocation)
+                    setPickupLocation(value || '');
+                    break;
 
             case 'vehicleSection':
                 setVehicleSection(value || '');
@@ -456,61 +455,8 @@ const MapBooking = () => {
         return () => unsubscribe();
     }, []);
 
-    const setupAutocomplete = (inputRef, setter) => {
-        if (!inputRef) return;
-
-        const autocomplete = new window.google.maps.places.Autocomplete(inputRef);
-        autocomplete.setFields(['geometry', 'name']);
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (place.geometry) {
-                const location = {
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng(),
-                    name: place.name,
-                };
-                setter(location);
-            }
-        });
-    };
-
-    useEffect(() => {
-        setupAutocomplete(document.getElementById('pickupLocationInput'), setPickupLocation);
-        setupAutocomplete(document.getElementById('dropoffLocationInput'), setDropoffLocation);
-    }, []);
-
-    // useEffect(() => {
-    //     if (baseLocation && pickupLocation && dropoffLocation) {
-    //         const service = new window.google.maps.DistanceMatrixService();
-
-    //         const origins = [baseLocation, pickupLocation, dropoffLocation];
-    //         const destinations = [pickupLocation, dropoffLocation, baseLocation];
-
-    //         service.getDistanceMatrix(
-    //             {
-    //                 origins,
-    //                 destinations,
-    //                 travelMode: 'DRIVING',
-    //             },
-    //             (response, status) => {
-    //                 if (status === 'OK') {
-    //                     const distances = response.rows.map((row, index) => {
-    //                         return row.elements[index].distance.value / 1000; // Distance in km
-    //                     });
-
-    //                     const totalDistance = distances.reduce((acc, curr) => acc + curr, 0);
-
-    //                     setDistance(`${totalDistance} km`);
-    //                     setBookingDetails({ ...bookingDetails, distance: `${totalDistance} km` });
-    //                 } else {
-    //                     console.error('Error calculating distances:', status);
-    //                 }
-    //             }
-    //         );
-    //     }
-    // }, [baseLocation, pickupLocation, dropoffLocation]);
-
-    useEffect(() => {
+  
+        useEffect(() => {
         const fetchDrivers = async () => {
             if (!serviceType || !serviceDetails) {
                 console.log('Service details not found, cannot proceed with fetching drivers.');
@@ -759,7 +705,6 @@ const MapBooking = () => {
 
     //-----------------------------------------------------------------
     const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
-
     const getAutocompleteResults = async (inputText, setOptions) => {
         try {
             const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
@@ -767,8 +712,9 @@ const MapBooking = () => {
                 const predictionsWithCoords = await Promise.all(
                     response.data.predictions.map(async (prediction) => {
                         const placeDetails = await getPlaceDetails(prediction.place_id);
+                        const locationName = prediction.description.split(',')[0]; // Extract the location name
                         return {
-                            label: prediction.description,
+                            label: locationName,
                             lat: placeDetails.geometry.location.lat,
                             lng: placeDetails.geometry.location.lng,
                             ...prediction,
@@ -797,7 +743,10 @@ const MapBooking = () => {
 
     const handlePickupChange = (event, newValue) => {
         if (newValue) {
-            setPickupLocation(newValue.label);
+            console.log("newValue",newValue)
+            setPickupLocation(newValue);
+            setLat(newValue.lat);
+            setLng(newValue.lng);
             setPickupCoords({ lat: newValue.lat, lng: newValue.lng });
         } else {
             setPickupCoords({ lat: undefined, lng: undefined });
@@ -1155,7 +1104,6 @@ const MapBooking = () => {
                                         height: '100%',
                                         overflow: 'auto',
                                         backgroundColor: 'rgb(0,0,0)',
-                                        backgroundColor: 'rgba(0,0,0,0.4)',
                                     }}
                                 >
                                     <div

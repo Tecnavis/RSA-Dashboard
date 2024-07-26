@@ -166,7 +166,7 @@ const [advancePayment, setAdvancePayment] = useState('');
                 console.log('Document written with ID: ', docRef.id);
             }
 
-            navigate('/users/driver');
+            navigate('/users/company');
         } catch (e) {
             console.error('Error adding/updating document: ', e);
         }
