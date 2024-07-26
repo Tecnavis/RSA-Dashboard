@@ -11,7 +11,7 @@ const DriverAdd = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [phone, setPhone] = useState('');
-    const [companyName, setCompanyName] = useState('');
+    const [companyName, setCompanyName] = useState('RSA');
 
     const [personalphone, setPersonalPhone] = useState('');
     const [salaryPerKm, setSalaryPerKm] = useState({});
