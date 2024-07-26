@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
 function ServiceType() {
@@ -11,6 +11,7 @@ function ServiceType() {
   const [newSalaryPerKM, setNewSalaryPerKM] = useState('');
   const [errors, setErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const editRef = useRef(null);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -110,6 +111,8 @@ function ServiceType() {
       basicSalaryKM: service.basicSalaryKM, 
       salaryPerKM: service.salaryPerKM 
     });
+    editRef.current.scrollIntoView({ behavior: 'smooth' });
+
   };
 
   const updateServiceType = async () => {
@@ -132,10 +135,10 @@ function ServiceType() {
       <table style={{ width: '100%', marginBottom: '20px', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Service Type</th>
-            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Basic Salary KM</th>
-            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Salary/KM</th>
-            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Salary</th>
+            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Service Name</th>
+            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>First Kilometers</th>
+            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Additional Amount For Each ONE Km</th>
+            <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>First Kilometers Amount</th>
             <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>Actions</th>
           </tr>
         </thead>
@@ -159,8 +162,8 @@ function ServiceType() {
         </tbody>
       </table>
       {editing && (
-        <div>
-          <input
+        <div ref={editRef}>
+                    <input
             type="text"
             value={currentService.name}
             onChange={(e) => setCurrentService({ ...currentService, name: e.target.value })}
@@ -201,7 +204,7 @@ function ServiceType() {
       <div>
         <input
           type="text"
-          placeholder="New Service Type"
+          placeholder="New Service Name"
           value={newServiceType}
           onChange={e => setNewServiceType(e.target.value)}
           style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2', marginTop: '20px' }} />
@@ -209,7 +212,7 @@ function ServiceType() {
 
         <input
           type="text"
-          placeholder="Basic Salary KM"
+          placeholder="First Kilometers"
           value={newBasicSalaryKM}
           onChange={e => setNewBasicSalaryKM(e.target.value)}
           style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }} />
@@ -217,7 +220,7 @@ function ServiceType() {
 
         <input
           type="text"
-          placeholder="SalaryPerKM"
+          placeholder="Additional Amount For Each ONE Km"
           value={newSalaryPerKM}
           onChange={e => setNewSalaryPerKM(e.target.value)}
           style={{ textAlign: 'left', padding: '8px', border: '3px solid #ddd', backgroundColor: '#f2f2f2' }} />
@@ -225,7 +228,7 @@ function ServiceType() {
 
         <input
           type="text"
-          placeholder="Salary"
+          placeholder="First Kilometers Amount"
           value={newSalary}
           onChange={e => setNewSalary(e.target.value)}
           style={{ textAlign: 'left', padding: '8px', border: '3px solid #ccc', backgroundColor: '#f2f2f2' }} />
