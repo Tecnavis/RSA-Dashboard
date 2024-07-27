@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, doc, updateDoc, getDocs } from 'firebase/firestore';
 import IconPlusCircle from '../../components/Icon/IconPlusCircle';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
@@ -27,23 +27,25 @@ const CompanyCreationAdd = () => {
     const [showPassword, setShowPassword] = useState(false);
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const [advancePayment, setAdvancePayment] = useState('');
+const [serviceOptions, setServiceOptions] = useState([]);
 
     const storage = getStorage();
 
-    const serviceOptions = [
-        "", // Default empty option
-        "Flat bed",
-        "Under Lift",
-        "Rsr By Car",
-        "Rsr By Bike",
-        "Custody",
-        "Hydra Crane",
-        "Jump start",
-        "Tow Wheeler Fbt",
-        "Zero Digri Flat Bed",
-        "Undet Lift 407",
-        "S Lorry Crane Bed"
-    ];
+    useEffect(() => {
+        const fetchServiceOptions = async () => {
+            try {
+                const db = getFirestore();
+                const serviceCollection = collection(db, 'service');
+                const serviceSnapshot = await getDocs(serviceCollection);
+                const servicesList = serviceSnapshot.docs.map(doc => doc.data().name); // Adjust this based on your data structure
+                setServiceOptions(servicesList);
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
+        };
+    
+        fetchServiceOptions();
+    }, []);
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     };
@@ -75,25 +77,22 @@ const [advancePayment, setAdvancePayment] = useState('');
     const renderServiceOptions = () => {
         return (
             <div style={{ columnCount: 3, columnGap: '1rem', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
-            {serviceOptions.slice(1).map((option, index) => (
-                <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
-                    <input
-                        type="checkbox"
-                        value={option}
-                        checked={selectedServices.includes(option)}
-                        onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
-                        style={{ marginRight: '0.5rem' }}
-                    />
-                    <span>{option}</span>
-                </label>
-            ))}
-        </div>
-        
-        
-        
+                {serviceOptions.map((option, index) => (
+                    <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
+                        <input
+                            type="checkbox"
+                            value={option}
+                            checked={selectedServices.includes(option)}
+                            onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                        <span>{option}</span>
+                    </label>
+                ))}
+            </div>
         );
     };
-
+    
     const handleCheckboxChange = (value, isChecked) => {
         if (isChecked) {
             setSelectedServices([...selectedServices, value]);
@@ -126,7 +125,7 @@ const [advancePayment, setAdvancePayment] = useState('');
             setSelectedServices(state.editData.selectedServices || '');
             setCompany(state.editData.company|| '');
 
-            setCompanyName(state.editData.companyName || '');
+            // setCompanyName(state.editData.companyName || '');
 
             setBasicSalaries(state.editData.basicSalaries || '');
             setProfileImage(state.editData.profileImage || '');
@@ -198,7 +197,7 @@ const [advancePayment, setAdvancePayment] = useState('');
             </ul>
             <div className="pt-5">
                 <div className="flex items-center justify-between mb-5">
-                    <h5 className="font-semibold text-lg dark:text-white-light">Provider Details</h5>
+                    <h5 className="font-semibold text-lg dark:text-white-light">Company Details</h5>
                 </div>
                 <div></div>
 
@@ -223,10 +222,10 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <label htmlFor="driverName">Driver Name</label>
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label htmlFor="companyName">Section</label>
                                     <input id="companyName" type="text" placeholder="Enter Company Name" className="form-input" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-                                </div>
+                                </div> */}
                                 <div>
                                     <label htmlFor="company">Company Name</label>
                                     <input id="company" type="text" placeholder="Enter Company Name" className="form-input" value={company} onChange={(e) => setCompany(e.target.value)} />

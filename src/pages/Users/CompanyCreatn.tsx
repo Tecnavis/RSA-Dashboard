@@ -122,7 +122,7 @@ const CompanyCreatn = () => {
                                             </li>
                                             <li>
                                                 <Tippy content="More">
-                                                    <Link to={`/users/companycreation/companydetails/${item.id}`}>
+                                                    <Link to={`/users/companycreation/companycreationdetails/${item.id}`}>
                                                         <IconMenuScrumboard className="text-success" />
                                                     </Link>
                                                 </Tippy>

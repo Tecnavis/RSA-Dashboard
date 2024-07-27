@@ -48,6 +48,7 @@ import DriverSalaryReport from '../pages/DriverReport/DriverSalaryReport';
 import SalaryReport from '../pages/DriverReport/SalaryReport';
 import DriverSalaryInvoice from '../pages/DriverReport/DriverSalaryInvoice';
 import EditSalary from '../pages/DriverReport/EditSalary';
+import CompanyCreationDetails from '../pages/Users/CompanyCreationDetails';
 
 
 
@@ -473,10 +474,41 @@ const routes = [
         path: '/users/staff',
         element: <Staff />,
     },
+    // ----------------------------------
+    {
+        path: '/users/driver',
+        element: <Driver />,
+    },
+    {
+        path: '/users/driver-add',
+        element: <DriverAdd />,
+    },
+    {
+        path: '/users/driver-add/:id',
+        element: <DriverAdd />,
+    },
+    {
+        path: "/users/driver/driverdetails/:id",
+        element: <DriverDetails />,
+    },
+    // ---------------------------------------
     {
         path: '/users/company',
         element: <Company />,
     },
+    {
+        path: '/users/company-add',
+        element: <CompanyAdd />,
+    },
+    {
+        path: '/users/company-add/:id',
+        element: <CompanyAdd />,
+    },
+    {
+        path: '/users/company/companydetails/:id',
+        element: <CompanyDetails />,
+    },
+// -------------------------------------------
     {
         path: '/users/companycreation',
         element: <CompanyCreatn />,
@@ -489,10 +521,18 @@ const routes = [
         path: '/users/companycreation/companycreationadd/:id',
         element: <CompanyCreationAdd />,
     },
+   
     {
-        path: '/users/driver',
-        element: <Driver />,
+        path: '/users/companycreation/companycreationdetails/:id',
+        element: <CompanyCreationDetails />,
     },
+    // -------------------------------------------
+   
+  
+   
+   
+    
+  
     {
         path: '/users/customer',
         element: <Customer />,
@@ -505,14 +545,7 @@ const routes = [
         path: '/users/user-add/:id',
         element: <UserAdd />,
     },
-    {
-        path: '/users/driver-add',
-        element: <DriverAdd />,
-    },
-    {
-        path: '/users/driver-add/:id',
-        element: <DriverAdd />,
-    },
+  
    
     {
         path: '/users/customer-add',
@@ -522,27 +555,13 @@ const routes = [
         path: '/users/customer-add/:id',
         element: <CustomerAdd />,
     },
-    {
-        path: '/users/company-add',
-        element: <CompanyAdd />,
-    },
-    {
-        path: '/users/company-add/:id',
-        element: <CompanyAdd />,
-    },
+   
    
     {
         path: '/users/user-account-settings',
         element: <AccountSetting />,
     },
-    {
-        path: "/users/driver/driverdetails/:id",
-        element: <DriverDetails />,
-    },
-    {
-        path: '/users/companycreation/companydetails/:id',
-        element: <CompanyDetails />,
-    },
+   
        //Driver Reports
        {
         path: '/users/driver/driverdetails/cashcollection/:id',

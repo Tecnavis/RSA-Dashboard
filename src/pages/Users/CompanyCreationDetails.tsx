@@ -1,14 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import IconArrowForward from '../../components/Icon/IconArrowForward';
 import IconArrowLeft from '../../components/Icon/IconArrowLeft';
 
-const DriverDetails = () => {
+const CompanyCreationDetails = () => {
     const { id } = useParams();
     const [driver, setDriver] = useState(null);
     const db = getFirestore();
-console.log("driver",driver)
+    
     useEffect(() => {
         const fetchDriver = async () => {
             try {
@@ -37,24 +38,22 @@ console.log("driver",driver)
         <div className="grid xl:grid-cols-1 gap-6 grid-cols-1">
             <div className='panel'>
                 <h2 style={{ textAlign: 'center' }}>{driver.driverName}</h2>
-              
             </div>
             <table className='panel p-4' style={{ borderCollapse: 'collapse', width: '100%', maxWidth: '600px', margin: 'auto' }}>
                 <tbody>
-                   
-                   
-                <tr>
-                        <td  style={{ fontWeight: 'bold', paddingRight: '10px' }}>Driver Name:</td>
+                    <tr>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Driver Name:</td>
                         <td>{driver.driverName}</td>
                     </tr>
                     <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>ID Number:</td>
                         <td>{driver.idnumber}</td>
                     </tr>
-                    {/* <tr>
+
+                    <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Company Name:</td>
-                        <td>{driver.companyName}</td>
-                    </tr> */}
+                        <td>{driver.company}</td>
+                    </tr>
                     <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Phone Number:</td>
                         <td>{driver.phone}</td>
@@ -68,14 +67,12 @@ console.log("driver",driver)
                         <td>{driver.password}</td>
                     </tr>
                     <tr>
-                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Advance Payment/Credit Limit Amount:</td>
+                        <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Credit Limit Amount:</td>
                         <td>{driver.advancePayment}</td>
                     </tr>
-        
-</tbody>
-  
-                               </table> 
-                               <h2 style={{ textAlign: 'center', margin: '20px 0' }}>
+                </tbody>
+            </table>
+            <h2 style={{ textAlign: 'center', margin: '20px 0' }}>
                 <Link
                     to={`/users/driver/driverdetails/cashcollection/${id}`}
                     style={{
@@ -95,39 +92,32 @@ console.log("driver",driver)
                     <IconArrowLeft style={{ marginLeft: '8px' }} />
                 </Link>
             </h2>
-                               {driver && (
-    <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: "0" }}>
-        <thead>
-            <tr>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Service Type</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Basic Amount</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>KM for Basic Salary</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>SalaryPerKm</th>
-                <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Vehicle Number</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            {driver.selectedServices.map((service, index) => (
-                <tr key={index}>
-                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{service}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaries[service]}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaryKm[service]} KM</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.salaryPerKm[service]} /km</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.serviceVehicle[service]}</td>
-
-                </tr>
-            ))}
-        </tbody>
-    </table>
-)}
-
-
-
-
-
+            {driver && driver.selectedServices && (
+                <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: "0" }}>
+                    <thead>
+                        <tr>
+                            <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Service Type</th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Basic Salary</th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>KM for Basic Salary</th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>SalaryPerKm</th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left", backgroundColor: "#f2f2f2", fontWeight: "bold" }}>Vehicle Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {driver.selectedServices.map((service, index) => (
+                            <tr key={index}>
+                                <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{service}</td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaries?.[service]}</td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.basicSalaryKm?.[service]} KM</td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.salaryPerKm?.[service]} /km</td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "left" }}>{driver.serviceVehicle?.[service]}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }
 
-export default DriverDetails;
+export default CompanyCreationDetails;

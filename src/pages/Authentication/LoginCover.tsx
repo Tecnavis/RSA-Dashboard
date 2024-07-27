@@ -22,7 +22,6 @@ const LoginCover = () => {
             .then((userCredential) => {
                 const user = userCredential.user;
                 console.log("User signed in:", user);
-                localStorage.setItem('email', email);
                 navigate('/index'); // Redirect to home page or any other route
             })
             .catch((error) => {

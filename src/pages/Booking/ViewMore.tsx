@@ -105,7 +105,7 @@ const ViewMore = () => {
             const docRef = doc(db, 'bookings', id);
             await updateDoc(docRef, {
                 ...formData,
-                bookingStatus: 'Completed', // Update the status to completed
+                status: 'Order Completed', // Update the status to completed
             });
             console.log('Booking successfully updated!');
             setShowForm(false);

@@ -117,7 +117,7 @@ const Company = () => {
                                                 </li>
                                                 <li>
                                                     <Tippy content="More">
-                                                        <Link to={`/users/driver/driverdetails/${item.id}`}>
+                                                        <Link to={`/users/company/companydetails/${item.id}`}>
                                                         <IconMenuScrumboard className='text-success'/>
                                                         </Link>
                                                     </Tippy>

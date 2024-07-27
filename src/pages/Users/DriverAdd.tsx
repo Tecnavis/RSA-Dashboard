@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, doc, updateDoc, getDocs } from 'firebase/firestore';
 import IconPlusCircle from '../../components/Icon/IconPlusCircle';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
@@ -28,21 +28,24 @@ const DriverAdd = () => {
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const [advancePayment, setAdvancePayment] = useState('');
     const storage = getStorage();
+    const [serviceOptions, setServiceOptions] = useState([]);
 
-    const serviceOptions = [
-        "", // Default empty option
-        "Flat bed",
-        "Under Lift",
-        "Rsr By Car",
-        "Rsr By Bike",
-        "Custody",
-        "Hydra Crane",
-        "Jump start",
-        "Tow Wheeler Fbt",
-        "Zero Digri Flat Bed",
-        "Undet Lift 407",
-        "S Lorry Crane Bed"
-    ];
+    useEffect(() => {
+        const fetchServiceOptions = async () => {
+            try {
+                const db = getFirestore();
+                const serviceCollection = collection(db, 'service');
+                const serviceSnapshot = await getDocs(serviceCollection);
+                const servicesList = serviceSnapshot.docs.map(doc => doc.data().name); // Adjust this based on your data structure
+                setServiceOptions(servicesList);
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
+        };
+    
+        fetchServiceOptions();
+    }, []);
+    
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     };
@@ -75,24 +78,22 @@ const [advancePayment, setAdvancePayment] = useState('');
     const renderServiceOptions = () => {
         return (
             <div style={{ columnCount: 3, columnGap: '1rem', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
-            {serviceOptions.slice(1).map((option, index) => (
-                <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
-                    <input
-                        type="checkbox"
-                        value={option}
-                        checked={selectedServices.includes(option)}
-                        onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
-                        style={{ marginRight: '0.5rem' }}
-                    />
-                    <span>{option}</span>
-                </label>
-            ))}
-        </div>
-        
-        
-        
+                {serviceOptions.map((option, index) => (
+                    <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
+                        <input
+                            type="checkbox"
+                            value={option}
+                            checked={selectedServices.includes(option)}
+                            onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                        <span>{option}</span>
+                    </label>
+                ))}
+            </div>
         );
     };
+    
 
     const handleCheckboxChange = (value, isChecked) => {
         if (isChecked) {
@@ -113,7 +114,7 @@ const [advancePayment, setAdvancePayment] = useState('');
             setIdnumber(state.editData.idnumber || '');
             setPhone(state.editData.phone || '');
             setPassword(state.editData.password || '');
-            setCompanyName(state.editData.companyName || '');
+            // setCompanyName(state.editData.companyName || '');
             setConfirmPassword(state.editData.confirmPassword || '');
             setServiceVehicle(state.editData.serviceVehicle || '');
             setPersonalPhone(state.editData.personalphone || '');
@@ -220,10 +221,10 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <label htmlFor="driverName">Driver Name</label>
                                     <input id="driverName" type="text" placeholder="Enter driver Name" className="form-input" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
                                 </div> */}
-                                <div>
+                                {/* <div>
                                     <label htmlFor="companyName">Company Name</label>
                                     <input id="companyName" type="text" placeholder="Enter Company Name" className="form-input" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-                                </div>
+                                </div> */}
                                 <div>
                                     <label htmlFor="idnumber">ID number</label>
                                     <input id="idnumber" type="idnumber"  className="form-input" value={idnumber} onChange={(e) => setIdnumber(e.target.value)} />
@@ -322,7 +323,7 @@ const [advancePayment, setAdvancePayment] = useState('');
     <table style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
         <thead>
             <tr>
-                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Service Type</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Service Name</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>KM for Basic Salary</th>
                 <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>SalaryPerKm</th>

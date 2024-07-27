@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { addDoc, collection, getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, doc, updateDoc, getDocs } from 'firebase/firestore';
 import IconPlusCircle from '../../components/Icon/IconPlusCircle';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
@@ -24,23 +24,46 @@ const CompanyAdd = () => {
     const [showPassword, setShowPassword] = useState(false);
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const [advancePayment, setAdvancePayment] = useState('');
+const [baseLocation, setBaseLocation] = useState('');
+    const [baseLocations, setBaseLocations] = useState([]);
+    const [serviceOptions, setServiceOptions] = useState([]);
+
 
     const storage = getStorage();
+    const db = getFirestore();
+    const navigate = useNavigate();
+    const { state } = useLocation();
 
-    const serviceOptions = [
-        "", // Default empty option
-        "Flat bed",
-        "Under Lift",
-        "Rsr By Car",
-        "Rsr By Bike",
-        "Custody",
-        "Hydra Crane",
-        "Jump start",
-        "Tow Wheeler Fbt",
-        "Zero Digri Flat Bed",
-        "Undet Lift 407",
-        "S Lorry Crane Bed"
-    ];
+    useEffect(() => {
+        const fetchServiceOptions = async () => {
+            try {
+                const db = getFirestore();
+                const serviceCollection = collection(db, 'service');
+                const serviceSnapshot = await getDocs(serviceCollection);
+                const servicesList = serviceSnapshot.docs.map(doc => doc.data().name); // Adjust this based on your data structure
+                setServiceOptions(servicesList);
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
+        };
+    
+        fetchServiceOptions();
+    }, []);
+    
+    useEffect(() => {
+
+        const fetchBaseLocations = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'baselocation'));
+                const locations = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setBaseLocations(locations);
+            } catch (error) {
+                console.error("Error fetching base locations: ", error);
+            }
+        };
+
+        fetchBaseLocations();
+    }, [db]);
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     };
@@ -69,25 +92,23 @@ const [advancePayment, setAdvancePayment] = useState('');
     const renderServiceOptions = () => {
         return (
             <div style={{ columnCount: 3, columnGap: '1rem', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
-            {serviceOptions.slice(1).map((option, index) => (
-                <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
-                    <input
-                        type="checkbox"
-                        value={option}
-                        checked={selectedServices.includes(option)}
-                        onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
-                        style={{ marginRight: '0.5rem' }}
-                    />
-                    <span>{option}</span>
-                </label>
-            ))}
-        </div>
-        
-        
-        
+                {serviceOptions.map((option, index) => (
+                    <label key={index} style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f4f4f4', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', transition: 'all 0.3s ease' }}>
+                        <input
+                            type="checkbox"
+                            value={option}
+                            checked={selectedServices.includes(option)}
+                            onChange={(e) => handleCheckboxChange(e.target.value, e.target.checked)}
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                        <span>{option}</span>
+                    </label>
+                ))}
+            </div>
         );
     };
-
+        
+  
     const handleCheckboxChange = (value, isChecked) => {
         if (isChecked) {
             setSelectedServices([...selectedServices, value]);
@@ -96,10 +117,7 @@ const [advancePayment, setAdvancePayment] = useState('');
         }
     };
    
-    const navigate = useNavigate();
-    const db = getFirestore();
-    const { state } = useLocation(); // Use the useLocation hook to access location state
-
+   
     useEffect(() => {
         if (state && state.editData) {
             setEditData(state.editData);
@@ -121,6 +139,7 @@ const [advancePayment, setAdvancePayment] = useState('');
 
             setBasicSalaries(state.editData.basicSalaries || '');
             setProfileImage(state.editData.profileImage || '');
+            setBaseLocation(state.editData.baseLocation || '');
 
         }
     }, [state]);
@@ -146,6 +165,7 @@ const [advancePayment, setAdvancePayment] = useState('');
                 idnumber,
                 companyName,
                 advancePayment,
+                baseLocation,
                 phone,
                 personalphone,
                 salaryPerKm,
@@ -214,6 +234,17 @@ const [advancePayment, setAdvancePayment] = useState('');
                                 <div>
                                     <label htmlFor="companyName">Company Name</label>
                                     <input id="companyName" type="text" placeholder="Enter Company Name" className="form-input" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label htmlFor="baseLocation">Base Location</label>
+                                    <select id="baseLocation" className="form-input" value={baseLocation} onChange={(e) => setBaseLocation(e.target.value)}>
+                                        <option value="">Select Base Location</option>
+                                        {baseLocations.map((location) => (
+                                            <option key={location.id} value={location.name}>
+                                                {location.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label htmlFor="idnumber">ID number</label>
