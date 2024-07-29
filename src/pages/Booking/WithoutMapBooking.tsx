@@ -176,11 +176,16 @@ const WithoutMapBooking = () => {
                     const driverCollection = collection(db, 'driver');
                     const q = query(driverCollection, where('companyName', '==', 'Company'));
                     const querySnapshot = await getDocs(q);
-                    const companyList = querySnapshot.docs.map((doc) => ({
+                    const fetchedCompanies = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
                     })) as Company[];
-                    setCompanies(companyList);
+
+                    const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
+                    console.log("deletedItemIds",deletedItemIds)
+                    const filteredCompanies = fetchedCompanies.filter(company => !deletedItemIds.includes(company.id));
+                    console.log("filteredCompanies",filteredCompanies)
+                    setCompanies(filteredCompanies);
                 } catch (error) {
                     console.error('Error fetching companies:', error);
                 }
@@ -1052,8 +1057,8 @@ const WithoutMapBooking = () => {
                                                 &times;
                                             </span>
                                         </div>
-                                        <div className="modal-body">
-                                            <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} />
+                                        <div className="modal-body" >
+                                            <BaseLocationWithout  onClose={closeModal1} setBaseLocation={setBaseLocation} />
                                         </div>
                                         <div
                                             className="modal-footer"

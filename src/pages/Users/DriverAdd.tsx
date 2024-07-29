@@ -26,7 +26,7 @@ const DriverAdd = () => {
     const [serviceVehicle, setServiceVehicle] = useState({});
 
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const [advancePayment, setAdvancePayment] = useState('');
+const [advancePayment, setAdvancePayment] = useState('0');
     const storage = getStorage();
     const [serviceOptions, setServiceOptions] = useState([]);
 
@@ -125,7 +125,7 @@ const [advancePayment, setAdvancePayment] = useState('');
 
             setBasicSalaries(state.editData.basicSalaries || '');
             setProfileImage(state.editData.profileImage || '');
-            setAdvancePayment(state.editData.advancePayment || ''); 
+            // setAdvancePayment(state.editData.advancePayment || ''); 
 
         }
     }, [state]);
@@ -239,10 +239,10 @@ const [advancePayment, setAdvancePayment] = useState('');
                                     <label htmlFor="personalphone">Personal PhoneNumber</label>
                                     <input id="personalphone" type="personalphone" className="form-input" value={personalphone} onChange={(e) => setPersonalPhone(e.target.value)} />
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label htmlFor="advancePayment">Advance payment</label>
                                     <input id="advancePayment" type="advancePayment" className="form-input" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} />
-                                </div>
+                                </div> */}
                                 <div>
     <label htmlFor="password">Password</label>
     {editData ? (

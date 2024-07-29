@@ -22,7 +22,6 @@ interface Showroom {
     id: string;
     name: string;
 }
-const API_KEY = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k';
 
 const MapBooking = () => {
     const db = getFirestore();
@@ -35,6 +34,7 @@ const MapBooking = () => {
     const googleMapsLoaded = useGoogleMaps();
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
     const [companies, setCompanies] = useState([]);
+    const [pickupLocationFormatted, setPickupLocationFormatted] = useState('');
 
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
@@ -190,11 +190,16 @@ const MapBooking = () => {
                     const driverCollection = collection(db, 'driver');
                     const q = query(driverCollection, where('companyName', '==', 'Company'));
                     const querySnapshot = await getDocs(q);
-                    const companyList = querySnapshot.docs.map((doc) => ({
+                    const fetchedCompanies = querySnapshot.docs.map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
                     })) as Company[];
-                    setCompanies(companyList);
+
+                    const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
+                    console.log("deletedItemIds",deletedItemIds)
+                    const filteredCompanies = fetchedCompanies.filter(company => !deletedItemIds.includes(company.id));
+                    console.log("filteredCompanies",filteredCompanies)
+                    setCompanies(filteredCompanies);
                 } catch (error) {
                     console.error('Error fetching companies:', error);
                 }
@@ -397,10 +402,111 @@ const MapBooking = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
+    // const [legDistances, setLegDistances] = useState([]);
 
-    const handleInsuranceAmountBody = (amount) => {
-        setInsuranceAmountBody(amount);
-    };
+    // const calculateTotalDistance = async () => {
+    //     if (!baseLocation || !pickupLocation || !dropoffLocation) {
+    //         console.error("Missing one or more required locations:", {
+    //             baseLocation,
+    //             pickupLocation,
+    //             dropoffLocation
+    //         });
+    //         return;
+    //     }
+
+    //     const locations = [
+    //         { origin: baseLocation, destination: pickupLocation },
+    //         { origin: pickupLocation, destination: dropoffLocation },
+    //         { origin: dropoffLocation, destination: baseLocation }
+    //     ];
+
+    //     console.log("locations:", locations);
+
+    //     let totalDistance = 0;
+    //     const distances = [];
+
+    //     for (const location of locations) {
+    //         console.log('Current location data:', location);
+
+    //         if (!location.origin || !location.destination || !location.origin.lat || !location.origin.lng || !location.destination.lat || !location.destination.lng) {
+    //             console.error("Invalid location data:", location);
+    //             continue;
+    //         }
+
+    //         try {
+    //             console.log(`Fetching directions from ${location.origin.lat},${location.origin.lng} to ${location.destination.lat},${location.destination.lng}`);
+
+    //             const response = await axios.post(
+    //                 `https://api.olamaps.io/routing/v1/directions`,
+    //                 null,
+    //                 {
+    //                     params: {
+    //                         origin: `${location.origin.lat},${location.origin.lng}`,
+    //                         destination: `${location.destination.lat},${location.destination.lng}`,
+    //                         api_key: api_key,
+    //                     },
+    //                     headers: {
+    //                         'X-Request-Id': 'YOUR_REQUEST_ID', // Optional or replace as needed
+    //                     },
+    //                 }
+    //             );
+
+    //             if (response.status === 200) {
+    //                 console.log('API response:', response.data);
+    //                 const route = response.data.routes && response.data.routes[0];
+    //                 if (route) {
+    //                     const leg = route.legs && route.legs[0];
+    //                     console.log("leg:", leg);
+    //                     if (leg) {
+    //                         console.log("Leg distance object:", leg.distance);
+    //                         const distance = leg.distance;
+    //                         console.log("Extracted distance value:", distance);
+    //                         if (distance !== undefined) {
+    //                             console.log(`Distance for this leg: ${distance} meters`);
+    //                             distances.push(distance);
+    //                             totalDistance += distance;
+    //                         } else {
+    //                             console.error('Distance value is undefined or not found:', leg.distance);
+    //                         }
+    //                     } else {
+    //                         console.error('Leg data is undefined:', route.legs);
+    //                     }
+    //                 } else {
+    //                     console.error('Route data is undefined:', response.data.routes);
+    //                 }
+    //             } else {
+    //                 console.error('Error fetching directions:', response.statusText);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error making the API request:', error);
+    //         }
+    //     }
+
+    //     console.log(`Total distance in meters: ${totalDistance}`);
+    //     const totalDistanceKm = totalDistance / 1000; // Convert meters to kilometers
+    //     console.log(`Total distance in kilometers: ${totalDistanceKm}`);
+    //     setTotalDistances(totalDistanceKm);
+    //     setLegDistances(distances);
+    // };
+
+    // // Debugging output
+    // console.log("Base Location:", baseLocation);
+    // console.log("Pickup Location:", pickupLocation);
+    // console.log("Dropoff Location:", dropoffLocation);
+
+    // useEffect(() => {
+    //     calculateTotalDistance();
+    // }, [baseLocation, pickupLocation, dropoffLocation]);
+
+    // const renderTotalDistance = () => (
+    //     <Box mt={2}>
+    //         <Typography variant="h6">Total Distance</Typography>
+    //         <Typography>{totalDistances} KM</Typography>
+    //         {legDistances.map((distance, index) => (
+    //             <Typography key={index}>Leg {index + 1} Distance: {distance / 1000} KM</Typography>
+    //         ))}
+    //     </Box>
+    // );
 
     useEffect(() => {}, [showroomLocation]);
     useEffect(() => {}, [updatedTotalSalary]);
@@ -408,28 +514,10 @@ const MapBooking = () => {
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
     }, [dropoffLocation]);
-
-    const handleManualChange1 = (field, value) => {
-        setDropoffLocation((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleLocationChange1 = (e) => {
-        const value = e.target.value;
-        setManualInput1(value);
-        handleInputChange('dropoffLocation', value);
-    };
-    const handleLocationChange = (e) => {
-        const value = e.target.value;
-        setManualInput(value);
-        handleInputChange('pickupLocation', value);
-    };
-
-    const updateShowroomLocation = (location) => {
+const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
-    const handleManualChange = (field, value) => {
-        setPickupLocation((prev) => ({ ...prev, [field]: value }));
-    };
+  
     useEffect(() => {
         const fetchServiceTypes = async () => {
             try {
@@ -705,14 +793,19 @@ const MapBooking = () => {
 
     //-----------------------------------------------------------------
     const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
+
     const getAutocompleteResults = async (inputText, setOptions) => {
         try {
             const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            console.log('Autocomplete Response:', response.data); // Debugging line
+            
             if (response.data && Array.isArray(response.data.predictions)) {
                 const predictionsWithCoords = await Promise.all(
                     response.data.predictions.map(async (prediction) => {
                         const placeDetails = await getPlaceDetails(prediction.place_id);
+                        console.log('Place Details:', placeDetails); // Debugging line
                         const locationName = prediction.description.split(',')[0]; // Extract the location name
+                        
                         return {
                             label: locationName,
                             lat: placeDetails.geometry.location.lat,
@@ -730,59 +823,33 @@ const MapBooking = () => {
             setOptions([]);
         }
     };
-
+    
     const getPlaceDetails = async (placeId) => {
         try {
             const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            console.log('Place Details Response:', response.data); // Debugging line
             return response.data.result;
         } catch (error) {
             console.error('Error fetching place details:', error);
             return { geometry: { location: { lat: undefined, lng: undefined } } };
         }
     };
-
+    
     const handlePickupChange = (event, newValue) => {
         if (newValue) {
-            console.log("newValue",newValue)
-            setPickupLocation(newValue);
-            setLat(newValue.lat);
-            setLng(newValue.lng);
+            setPickupLocationFormatted(newValue.label);
             setPickupCoords({ lat: newValue.lat, lng: newValue.lng });
+            setPickupLocation(`${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
         } else {
             setPickupCoords({ lat: undefined, lng: undefined });
+            setPickupLocationFormatted('');
         }
         setPickupOptions([]);
     };
-
-    useEffect(() => {
-        console.log('Pickup Location:', pickupLocation);
-    }, [pickupLocation]);
     
-    const handleDirections = async () => {
-        if (!pickupLocation || !dropoffLocation) return;
-
-        try {
-            const response = await axios.post(`https://api.olamaps.io/routing/v1/directions`, null, {
-                params: {
-                    origin: `${pickupCoords.lat},${pickupCoords.lng}`,
-                    destination: `${dropoffCoords.lat},${dropoffCoords.lng}`,
-                    api_key: api_key,
-                },
-                headers: {
-                    'X-Request-Id': 'YOUR_REQUEST_ID', // Replace with your actual request ID
-                },
-            });
-
-            if (response.status === 200) {
-                setDirections(response.data);
-            } else {
-                console.error('Error fetching directions:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error making the API request:', error);
-        }
-    };
-
+    useEffect(() => {
+        console.log('Formatted Pickup Location:', pickupLocationFormatted);
+    }, [pickupLocationFormatted]);
     return (
         <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4 ">
@@ -943,39 +1010,42 @@ const MapBooking = () => {
                         {/* {googleMapsLoaded && ( */}
                         <div>
                         <div className="flex items-center mt-4">
-                        <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Pickup Location
-                                </label>
-                            <Box  style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                           
-                                        }}>
-                                <Autocomplete
-                                    value={{ label: pickupLocation }}
-                                    onInputChange={(event, newInputValue) => {
-                                        setPickupLocation(newInputValue);
-                                        if (newInputValue) {
-                                            getAutocompleteResults(newInputValue, setPickupOptions);
-                                        } else {
-                                            setPickupOptions([]);
-                                        }
-                                    }}
-                                    onChange={handlePickupChange}
-                                    sx={{ width: 300 }}
-                                    options={pickupOptions}
-                                    getOptionLabel={(option) => option.label}
-                                    renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
-                                />
-                                {pickupCoords.lat && <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>}
-
-                            </Box>
-                            </div>
+            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                Pickup Location
+            </label>
+            <Box
+                style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+            >
+                <Autocomplete
+                    value={{ label: pickupLocation }}
+                    onInputChange={(event, newInputValue) => {
+                        setPickupLocation(newInputValue);
+                        if (newInputValue) {
+                            getAutocompleteResults(newInputValue, setPickupOptions);
+                        } else {
+                            setPickupOptions([]);
+                        }
+                    }}
+                    onChange={handlePickupChange}
+                    sx={{ width: 300 }}
+                    options={pickupOptions}
+                    getOptionLabel={(option) => option.label}
+                    isOptionEqualToValue={(option, value) => option.label === value.label}
+                    renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
+                />
+                {pickupCoords.lat !== undefined && pickupCoords.lng !== undefined && (
+                    <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>
+                )}
+            </Box>
+        </div>
                             <div className="flex items-center mt-4">
                                 <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Drop off Location
@@ -1046,6 +1116,7 @@ const MapBooking = () => {
                                     {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
                                 </div>
                             </div> */}
+            {/* {renderTotalDistance()} */}
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1142,7 +1213,7 @@ const MapBooking = () => {
                                             </span>
                                         </div>
                                         <div className="modal-body">
-                                            <BaseLocationModal pickupCoords={pickupCoords} onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} api_key={api_key}/>
+                                            <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation}/>
                                         </div>
                                         <div
                                             className="modal-footer"

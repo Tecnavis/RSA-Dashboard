@@ -67,10 +67,10 @@ console.log("driver",driver)
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Password:</td>
                         <td>{driver.password}</td>
                     </tr>
-                    <tr>
+                    {/* <tr>
                         <td style={{ fontWeight: 'bold', paddingRight: '10px' }}>Advance Payment/Credit Limit Amount:</td>
                         <td>{driver.advancePayment}</td>
-                    </tr>
+                    </tr> */}
         
 </tbody>
   

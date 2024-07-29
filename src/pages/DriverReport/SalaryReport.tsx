@@ -14,7 +14,7 @@ const SalaryReport = () => {
     const [selectedBookings, setSelectedBookings] = useState([]); // State for selected bookings
     const [editingBookingId, setEditingBookingId] = useState(null);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false); // State to show/hide invoice modal
-
+ const [selectedYear, setSelectedYear] = useState('');
     const [editFormData, setEditFormData] = useState({
         // State for edit form data
         fileNumber: '',
@@ -67,18 +67,23 @@ const SalaryReport = () => {
     }, [db, id]);
 
     useEffect(() => {
-        if (selectedMonth) {
+        if (selectedMonth || selectedYear) {
             const filtered = bookings.filter((booking) => {
                 const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
                 const bookingMonth = format(bookingDate, 'MMMM');
-                return bookingMonth === selectedMonth;
+                const bookingYear = format(bookingDate, 'yyyy');
+    
+                const monthMatch = selectedMonth ? bookingMonth === selectedMonth : true;
+                const yearMatch = selectedYear ? bookingYear === selectedYear : true;
+    
+                return monthMatch && yearMatch;
             });
             setFilteredBookings(filtered);
         } else {
             setFilteredBookings(bookings);
         }
-    }, [bookings, selectedMonth]);
-
+    }, [bookings, selectedMonth, selectedYear]);
+    
     useEffect(() => {
         const total = filteredBookings.reduce((acc, booking) => acc + (booking.balanceSalary || 0), 0);
         setTotalSalaryAmount(total);
@@ -245,17 +250,31 @@ const SalaryReport = () => {
     return (
       <div className="container mx-auto my-10 p-5 bg-gray-50 shadow-lg rounded-lg sm:p-8 lg:p-10">
     <h1 className="text-3xl font-bold mb-5 text-center text-gray-800">Salary Report</h1>
-    <div className="mb-4 text-center">
-        <label htmlFor="monthSelect" className="mr-2">
-            Select Month:
-        </label>
-        <select id="monthSelect" className="border px-2 py-1 rounded-md" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
-            <option value="">All</option>
-            {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map(month => (
-                <option key={month} value={month}>{month}</option>
-            ))}
-        </select>
-    </div>
+            {/* Month Selection */}
+            <div className="mb-4 text-center">
+            <label htmlFor="monthSelect" className="mr-2">Select Month:</label>
+            <select id="monthSelect" className="border px-2 py-1 rounded-md" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+                <option value="">All</option>
+                {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map(month => (
+                    <option key={month} value={month}>{month}</option>
+                ))}
+            </select>
+        </div>
+
+        {/* Year Selection */}
+        <div className="mb-4 text-center">
+            <label htmlFor="yearSelect" className="mr-2">Select Year:</label>
+            <select id="yearSelect" className="border px-2 py-1 rounded-md" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                <option value="">All</option>
+                {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() - i; // Generate the last 10 years
+                    return (
+                        <option key={year} value={year}>{year}</option>
+                    );
+                })}
+            </select>
+        </div>
+
 
     {selectedBookings.length > 0 && (
         <div className="mt-5">

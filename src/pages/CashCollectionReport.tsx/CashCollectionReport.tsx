@@ -20,6 +20,8 @@ const CashCollectionReport = () => {
     const [monthlyTotals, setMonthlyTotals] = useState({ totalAmount: 0, totalReceived: 0, totalBalance: 0 });
     const [selectedBookings, setSelectedBookings] = useState([]);
     const [totalSelectedBalance, setTotalSelectedBalance] = useState(0);
+    const [selectedYear, setSelectedYear] = useState('');
+
     const db = getFirestore();
     const navigate = useNavigate();
 
@@ -59,8 +61,9 @@ const CashCollectionReport = () => {
     }, [db, id]);
 
     useEffect(() => {
-        filterBookingsByMonth();
-    }, [selectedMonth, bookings]);
+        filterBookingsByMonthAndYear();
+    }, [selectedMonth, selectedYear, bookings]);
+    
 
     useEffect(() => {
         calculateMonthlyTotals();
@@ -175,22 +178,30 @@ const CashCollectionReport = () => {
         }
     };
 
-    const filterBookingsByMonth = () => {
-        if (!selectedMonth) {
-            setFilteredBookings(bookings);
-            return;
+    const filterBookingsByMonthAndYear = () => {
+        let filtered = bookings;
+    
+        if (selectedMonth) {
+            const monthNumber = parseInt(selectedMonth, 10);
+            if (!isNaN(monthNumber)) {
+                filtered = filtered.filter(booking => {
+                    const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
+                    const bookingMonth = bookingDate.getMonth() + 1;
+                    return bookingMonth === monthNumber;
+                });
+            }
         }
     
-        const monthNumber = parseInt(selectedMonth, 10); // Convert month string to number
-        if (isNaN(monthNumber)) return;
-    
-        const filtered = bookings.filter(booking => {
-            // Parse dateTime using the correct format
-            const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
-            // Extract month from date
-            const bookingMonth = bookingDate.getMonth() + 1; // getMonth returns 0 for January, so add 1
-            return bookingMonth === monthNumber;
-        });
+        if (selectedYear) {
+            const yearNumber = parseInt(selectedYear, 10);
+            if (!isNaN(yearNumber)) {
+                filtered = filtered.filter(booking => {
+                    const bookingDate = parse(booking.dateTime, 'dd/MM/yyyy, h:mm:ss a', new Date());
+                    const bookingYear = bookingDate.getFullYear();
+                    return bookingYear === yearNumber;
+                });
+            }
+        }
     
         setFilteredBookings(filtered);
     };
@@ -253,26 +264,47 @@ const CashCollectionReport = () => {
                         <div className="text-right">
                             <h3 className="text-xl font-semibold text-gray-700">Total Balance of Selected Bookings: {totalSelectedBalance}</h3>
                         </div>
-                        <div className="space-x-2">
-                            <label htmlFor="month" className="text-gray-700 font-semibold">Filter by Month:</label>
-                            <select
-                                id="month"
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="border border-gray-300 rounded px-2 py-1"
-                            >
-                                <option value="">All Months</option>
-                                {Array.from({ length: 12 }, (_, index) => {
-                                    const month = index + 1;
-                                    return (
-                                        <option key={month} value={month.toString()}>
-                                            {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
-                                        </option>
-                                    );
-                                })}
-                            </select>
-                        </div>
-                    </div>
+                        <div className="flex justify-between items-center mb-5">
+    <div className="space-x-2">
+        <label htmlFor="month" className="text-gray-700 font-semibold">Filter by Month:</label>
+        <select
+            id="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-gray-300 rounded px-2 py-1"
+        >
+            <option value="">All Months</option>
+            {Array.from({ length: 12 }, (_, index) => {
+                const month = index + 1;
+                return (
+                    <option key={month} value={month.toString()}>
+                        {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
+                    </option>
+                );
+            })}
+        </select>
+    </div>
+    <div className="space-x-2">
+        <label htmlFor="year" className="text-gray-700 font-semibold">Filter by Year:</label>
+        <select
+            id="year"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border border-gray-300 rounded px-2 py-1"
+        >
+            <option value="">All Years</option>
+            {Array.from({ length: 5 }, (_, index) => {
+                const year = new Date().getFullYear() - index;
+                return (
+                    <option key={year} value={year.toString()}>
+                        {year}
+                    </option>
+                );
+            })}
+        </select>
+    </div>
+</div>
+</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
                         <div className="bg-white p-4 shadow rounded">
                             <h3 className="text-lg font-semibold text-gray-700">Total Amount</h3>
