@@ -35,6 +35,7 @@ const MapBooking = () => {
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
     const [companies, setCompanies] = useState([]);
     const [pickupLocationFormatted, setPickupLocationFormatted] = useState('');
+    const [totalDriverDistance, setTotalDriverDistance] = useState(0);
 
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
@@ -60,8 +61,7 @@ const MapBooking = () => {
     const closeModal1 = () => setIsModalOpen1(false);
     const [Location, setLocation] = useState('');
     const [vehicleType, setVehicleType] = useState('');
-    const [lat, setLat] = useState('');
-    const [lng, setLng] = useState('');
+  
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -79,16 +79,14 @@ const MapBooking = () => {
     const [serviceType, setServiceType] = useState('');
 
     const [pickupLocation, setPickupLocation] = useState('');
-    console.log(pickupLocation)
+    console.log(pickupLocation);
     const [dropoffLocation, setDropoffLocation] = useState('');
     const [pickupOptions, setPickupOptions] = useState([]);
-    const [dropoffOptions, setDropoffOptions] = useState([]);
     const [pickupCoords, setPickupCoords] = useState({ lat: undefined, lng: undefined });
 
-    const [dropoffCoords, setDropoffCoords] = useState({ lat: undefined, lng: undefined });
-    const [directions, setDirections] = useState(null);
-
     const [baseLocation, setBaseLocation] = useState(null);
+    console.log('baseLocationpickupLocation', baseLocation);
+
     const [trappedLocation, setTrappedLocation] = useState('');
     const [totalSalary, setTotalSalary] = useState(0);
     const [showroomLocation, setShowroomLocation] = useState('');
@@ -107,7 +105,7 @@ const MapBooking = () => {
     const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
     const [disableFields, setDisableFields] = useState(false); // State to control field disabling
     const [pickupDistances, setPickupDistances] = useState([]);
-    console.log('first', pickupDistances);
+    console.log('totalSalary', totalSalary);
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
     const [errors, setErrors] = useState({});
@@ -196,9 +194,9 @@ const MapBooking = () => {
                     })) as Company[];
 
                     const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
-                    console.log("deletedItemIds",deletedItemIds)
-                    const filteredCompanies = fetchedCompanies.filter(company => !deletedItemIds.includes(company.id));
-                    console.log("filteredCompanies",filteredCompanies)
+                    console.log('deletedItemIds', deletedItemIds);
+                    const filteredCompanies = fetchedCompanies.filter((company) => !deletedItemIds.includes(company.id));
+                    console.log('filteredCompanies', filteredCompanies);
                     setCompanies(filteredCompanies);
                 } catch (error) {
                     console.error('Error fetching companies:', error);
@@ -232,15 +230,21 @@ const MapBooking = () => {
             handleUpdatedTotalSalary(calculatedTotalSalary);
         }
     }, [totalSalary, insuranceAmountBody]);
-
     useEffect(() => {
         if (selectedDriver) {
-            const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
-            if (selectedDriverData && selectedDriverData.serviceVehicle) {
-                setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
+            const selectedDriverData = drivers.find(driver => driver.id === selectedDriver);
+           console.log("selectedDriverData",selectedDriverData)
+
+            if (selectedDriverData) {
+                if (selectedDriverData.serviceVehicle) {
+                    setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
+                }
+            } else {
+                console.error('Driver not found:', selectedDriver);
             }
         }
     }, [selectedDriver, serviceType, drivers]);
+    
     const handleAdjustValueChange = (adjustedValue) => {
         setUpdatedTotalSalary(adjustedValue);
     };
@@ -317,14 +321,7 @@ const MapBooking = () => {
             case 'serviceVehicle':
                 setServiceVehicle(value);
                 break;
-            case 'selectedDriver':
-                setSelectedDriver(value);
-                const selectedDriverData = drivers.find((driver) => driver.id === value);
-                if (selectedDriverData && selectedDriverData.serviceVehicle) {
-                    setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
-                }
-                break;
-
+           
             case 'dropoffLocation':
                 if (typeof value === 'string') {
                     setDropoffLocation({ ...dropoffLocation, name: value });
@@ -338,10 +335,10 @@ const MapBooking = () => {
             case 'phoneNumber':
                 setPhoneNumber(value || '');
                 break;
-                case 'pickupLocation':
-                    console.log("pickupLocation",pickupLocation)
-                    setPickupLocation(value || '');
-                    break;
+            case 'pickupLocation':
+                console.log('pickupLocation', pickupLocation);
+                setPickupLocation(value || '');
+                break;
 
             case 'vehicleSection':
                 setVehicleSection(value || '');
@@ -358,28 +355,8 @@ const MapBooking = () => {
 
                 setTrappedLocation(value || '');
                 break;
-            case 'selectedDriver':
-                setSelectedDriver(value);
-                // Calculate total salary for the selected driver
-                const selectedDriverTotalSalary = calculateTotalSalary(
-                    serviceDetails.salary,
-                    totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0,
-                    serviceDetails.basicSalaryKM,
-                    serviceDetails.salaryPerKM
-                );
-                // Update the Total Salary field with the calculated total salary
-                setTotalSalary(selectedDriverTotalSalary);
-                const selectedDriverTotalDistance = totalDistances.find((dist) => dist.driverId === value)?.totalDistance || 0;
-                setTotalDistance(selectedDriverTotalDistance);
-                break;
-            case 'selectedDriver':
-                setSelectedDriver(value);
-                const selectedDriverDetails = drivers.find((driver) => driver.id === value);
-                if (selectedDriverDetails) {
-                    setServiceVehicle(selectedDriverDetails.serviceVehicle || '');
-                }
-                break;
-            case 'showrooms':
+           
+                    case 'showrooms':
                 setShowrooms(value || '');
                 break;
             default:
@@ -394,130 +371,26 @@ const MapBooking = () => {
         } else if (field === 'selectedDriver') {
             setSelectedDriver(value || '');
         }
+        handleCalculateDistance();
+
     };
-    const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
     const openModal = () => {
         setIsModalOpen(true);
     };
     const closeModal = () => {
         setIsModalOpen(false);
     };
-    // const [legDistances, setLegDistances] = useState([]);
-
-    // const calculateTotalDistance = async () => {
-    //     if (!baseLocation || !pickupLocation || !dropoffLocation) {
-    //         console.error("Missing one or more required locations:", {
-    //             baseLocation,
-    //             pickupLocation,
-    //             dropoffLocation
-    //         });
-    //         return;
-    //     }
-
-    //     const locations = [
-    //         { origin: baseLocation, destination: pickupLocation },
-    //         { origin: pickupLocation, destination: dropoffLocation },
-    //         { origin: dropoffLocation, destination: baseLocation }
-    //     ];
-
-    //     console.log("locations:", locations);
-
-    //     let totalDistance = 0;
-    //     const distances = [];
-
-    //     for (const location of locations) {
-    //         console.log('Current location data:', location);
-
-    //         if (!location.origin || !location.destination || !location.origin.lat || !location.origin.lng || !location.destination.lat || !location.destination.lng) {
-    //             console.error("Invalid location data:", location);
-    //             continue;
-    //         }
-
-    //         try {
-    //             console.log(`Fetching directions from ${location.origin.lat},${location.origin.lng} to ${location.destination.lat},${location.destination.lng}`);
-
-    //             const response = await axios.post(
-    //                 `https://api.olamaps.io/routing/v1/directions`,
-    //                 null,
-    //                 {
-    //                     params: {
-    //                         origin: `${location.origin.lat},${location.origin.lng}`,
-    //                         destination: `${location.destination.lat},${location.destination.lng}`,
-    //                         api_key: api_key,
-    //                     },
-    //                     headers: {
-    //                         'X-Request-Id': 'YOUR_REQUEST_ID', // Optional or replace as needed
-    //                     },
-    //                 }
-    //             );
-
-    //             if (response.status === 200) {
-    //                 console.log('API response:', response.data);
-    //                 const route = response.data.routes && response.data.routes[0];
-    //                 if (route) {
-    //                     const leg = route.legs && route.legs[0];
-    //                     console.log("leg:", leg);
-    //                     if (leg) {
-    //                         console.log("Leg distance object:", leg.distance);
-    //                         const distance = leg.distance;
-    //                         console.log("Extracted distance value:", distance);
-    //                         if (distance !== undefined) {
-    //                             console.log(`Distance for this leg: ${distance} meters`);
-    //                             distances.push(distance);
-    //                             totalDistance += distance;
-    //                         } else {
-    //                             console.error('Distance value is undefined or not found:', leg.distance);
-    //                         }
-    //                     } else {
-    //                         console.error('Leg data is undefined:', route.legs);
-    //                     }
-    //                 } else {
-    //                     console.error('Route data is undefined:', response.data.routes);
-    //                 }
-    //             } else {
-    //                 console.error('Error fetching directions:', response.statusText);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error making the API request:', error);
-    //         }
-    //     }
-
-    //     console.log(`Total distance in meters: ${totalDistance}`);
-    //     const totalDistanceKm = totalDistance / 1000; // Convert meters to kilometers
-    //     console.log(`Total distance in kilometers: ${totalDistanceKm}`);
-    //     setTotalDistances(totalDistanceKm);
-    //     setLegDistances(distances);
-    // };
-
-    // // Debugging output
-    // console.log("Base Location:", baseLocation);
-    // console.log("Pickup Location:", pickupLocation);
-    // console.log("Dropoff Location:", dropoffLocation);
-
-    // useEffect(() => {
-    //     calculateTotalDistance();
-    // }, [baseLocation, pickupLocation, dropoffLocation]);
-
-    // const renderTotalDistance = () => (
-    //     <Box mt={2}>
-    //         <Typography variant="h6">Total Distance</Typography>
-    //         <Typography>{totalDistances} KM</Typography>
-    //         {legDistances.map((distance, index) => (
-    //             <Typography key={index}>Leg {index + 1} Distance: {distance / 1000} KM</Typography>
-    //         ))}
-    //     </Box>
-    // );
-
+    const [legDistances, setLegDistances] = useState([]);
     useEffect(() => {}, [showroomLocation]);
     useEffect(() => {}, [updatedTotalSalary]);
 
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
     }, [dropoffLocation]);
-const updateShowroomLocation = (location) => {
+    const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
-  
+
     useEffect(() => {
         const fetchServiceTypes = async () => {
             try {
@@ -543,8 +416,7 @@ const updateShowroomLocation = (location) => {
         return () => unsubscribe();
     }, []);
 
-  
-        useEffect(() => {
+    useEffect(() => {
         const fetchDrivers = async () => {
             if (!serviceType || !serviceDetails) {
                 console.log('Service details not found, cannot proceed with fetching drivers.');
@@ -609,11 +481,89 @@ const updateShowroomLocation = (location) => {
         fetchServiceDetails();
     }, [db, serviceType]);
 
-    const calculateTotalSalary = (salary, totalDistance, basicSalaryKM, salaryPerKM) => {
+  
+    const fetchTravelDistance = async (origin, destination, id) => {
+        if (!origin || !destination) {
+            console.error('Invalid origin or destination:', { origin, destination });
+            return { id, distance: null, duration: null };
+        }
+    
+        console.log('Fetching travel distance from OLA Maps API');
+        console.log('Origin:', origin);
+        console.log('Destination:', destination);
+    
+        try {
+            console.log('Preparing axios request...');
+            const response = await axios.post('https://api.olamaps.io/routing/v1/directions', null, {
+                params: {
+                    origin: `${origin.lat},${origin.lng}`,
+                    destination: `${destination.lat},${destination.lng}`,
+                    api_key: import.meta.env.VITE_REACT_APP_API_KEY,
+                },
+                headers: {
+                    'X-Request-Id': `${id}-${Date.now()}`, // Unique request ID
+                },
+            });
+    
+            console.log('API response received');
+    
+            if (response.status === 200) {
+                const data = response.data;
+                console.log('Distance response:', data);
+    
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    console.log('Route:', route);
+    
+                    if (route.legs && route.legs.length > 0) {
+                        const leg = route.legs[0];
+                        console.log('Leg:', leg);
+    
+                        const distanceInfo = {
+                            id,
+                            distance: leg.distance !== undefined ? (leg.distance / 1000).toFixed(2) : null, // Convert to km and format
+                            duration: formatDuration(leg.duration !== undefined ? leg.duration : null), // Convert to readable format
+                        };
+    
+                        console.log('Distance info:', distanceInfo);
+                        return distanceInfo;
+                    } else {
+                        console.error('No legs found in the route:', route);
+                        return { id, distance: null, duration: null };
+                    }
+                } else {
+                    console.error('No routes found in the response:', data);
+                    return { id, distance: null, duration: null };
+                }
+            } else {
+                console.error('Error fetching directions:', response.statusText);
+                return { id, distance: null, duration: null };
+            }
+        } catch (error) {
+            console.error('Error fetching distance data:', error);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+                console.error('Response headers:', error.response.headers);
+            } else if (error.request) {
+                console.error('Request data:', error.request);
+            } else {
+                console.error('Error message:', error.message);
+            }
+            return { id, distance: null, duration: null };
+        }
+    };
+    const calculateTotalSalary = (salary, distance, basicSalaryKM, salaryPerKM) => {
         const numericBasicSalary = Number(salary) || 0;
-        const numericTotalDistance = Number(totalDistance) || 0;
+        const numericTotalDistance = Number(distance) || 0;
         const numericKmValueNumeric = Number(basicSalaryKM) || 0;
         const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
+      console.log("numericBasicSalary",numericBasicSalary)
+      console.log("numericTotalDistance",numericTotalDistance)
+
+      console.log("numericKmValueNumeric",numericKmValueNumeric)
+
+      console.log("numericPerKmValueNumeric",numericPerKmValueNumeric)
 
         if (numericTotalDistance > numericKmValueNumeric) {
             return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
@@ -622,34 +572,14 @@ const updateShowroomLocation = (location) => {
         }
     };
 
-    const fetchTravelDistance = async (origin, destination) => {
-        return new Promise((resolve, reject) => {
-            const service = new window.google.maps.DistanceMatrixService();
-            service.getDistanceMatrix(
-                {
-                    origins: [origin],
-                    destinations: [destination],
-                    travelMode: window.google.maps.TravelMode.DRIVING,
-                },
-                (response, status) => {
-                    if (status === 'OK') {
-                        const element = response.rows[0].elements[0];
-                        const distance = element.distance.value / 1000; // distance in kilometers
-                        const duration = element.duration.value / 60; // duration in minutes
-                        resolve({ distance, duration });
-                    } else {
-                        reject(new Error('Error fetching travel distance and duration'));
-                    }
-                }
-            );
-        });
-    };
 
     useEffect(() => {
         const fetchDrivers = async () => {
+            console.log('Fetching drivers from Firestore');
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
+                console.log('Firestore snapshot:', snapshot);
 
                 if (!serviceDetails) {
                     console.log('Service details not found, cannot proceed with fetching drivers.');
@@ -663,18 +593,50 @@ const updateShowroomLocation = (location) => {
                     }))
                     .filter((driver) => driver.selectedServices && driver.selectedServices.includes(serviceType));
 
+                console.log('Filtered drivers:', filteredDrivers);
+
                 const distancePromises = filteredDrivers.map(async (driver) => {
+                    console.log('Processing driver:', driver);
+
                     if (driver.currentLocation && driver.currentLocation.latitude && driver.currentLocation.longitude) {
-                        const origin = new window.google.maps.LatLng(driver.currentLocation.latitude, driver.currentLocation.longitude);
-                        const destination = new window.google.maps.LatLng(pickupLocation.lat, pickupLocation.lng);
-                        const { distance, duration } = await fetchTravelDistance(origin, destination);
-                        return { distance, duration };
+                        const origin = {
+                            lat: driver.currentLocation.latitude,
+                            lng: driver.currentLocation.longitude,
+                        };
+
+                        if (pickupLocation) {
+                            const [locationName, lat, lng] = pickupLocation.split(',').map((part) => part.trim());
+                            const parsedPickupLocation = {
+                                lat: parseFloat(lat),
+                                lng: parseFloat(lng),
+                            };
+                            console.log('Parsed Pickup Location:', parsedPickupLocation);
+
+                            if (!isNaN(parsedPickupLocation.lat) && !isNaN(parsedPickupLocation.lng)) {
+                                const destination = {
+                                    lat: parsedPickupLocation.lat,
+                                    lng: parsedPickupLocation.lng,
+                                };
+                                console.log('Origin for driver:', origin);
+                                console.log('Destination for driver:', destination);
+
+                                const distanceData = await fetchTravelDistance(origin, destination, driver.id);
+                                console.log('Distance and duration for driver:', distanceData);
+                                return distanceData;
+                            } else {
+                                console.error('Parsed pickup location is invalid:', parsedPickupLocation);
+                            }
+                        } else {
+                            console.error('Pickup location is not defined');
+                        }
                     } else {
-                        return { distance: 0, duration: 0 };
+                        console.log('Driver does not have a valid current location');
                     }
+                    return { id: driver.id, distance: 0, duration: 0 };
                 });
 
                 const resolvedDistances = await Promise.all(distancePromises);
+                console.log('Resolved distances:', resolvedDistances);
 
                 setPickupDistances(resolvedDistances);
                 setDrivers(filteredDrivers);
@@ -683,37 +645,18 @@ const updateShowroomLocation = (location) => {
             }
         };
 
-        if (serviceType && serviceDetails && window.google) {
+        if (serviceType && serviceDetails) {
+            console.log('Fetching drivers based on service type and service details');
             fetchDrivers().catch(console.error);
         } else {
+            console.log('Service type or service details not available');
             setDrivers([]);
         }
-    }, [serviceType, serviceDetails, pickupLocation, distanceNumeric]);
-    useEffect(() => {
-        if (pickupDistances.length > 0 && drivers.length > 0) {
-            const totalDistances = drivers.map((driver, index) => {
-                const numericPickupDistance = pickupDistances[index] || 0; // Default to 0 if pickupDistance is not available
-                const totalDistance = distanceNumeric;
-                return { driverId: driver.id, totalDistance };
-            });
-            setTotalDistances(totalDistances); // Set totalDistances state
-        }
-    }, [pickupDistances, drivers, distanceNumeric]);
+    }, [serviceType, serviceDetails, pickupLocation]);
 
-    useEffect(() => {
-        if (pickupDistances.length > 0 && totalDistances.length > 0) {
-            const totalSalaries = drivers.map((driver) => {
-                const totalDistanceObj = totalDistances.find((dist) => dist.driverId === driver.id);
-                const totalDistance = totalDistanceObj ? totalDistanceObj.totalDistance : 0;
-                return calculateTotalSalary(serviceDetails.salary, totalDistance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2);
-            });
+    console.log('Effect dependencies:', { serviceType, serviceDetails, pickupLocation });
 
-            const totalSalary = totalSalaries.reduce((acc, salary) => parseFloat(salary), 0);
-            setTotalSalary(totalSalary);
-            setUpdatedTotalSalary(totalSalary);
-        }
-    }, [pickupDistances, drivers, serviceDetails, totalDistances, distanceNumeric]);
-
+   
     const renderServiceVehicle = (serviceVehicle, serviceType) => {
         if (serviceVehicle && serviceVehicle[serviceType]) {
             return serviceVehicle[serviceType];
@@ -792,21 +735,31 @@ const updateShowroomLocation = (location) => {
     };
 
     //-----------------------------------------------------------------
-    const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
-
+    // Replace with your actual API key
     const getAutocompleteResults = async (inputText, setOptions) => {
+        const keralaCenterLat = 10.8505;
+        const keralaCenterLng = 76.2711;
+        const radius = 200000;
+
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
-            console.log('Autocomplete Response:', response.data); // Debugging line
-            
+            console.log(`Fetching autocomplete results for input: ${inputText}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete`, {
+                params: {
+                    input: inputText,
+                    api_key: import.meta.env.VITE_REACT_APP_API_KEY,
+                    location: `${keralaCenterLat},${keralaCenterLng}`,
+                    radius: radius,
+                },
+            });
+            console.log('Autocomplete response:', response.data);
+
             if (response.data && Array.isArray(response.data.predictions)) {
                 const predictionsWithCoords = await Promise.all(
-                    response.data.predictions.map(async (prediction) => {
+                    response.data.predictions.map(async (prediction, index) => {
                         const placeDetails = await getPlaceDetails(prediction.place_id);
-                        console.log('Place Details:', placeDetails); // Debugging line
-                        const locationName = prediction.description.split(',')[0]; // Extract the location name
-                        
+                        const locationName = prediction.description.split(',')[0];
                         return {
+                            key: `${prediction.place_id}-${index}`,
                             label: locationName,
                             lat: placeDetails.geometry.location.lat,
                             lng: placeDetails.geometry.location.lng,
@@ -814,6 +767,7 @@ const updateShowroomLocation = (location) => {
                         };
                     })
                 );
+                console.log('Predictions with coordinates:', predictionsWithCoords);
                 setOptions(predictionsWithCoords);
             } else {
                 setOptions([]);
@@ -823,33 +777,228 @@ const updateShowroomLocation = (location) => {
             setOptions([]);
         }
     };
-    
     const getPlaceDetails = async (placeId) => {
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
-            console.log('Place Details Response:', response.data); // Debugging line
+            console.log(`Fetching place details for placeId: ${placeId}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details`, {
+                params: {
+                    place_id: placeId,
+                    api_key: import.meta.env.VITE_REACT_APP_API_KEY,
+                },
+            });
+            console.log('Place details response:', response.data);
             return response.data.result;
         } catch (error) {
             console.error('Error fetching place details:', error);
             return { geometry: { location: { lat: undefined, lng: undefined } } };
         }
     };
-    
-    const handlePickupChange = (event, newValue) => {
-        if (newValue) {
+
+    useEffect(() => {
+        console.log('Base location updated:', baseLocation);
+    }, [baseLocation]);
+
+    useEffect(() => {
+        if (baseLocation && pickupCoords && dropoffLocation) {
+            console.log('Dependencies are set. Calculating total distance...');
+            calculateTotalDistance(baseLocation, pickupCoords, dropoffLocation);
+        }
+    }, [baseLocation, pickupCoords, dropoffLocation]);
+
+    const handlePickupChange = (newValue) => {
+        console.log('Checking newValue:', newValue);
+        console.log('Selected pickup location:', newValue);
+
+        const hasLabel = newValue && newValue.label;
+        const hasLat = newValue && newValue.lat;
+        const hasLng = newValue && newValue.lng;
+
+        console.log('newValue exists:', newValue !== undefined && newValue !== null);
+        console.log('newValue.label exists:', hasLabel);
+        console.log('newValue.lat exists:', hasLat);
+        console.log('newValue.lng exists:', hasLng);
+
+        if (hasLabel && hasLat && hasLng) {
+            console.log('Setting pickup location formatted...');
             setPickupLocationFormatted(newValue.label);
+            console.log('Pickup location formatted:', newValue.label);
+
+            console.log('Setting pickup coordinates...');
             setPickupCoords({ lat: newValue.lat, lng: newValue.lng });
+            console.log('Pickup coordinates:', { lat: newValue.lat, lng: newValue.lng });
+
+            console.log('Setting pickup location...');
             setPickupLocation(`${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
+            console.log('Pickup location:', `${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
+
+            console.log('Base location before check:', baseLocation);
+            if (baseLocation) {
+                console.log('Base location is set in pick:', baseLocation);
+                if (dropoffLocation) {
+                    console.log('Dropoff location is set:', dropoffLocation);
+                    console.log('Calculating total distance...');
+                    console.log('Before calculating distance, baseLocation:', baseLocation);
+
+                    calculateTotalDistance(baseLocation, newValue, dropoffLocation);
+                } else {
+                    console.log('Dropoff location is not set');
+                }
+            } else {
+                console.log('Base location is not set');
+            }
         } else {
+            console.log('Resetting pickup coordinates and formatted location...');
             setPickupCoords({ lat: undefined, lng: undefined });
             setPickupLocationFormatted('');
         }
+
+        console.log('Clearing pickup options...');
         setPickupOptions([]);
     };
-    
+
+    const calculateTotalDistance = async (base, pickup, dropoff) => {
+        try {
+            console.log('Calculating total distance...');
+            console.log('Base locationnnn:', base);
+            console.log('Pickup locationnnn:', pickup);
+            console.log('Dropoff locationnn:', dropoff);
+
+            const distances = await Promise.all([
+                getDistanceAndDuration(base, pickup, 'base_to_pickup'),
+                getDistanceAndDuration(pickup, dropoff, 'pickup_to_dropoff'),
+                getDistanceAndDuration(dropoff, base, 'dropoff_to_base'),
+            ]);
+
+            console.log('Distances:', distances);
+
+            const totalDistance = distances.reduce((acc, cur) => acc + (cur.distance ? parseFloat(cur.distance) : 0), 0);
+            console.log('Total distance calculated:', totalDistance);
+
+            // setTotalDistances(totalDistance.toFixed(2));
+            console.log('Total distance set:', totalDistance.toFixed(2));
+            setDistance(totalDistance.toFixed(2));
+
+            const legDistances = distances.map((d) => (d.distance ? parseFloat(d.distance) : 0));
+            setLegDistances(legDistances);
+            console.log('Leg distances set:', legDistances);
+        } catch (error) {
+            console.error('Error calculating total distance:', error);
+        }
+    };
+
+    const getDistanceAndDuration = async (origin, destination, id) => {
+        if (!origin || !destination) {
+            console.log(`Invalid origin or destination for ${id}:`, origin, destination);
+            return { id, distance: null, duration: null };
+        }
+
+        try {
+            console.log(`Fetching distance between ${JSON.stringify(origin)} and ${JSON.stringify(destination)} for ${id}...`);
+            const response = await axios.post(`https://api.olamaps.io/routing/v1/directions`, null, {
+                params: {
+                    origin: `${origin.lat},${origin.lng}`,
+                    destination: `${destination.lat},${destination.lng}`,
+                    api_key: import.meta.env.VITE_REACT_APP_API_KEY,
+                },
+            });
+
+            if (response.status === 200) {
+                const data = response.data;
+                console.log(`Distance response for ${id}:`, data);
+
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    console.log(`Route for ${id}:`, route);
+
+                    if (route.legs && route.legs.length > 0) {
+                        const leg = route.legs[0];
+                        console.log(`Leg for ${id}:`, leg);
+
+                        const distanceInfo = {
+                            id,
+                            distance: leg.distance ? (leg.distance / 1000).toFixed(2) : null,
+                            duration: formatDuration(leg.duration ? leg.duration : null),
+                        };
+
+                        console.log(`Distance info for ${id}:`, distanceInfo);
+                        return distanceInfo;
+                    } else {
+                        console.error(`No legs found in the route for ${id}:`, route);
+                        return { id, distance: null, duration: null };
+                    }
+                } else {
+                    console.error(`No routes found in the response for ${id}:`, data);
+                    return { id, distance: null, duration: null };
+                }
+            } else {
+                console.error(`Error fetching directions for ${id}:`, response.statusText);
+                return { id, distance: null, duration: null };
+            }
+        } catch (error) {
+            console.error(`Error fetching distance data for ${id}:`, error);
+            return { id, distance: null, duration: null };
+        }
+    };
+
+    const formatDuration = (seconds) => {
+        if (seconds === null) return 'Calculating...';
+
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+
+        if (hours > 0) {
+            return `${hours} hour${hours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''}`;
+        } else {
+            return `${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''}`;
+        }
+    };
+
     useEffect(() => {
         console.log('Formatted Pickup Location:', pickupLocationFormatted);
     }, [pickupLocationFormatted]);
+    // --------------------------------------------------------------------
+    const getDistance = async (start, end) => {
+        const url = `https://api.olamaps.io/routing/v1/directions?api_key=${OLA_MAPS_API_KEY}&mode=driving&origin=${start.lat},${start.lng}&destination=${end.lat},${end.lng}`;
+    
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.routes && data.routes.length > 0) {
+                return data.routes[0].summary.lengthInMeters / 1000; // Convert meters to kilometers
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching distance:', error);
+            return 0;
+        }
+    };
+    
+    const calculateTotalDriverDistance = async (driverLocation, pickupLocation, dropoffLocation) => {
+        const distanceToPickup = await getDistance(driverLocation, pickupLocation);
+        const distanceToDropoff = await getDistance(pickupLocation, dropoffLocation);
+        const distanceToReturn = await getDistance(dropoffLocation, driverLocation);
+    
+        const totalDriverDistance = distanceToPickup + distanceToDropoff + distanceToReturn;
+        return totalDriverDistance;
+    };
+    
+    const handleCalculateDistance = async () => {
+        if (!selectedDriver || !pickupLocation || !dropoffLocation) return;
+    
+        const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
+        if (!selectedDriverData) return;
+    
+        const driverLocation = selectedDriverData.currentLocation;
+    
+        const totalDriverDistance = await calculateTotalDriverDistance(driverLocation, pickupLocation, dropoffLocation);
+        console.log('Total Driver Distance:', totalDriverDistance);
+        // Update state or perform any other actions with the totalDriverDistance
+    };
+    useEffect(() => {
+        handleCalculateDistance();
+    }, [selectedDriver, pickupLocation, dropoffLocation]);
+    //------------------------------------------------------ 
     return (
         <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4 ">
@@ -1009,87 +1158,57 @@ const updateShowroomLocation = (location) => {
                           
                         {/* {googleMapsLoaded && ( */}
                         <div>
-                        <div className="flex items-center mt-4">
-            <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                Pickup Location
-            </label>
-            <Box
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-            >
-                <Autocomplete
-                    value={{ label: pickupLocation }}
-                    onInputChange={(event, newInputValue) => {
-                        setPickupLocation(newInputValue);
-                        if (newInputValue) {
-                            getAutocompleteResults(newInputValue, setPickupOptions);
-                        } else {
-                            setPickupOptions([]);
-                        }
-                    }}
-                    onChange={handlePickupChange}
-                    sx={{ width: 300 }}
-                    options={pickupOptions}
-                    getOptionLabel={(option) => option.label}
-                    isOptionEqualToValue={(option, value) => option.label === value.label}
-                    renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
-                />
-                {pickupCoords.lat !== undefined && pickupCoords.lng !== undefined && (
-                    <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>
-                )}
-            </Box>
-        </div>
                             <div className="flex items-center mt-4">
-                                <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Drop off Location
-                                </label>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                  
-                            <input
-                             style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            }}
-                            value={showroomLocation} />
-</div>
-</div>
-                            {/* <div className="flex items-center mt-4">
                                 <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Pickup Location
                                 </label>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    <input
-                                        className="form-input flex-1"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                <Box
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                >
+                                    <Autocomplete
+                                        value={{ label: pickupLocation }}
+                                        onInputChange={(event, newInputValue) => {
+                                            console.log('Input change:', newInputValue);
+                                            setPickupLocation(newInputValue);
+                                            if (newInputValue) {
+                                                getAutocompleteResults(newInputValue, setPickupOptions);
+                                            } else {
+                                                setPickupOptions([]);
+                                            }
                                         }}
-                                        type="text"
-                                        placeholder="Pickup Location"
-                                        ref={(node) => setupAutocomplete(node, setPickupLocation)}
-                                        onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                                        value={pickupLocation ? pickupLocation.name : ''}
+                                        onChange={(event, newValue) => {
+                                            console.log('Autocomplete onChange event:', event);
+                                            console.log('Autocomplete onChange newValue:', newValue);
+                                            handlePickupChange(newValue);
+                                        }}
+                                        sx={{ width: 300 }}
+                                        options={pickupOptions}
+                                        getOptionLabel={(option) => option.label}
+                                        isOptionEqualToValue={(option, value) => option.label === value.label}
+                                        renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
                                     />
-                                    {pickupLocation && <div>{`pickupLocation Lat/Lng: ${pickupLocation.lat}, ${pickupLocation.lng}`}</div>}
-                                </div>
+
+                                    {pickupCoords.lat !== undefined && pickupCoords.lng !== undefined && <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>}
+                                </Box>
                             </div>
+
+                            <Box mt={2}>
+                                <Typography variant="h6">Total Distance</Typography>
+                                <Typography>{totalDistances} KM</Typography>
+                                {legDistances.map((distance, index) => (
+                                    <Typography key={index}>
+                                        Leg {index + 1} Distance: {distance} KM
+                                    </Typography>
+                                ))}
+                            </Box>
 
                             <div className="flex items-center mt-4">
                                 <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1097,7 +1216,6 @@ const updateShowroomLocation = (location) => {
                                 </label>
                                 <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     <input
-                                        className="form-input flex-1"
                                         style={{
                                             width: '100%',
                                             padding: '0.5rem',
@@ -1107,16 +1225,10 @@ const updateShowroomLocation = (location) => {
                                             outline: 'none',
                                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                         }}
-                                        type="text"
-                                        placeholder="Drop off Location"
-                                        ref={(node) => setupAutocomplete(node, setDropoffLocation)}
-                                        onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                                        value={dropoffLocation ? dropoffLocation.name : ''}
+                                        value={showroomLocation}
                                     />
-                                    {dropoffLocation && <div>{`dropoffLocation Lat/Lng: ${dropoffLocation.lat}, ${dropoffLocation.lng}`}</div>}
                                 </div>
-                            </div> */}
-            {/* {renderTotalDistance()} */}
+                            </div>
 
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1213,7 +1325,7 @@ const updateShowroomLocation = (location) => {
                                             </span>
                                         </div>
                                         <div className="modal-body">
-                                            <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation}/>
+                                            <BaseLocationModal onClose={closeModal1} setBaseLocation={setBaseLocation} pickupLocation={pickupLocation} />
                                         </div>
                                         <div
                                             className="modal-footer"
@@ -1387,80 +1499,86 @@ const updateShowroomLocation = (location) => {
                                 />
                             </div>
                             <ReactModal
-                                isOpen={isModalOpen}
-                                onRequestClose={closeModal}
-                                style={{
-                                    overlay: {
-                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                    },
-                                    content: {
-                                        top: '50%',
-                                        left: '50%',
-                                        right: 'auto',
-                                        bottom: 'auto',
-                                        transform: 'translate(-50%, -50%)',
-                                        borderRadius: '10px',
-                                        maxWidth: '90vw',
-                                        maxHeight: '80vh',
-                                        boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
-                                        padding: '20px',
-                                        overflow: 'auto',
-                                    },
-                                }}
-                            >
-                                <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
-                                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
-                                    <button
-                                        onClick={closeModal}
-                                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
-                                        style={{ marginLeft: 'auto', marginRight: '20px' }}
-                                    >
-                                        OK
-                                    </button>
-                                </div>
+                isOpen={isModalOpen}
+                onRequestClose={closeModal}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    },
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        transform: 'translate(-50%, -50%)',
+                        borderRadius: '10px',
+                        maxWidth: '90vw',
+                        maxHeight: '80vh',
+                        boxShadow: '0 0 20px rgba(0, 0, 0, 0.7)',
+                        padding: '20px',
+                        overflow: 'auto',
+                    },
+                }}
+            >
+                <div style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 999 }}>
+                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Available Drivers for {serviceType}</h2>
+                    <button
+                        onClick={closeModal}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-1"
+                        style={{ marginLeft: 'auto', marginRight: '20px' }}
+                    >
+                        OK
+                    </button>
+                </div>
 
-                                <div style={{ marginTop: '10px' }}>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {drivers
-                                            .map((driver, index) => ({
-                                                driver,
-                                                pickupDistanceData: pickupDistances[index] || { distance: 0, duration: 0 },
-                                            }))
-                                            .sort((a, b) => {
-                                                if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
-                                                    return -1;
-                                                }
-                                                if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
-                                                    return 1;
-                                                }
-                                                return a.pickupDistanceData.distance - b.pickupDistanceData.distance;
-                                            })
-                                            .map(({ driver, pickupDistanceData }, index) => {
-                                                const totalDistance = totalDistances.find((dist) => dist.driverId === driver.id)?.totalDistance || 0;
-                                                const driverTotalSalary = calculateTotalSalary(serviceDetails.salary, totalDistance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(
-                                                    2
-                                                );
+                <div style={{ marginTop: '10px' }}>
+                    <div className="grid grid-cols-1 gap-4">
+                        {drivers
+                            .map((driver, index) => ({
+                                driver,
+                                pickupDistanceData: pickupDistances[index] || { distance: 0, duration: 0 },
+                            }))
+                            .sort((a, b) => {
+                                if (a.driver.companyName === 'RSA' && b.driver.companyName !== 'RSA') {
+                                    return -1;
+                                }
+                                if (a.driver.companyName !== 'RSA' && b.driver.companyName === 'RSA') {
+                                    return 1;
+                                }
+                                return a.pickupDistanceData.distance - b.pickupDistanceData.distance;
+                            })
+                            .map(({ driver, pickupDistanceData }, index) => {
+                                const totalDistance = pickupDistances.find((dist) => dist.id === driver.id)?.distance || 0;
+                                const driverTotalSalary = calculateTotalSalary(serviceDetails.salary, distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM);
 
-                                                return (
-                                                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
-                                                        <table className="panel p-4 w-full">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Driver Name</th>
-                                                                    <th>Company Name</th>
-                                                                    <th>Distance to Pickup (km)</th>
-                                                                    <th>Duration (min)</th>
-                                                                    <th>Select</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td style={{ fontSize: '18px', fontWeight: 'bold', color: 'green' }}>{driver.driverName || 'Unknown Driver'}</td>
-                                                                    <td>{driver.companyName || 'Unknown Company'}</td>
-                                                                    {/* // <td>{renderServiceVehicle(driver.serviceVehicle, serviceType)}</td> */}
-                                                                    <td>{pickupDistanceData.distance.toFixed(2)} km</td>
-                                                                    <td>{pickupDistanceData.duration.toFixed(2)} minutes</td>
-                                                                    <td>
+                                console.log('Driver Total Salary Calculation:');
+                                console.log('Service Details Salary:', serviceDetails.salary);
+                                console.log('Total Distance:', totalDistance);
+                                console.log('Basic Salary per KM:', serviceDetails.basicSalaryKM);
+                                console.log('Salary per KM:', serviceDetails.salaryPerKM);
+                                console.log('Calculated Total Salary:', driverTotalSalary);
+
+                                return (
+                                    <div key={driver.id} className="flex items-center border border-gray-200 p-2 rounded-lg">
+                                        <table className="panel p-4 w-full">
+                                            <thead>
+                                                <tr className="text-left">
+                                                    <th className="border-b-2 p-2">Driver Name</th>
+                                                    <th className="border-b-2 p-2">Company Name</th>
+                                                    <th className="border-b-2 p-2">Pickup Distance (KM)</th>
+                                                    <th className="border-b-2 p-2">Pickup Duration</th>
+                                                    <th className="border-b-2 p-2">Salary</th>
+                                                    <th className="border-b-2 p-2">Select Driver</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="text-left">
+                                                    <td className="border-b-2 p-2">{driver.driverName}</td>
+                                                    <td className="border-b-2 p-2">{driver.companyName}</td>
+                                                    <td className="border-b-2 p-2">{pickupDistanceData.distance}</td>
+                                                    <td className="border-b-2 p-2">{pickupDistanceData.duration}</td>
+                                                    <td className="border-b-2 p-2">{driverTotalSalary}</td>
+                                                    <td>
                                                                         <input
                                                                             type="radio"
                                                                             name="selectedDriver"
@@ -1469,19 +1587,20 @@ const updateShowroomLocation = (location) => {
                                                                             onChange={() => handleInputChange('selectedDriver', driver.id)}
                                                                         />
                                                                     </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                );
-                                            })}
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
-                            </ReactModal>
+                                );
+                            })}
+                    </div>
+                 
+                </div>
+            </ReactModal>
                         </div>
                     )}
                 </div>
-                {selectedDriver && selectedDriverData && (
+                
                     <React.Fragment>
                         <div>
                             <VehicleSection
@@ -1555,7 +1674,7 @@ const updateShowroomLocation = (location) => {
                             </div>
                         </div>
                     </React.Fragment>
-                )}
+              
                 <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Service Vehicle Number

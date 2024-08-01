@@ -104,11 +104,10 @@ const BaseLocation = () => {
         }
     };
 
-    const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k'; // Replace with your actual API key
 
     const getAutocompleteResults = async (inputText, setOptions) => {
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${import.meta.env.VITE_REACT_APP_API_KEY}`);
             if (response.data && Array.isArray(response.data.predictions)) {
                 const predictionsWithCoords = await Promise.all(
                     response.data.predictions.map(async (prediction) => {
@@ -134,7 +133,7 @@ const BaseLocation = () => {
 
     const getPlaceDetails = async (placeId) => {
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${import.meta.env.VITE_REACT_APP_API_KEY}`);
             return response.data.result;
         } catch (error) {
             console.error('Error fetching place details:', error);

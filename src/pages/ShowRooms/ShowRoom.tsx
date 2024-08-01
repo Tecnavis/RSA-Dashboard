@@ -43,7 +43,6 @@ const ShowRoom = () => {
     const formRef = useRef(null);
     const [baseOptions, setBaseOptions] = useState([]);
     const [baseLocation, setBaseLocation] = useState(null);
-   const api_key = 'tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k';
     useEffect(() => {
         const term = searchTerm.toLowerCase();
         const filtered = existingShowRooms.filter(record =>
@@ -228,7 +227,7 @@ const ShowRoom = () => {
     };
     const getAutocompleteResults = async (inputText, setOptions) => {
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${api_key}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${inputText}&api_key=${import.meta.env.VITE_REACT_APP_API_KEY}`);
             if (response.data && Array.isArray(response.data.predictions)) {
                 const predictionsWithCoords = await Promise.all(
                     response.data.predictions.map(async (prediction) => {
@@ -254,7 +253,7 @@ const ShowRoom = () => {
 
     const getPlaceDetails = async (placeId) => {
         try {
-            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${api_key}`);
+            const response = await axios.get(`https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${import.meta.env.VITE_REACT_APP_API_KEY}`);
             return response.data.result;
         } catch (error) {
             console.error('Error fetching place details:', error);

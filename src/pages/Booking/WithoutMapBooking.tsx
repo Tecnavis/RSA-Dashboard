@@ -504,46 +504,7 @@ const WithoutMapBooking = () => {
         fetchServiceDetails();
     }, [db, serviceType]);
 
-    const calculateTotalSalary = (salary, totalDistance, basicSalaryKM, salaryPerKM) => {
-        const numericBasicSalary = Number(salary) || 0;
-        const numericTotalDistance = Number(totalDistance) || 0;
-        const numericKmValueNumeric = Number(basicSalaryKM) || 0;
-        const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
-        console.log('numericBasicSalary', numericBasicSalary);
-        console.log('numericTotalDistance', numericTotalDistance);
-
-        console.log('numericKmValueNumeric', numericKmValueNumeric);
-
-        console.log('numericPerKmValueNumeric', numericPerKmValueNumeric);
-
-        if (numericTotalDistance > numericKmValueNumeric) {
-            console.log('numericBasicSalaryy', numericTotalDistance - numericKmValueNumeric);
-
-            return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
-        } else {
-            return numericBasicSalary;
-        }
-    };
-
-    useEffect(() => {
-        if (drivers.length > 0) {
-            const totalDistances = drivers.map((driver) => {
-                return { driverId: driver.id, totalDistance: distanceNumeric };
-            });
-            console.log('Total Distances:', totalDistances);
-
-            const totalSalaries = drivers.map((driver) => {
-                return parseFloat(calculateTotalSalary(serviceDetails.salary, distanceNumeric, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2));
-            });
-
-            const totalSalary = totalSalaries.reduce((acc, salary) => salary, 0);
-            console.log('totalSalary', totalSalary);
-
-            setTotalDistances(totalDistances); // Set totalDistances state
-            setTotalSalary(totalSalary);
-            // setUpdatedTotalSalary(totalSalary);
-        }
-    }, [drivers, serviceDetails, distanceNumeric]);
+    
 
     const renderServiceVehicle = (serviceVehicle, serviceType) => {
         if (serviceVehicle && serviceVehicle[serviceType]) {

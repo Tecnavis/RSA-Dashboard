@@ -4,7 +4,6 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import axios from 'axios';
 
-const api_key = "tS7PiwHTH37eyz3KmYaDJs1f7JJHi04CbWR3Yd4k"; // Replace with your Ola Maps API key
 
 const BaseLocationModal = ({ onClose, setBaseLocation, pickupLocation }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +62,7 @@ const BaseLocationModal = ({ onClose, setBaseLocation, pickupLocation }) => {
               params: {
                 origin: `${origin.lat},${origin.lng}`,
                 destination: `${destination.lat},${destination.lng}`,
-                api_key: api_key
+                api_key: import.meta.env.VITE_REACT_APP_API_KEY
               },
               headers: {
                 'X-Request-Id': 'YOUR_REQUEST_ID', // Replace with your actual request ID
