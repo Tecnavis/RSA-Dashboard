@@ -12,6 +12,7 @@ import IconMapPin from '../../components/Icon/IconMapPin';
 import Select from 'react-select';
 import BaseLocationWithout from '../BaseLocation/BaseLocationWithout';
 import { format } from 'date-fns';
+import ShowroomModalWithout from './ShowroomModalWithout';
 
 interface Showroom {
     id: string;
@@ -27,13 +28,15 @@ const WithoutMapBooking = () => {
         setBookingId(newBookingId);
     }, []);
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
+      
     const [companies, setCompanies] = useState([]);
 
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
         fileNumber: '',
         customerName: '',
-        totalDriverSalary:'',
+        totalDriverSalary: '',
+        totalDriverDistance:'',
         phoneNumber: '',
         mobileNumber: '',
         totalSalary: '',
@@ -41,6 +44,7 @@ const WithoutMapBooking = () => {
         vehicleType: '',
         serviceVehicle: '',
         driver: '',
+        distance: '',
         vehicleNumber: '',
         vehicleModel: '',
         vehicleSection: '',
@@ -51,12 +55,14 @@ const WithoutMapBooking = () => {
     const [isModalOpen1, setIsModalOpen1] = useState(false);
     const openModal1 = () => setIsModalOpen1(true);
     const closeModal1 = () => setIsModalOpen1(false);
-    const [Location, setLocation] = useState('');
     const [comments, setComments] = useState('');
     const [fileNumber, setFileNumber] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [vehicleType, setVehicleType] = useState('');
-        const [totalDriverSalary, setTotalDriverSalary] = useState('');
+    const [totalDriverSalary, setTotalDriverSalary] = useState('');
+    const [totalDriverDistance, setTotalDriverDistance] = useState('');
+
+    const [serviceCategory, setServiceCategory] = useState('');
 
     const [company, setCompany] = useState('');
     const [customerName, setCustomerName] = useState('');
@@ -71,26 +77,29 @@ const WithoutMapBooking = () => {
     const [serviceDetails, setServiceDetails] = useState('');
     const [serviceType, setServiceType] = useState('');
     const [pickupLocation, setPickupLocation] = useState(null);
+    const [availableServices, setAvailableServices] = useState('');
+
     const [dropoffLocation, setDropoffLocation] = useState(null);
     const [baseLocation, setBaseLocation] = useState(null);
     const [trappedLocation, setTrappedLocation] = useState('');
     const [totalSalary, setTotalSalary] = useState(0);
     const [showroomLocation, setShowroomLocation] = useState('');
+    
     const [insuranceAmountBody, setInsuranceAmountBody] = useState(0);
     const [showrooms, setShowrooms] = useState<Showroom[]>([]);
+  
+    console.log(showrooms)
     const [distance, setDistance] = useState('');
+    console.log("distance",distance)
     const [drivers, setDrivers] = useState([]);
-    const distanceNumeric = parseFloat(distance.replace('km', ''));
     const [editData, setEditData] = useState(null);
     const [serviceTypes, setServiceTypes] = useState([]);
     const [showRooms, setShowRooms] = useState([]);
-    const [manualDistance, setManualDistance] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState('');
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
     const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
     const [disableFields, setDisableFields] = useState(false); // State to control field disabling
-    const [pickupDistances, setPickupDistances] = useState([]);
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
     const [errors, setErrors] = useState({});
@@ -105,12 +114,16 @@ const WithoutMapBooking = () => {
             setComments(editData.comments || '');
             setFileNumber(editData.fileNumber || '');
             setCompany(editData.company || '');
-                        setTotalDriverSalary(editData.totalDriverSalary || '');
+            setTotalDriverSalary(editData.totalDriverSalary || '');
+            setTotalDriverDistance(editData.totalDriverDistance || '');
 
-            setCustomerName(editData.customerName || '');
+                        setCustomerName(editData.customerName || '');
             setPhoneNumber(editData.phoneNumber || '');
             setVehicleType(editData.vehicleType || '');
+            setServiceCategory(editData.serviceCategory || '');
+            setAvailableServices(editData.availableServices || '');
 
+            
             setMobileNumber(editData.mobileNumber || '');
             setVehicleNumber(editData.vehicleNumber || '');
             setServiceVehicle(editData.serviceVehicle || '');
@@ -138,6 +151,8 @@ const WithoutMapBooking = () => {
         setCurrentDateTime(formattedDateTime);
     }, []);
     useEffect(() => {
+        console.log("pickupLocationnnn",pickupLocation)
+
         setManualInput(pickupLocation ? pickupLocation.name : '');
     }, [pickupLocation]);
     useEffect(() => {
@@ -182,9 +197,9 @@ const WithoutMapBooking = () => {
                     })) as Company[];
 
                     const deletedItemIds = JSON.parse(localStorage.getItem('deletedItems') || '[]');
-                    console.log("deletedItemIds",deletedItemIds)
-                    const filteredCompanies = fetchedCompanies.filter(company => !deletedItemIds.includes(company.id));
-                    console.log("filteredCompanies",filteredCompanies)
+                    console.log('deletedItemIds', deletedItemIds);
+                    const filteredCompanies = fetchedCompanies.filter((company) => !deletedItemIds.includes(company.id));
+                    console.log('filteredCompanies', filteredCompanies);
                     setCompanies(filteredCompanies);
                 } catch (error) {
                     console.error('Error fetching companies:', error);
@@ -207,28 +222,37 @@ const WithoutMapBooking = () => {
 
         return () => unsubscribe();
     }, [db]);
-    const handleUpdatedTotalSalary = (newTotalSalary) => {
+  
+    const handleUpdateTotalSalary = (newTotalSalary) => {
         setUpdatedTotalSalary(newTotalSalary);
     };
 
-    useEffect(() => {
-        if (totalSalary && insuranceAmountBody) {
-            const calculatedTotalSalary = totalSalary - parseFloat(insuranceAmountBody);
-            handleUpdatedTotalSalary(calculatedTotalSalary);
-        }
-    }, [totalSalary, insuranceAmountBody]);
+    const handleInsuranceAmountBodyChange = (amount) => {
+        setInsuranceAmountBody(amount);
+    };
 
+    const handleServiceCategoryChange = (service) => {
+        setAvailableServices(service);
+    };
     useEffect(() => {
         if (selectedDriver) {
             const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
-            if (selectedDriverData && selectedDriverData.serviceVehicle) {
-                setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
+            console.log('selectedDriverData', selectedDriverData);
+
+            if (selectedDriverData) {
+                if (selectedDriverData.serviceVehicle) {
+                    setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
+                }
+            } else {
+                console.error('Driver not found:', selectedDriver);
             }
         }
     }, [selectedDriver, serviceType, drivers]);
-    const handleAdjustValueChange = (adjustedValue) => {
+
+    const handleAdjustValueCallback = (adjustedValue) => {
         setUpdatedTotalSalary(adjustedValue);
     };
+
 
     const handleInputChange = (field, value) => {
         switch (field) {
@@ -249,23 +273,33 @@ const WithoutMapBooking = () => {
                 break;
             case 'totalSalary':
                 setTotalSalary(value || 0);
-                const newCalculatedSalary = value - parseFloat(insuranceAmountBody);
-                handleUpdatedTotalSalary(newCalculatedSalary);
+ 
                 break;
+                case 'serviceCategory':
+                setServiceCategory(value || 0);
+ 
+                break;
+                case 'availableServices':
+                    setAvailableServices(value || 0);
+     
+                    break;
+                
             case 'insuranceAmountBody':
                 setInsuranceAmountBody(value || 0);
-                const recalculatedTotalSalary = totalSalary - parseFloat(value);
-                handleUpdatedTotalSalary(recalculatedTotalSalary);
+
                 break;
-            case 'adjustValue':
-                handleAdjustValueChange({ target: { value } });
-                break;
+                case 'adjustValue':
+                    handleAdjustValueCallback({ target: { value } });
+                    break;
             case 'customerName':
                 setCustomerName(value || '');
                 break;
+                case 'totalDriverDistance':
+                    setTotalDriverDistance(value || 0);
+                    break;
                 case 'totalDriverSalary':
-                setTotalDriverSalary(value || '');
-                break;
+                    setTotalDriverSalary(value || 0);
+                    break;
                 
             case 'company':
                 setCompany(value);
@@ -298,18 +332,25 @@ const WithoutMapBooking = () => {
 
             case 'distance':
                 setDistance(value || '');
-                setManualDistance(true);
                 break;
             case 'serviceVehicle':
                 setServiceVehicle(value);
                 break;
-            case 'selectedDriver':
-                setSelectedDriver(value);
-                const selectedDriverData = drivers.find((driver) => driver.id === value);
-                if (selectedDriverData && selectedDriverData.serviceVehicle) {
-                    setServiceVehicle(renderServiceVehicle(selectedDriverData.serviceVehicle, serviceType));
-                }
-                break;
+                case 'selectedDriver':
+                    setSelectedDriver(value || '');
+                    console.log('Selected Driver ID:', value);
+    
+                    const selectedDriverData = drivers.find((driver) => driver.id === value);
+                    console.log('Selected Driver Dataaa:', selectedDriverData);
+                    if (selectedDriverData) {
+                        const calculatedSalary = calculateTotalSalary(serviceDetails.salary, distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM);
+                        console.log('Calculated Salary:', calculatedSalary);
+    
+                        setTotalSalary(calculatedSalary);
+                    }
+                    
+                    break;
+                    
 
             case 'dropoffLocation':
                 if (typeof value === 'string') {
@@ -330,6 +371,7 @@ const WithoutMapBooking = () => {
 
             case 'pickupLocation':
                 if (typeof value === 'string') {
+                    
                     setPickupLocation({ ...pickupLocation, name: value });
                 } else {
                     setPickupLocation({ ...pickupLocation, name: value.name });
@@ -353,13 +395,7 @@ const WithoutMapBooking = () => {
                 setTrappedLocation(value || '');
                 break;
 
-            case 'selectedDriver':
-                setSelectedDriver(value);
-                const selectedDriverDetails = drivers.find((driver) => driver.id === value);
-                if (selectedDriverDetails) {
-                    setServiceVehicle(selectedDriverDetails.serviceVehicle || '');
-                }
-                break;
+              
             case 'showrooms':
                 setShowrooms(value || '');
                 break;
@@ -373,6 +409,8 @@ const WithoutMapBooking = () => {
         } else if (field === 'selectedDriver') {
             setSelectedDriver(value || '');
         }
+
+
     };
     const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
     const openModal = () => {
@@ -382,12 +420,8 @@ const WithoutMapBooking = () => {
         setIsModalOpen(false);
     };
 
-    const handleInsuranceAmountBody = (amount) => {
-        setInsuranceAmountBody(amount);
-    };
-
+  
     useEffect(() => {}, [showroomLocation]);
-    useEffect(() => {}, [updatedTotalSalary]);
 
     useEffect(() => {
         setManualInput1(dropoffLocation ? dropoffLocation.name : '');
@@ -411,9 +445,7 @@ const WithoutMapBooking = () => {
     const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
-    const handleManualChange = (field, value) => {
-        setPickupLocation((prev) => ({ ...prev, [field]: value }));
-    };
+ 
     useEffect(() => {
         const fetchServiceTypes = async () => {
             try {
@@ -465,6 +497,7 @@ const WithoutMapBooking = () => {
                     .filter(Boolean);
 
                 setDrivers(filteredDrivers);
+                console.log("firstfilteredDrivers",filteredDrivers)
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
@@ -494,6 +527,7 @@ const WithoutMapBooking = () => {
                     return;
                 }
                 const details = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))[0];
+                console.log("details",details)
                 setServiceDetails(details);
             } catch (error) {
                 console.error('Error fetching service details:', error);
@@ -503,8 +537,108 @@ const WithoutMapBooking = () => {
 
         fetchServiceDetails();
     }, [db, serviceType]);
-
     
+    
+    const calculateTotalDriverSalary = (totalDriverDistance, basicSalaryKM, salaryPerKM, salary) => {
+        totalDriverDistance = parseFloat(totalDriverDistance);
+        basicSalaryKM = parseFloat(basicSalaryKM);
+        salaryPerKM = parseFloat(salaryPerKM);
+        salary = parseFloat(salary);
+
+        if (totalDriverDistance > basicSalaryKM) {
+            return salary + (totalDriverDistance - basicSalaryKM) * salaryPerKM;
+        } else {
+            return salary;
+        }
+    };
+
+    useEffect(() => {
+        if (selectedDriver && Array.isArray(drivers)) {
+            const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
+            console.log('Selected Driver Dataaa:', selectedDriverData);
+
+            if (selectedDriverData) {
+                // Access the nested properties
+                const { basicSalaryKm, salaryPerKm, basicSalaries } = selectedDriverData;
+
+                if (!basicSalaryKm || !salaryPerKm || !basicSalaries) {
+                    console.error('Selected driver does not have all required properties:', selectedDriverData);
+                    return;
+                }
+
+                // Assuming you want to use the selected service from the selectedDriverData
+                const selectedService = selectedDriverData.selectedServices[0]; // Adjust as needed
+                const basicSalaryKM = basicSalaryKm[selectedService];
+                const salaryPerKM = salaryPerKm[selectedService];
+                const salary = basicSalaries[selectedService];
+
+                if (basicSalaryKM === undefined || salaryPerKM === undefined || salary === undefined) {
+                    console.error('Selected service does not have all required properties:', {
+                        basicSalaryKM,
+                        salaryPerKM,
+                        salary,
+                    });
+                    return;
+                }
+
+                console.log('DistanceDistance::', totalDriverDistance);
+                console.log('Basic Salary KMmm:', basicSalaryKM);
+                console.log('Salary per KMmm:', salaryPerKM);
+                console.log('Base Salaryyy:', salary);
+                if (totalDriverDistance < basicSalaryKM) {
+                    console.log('Distance is less than Basic Salary KM. Returning Base Salary:', salary);
+                    setTotalDriverSalary(salary); // If distance is less than basicSalaryKM, return the base salary
+                }
+                const calculatedSalary = calculateTotalDriverSalary(totalDriverDistance, basicSalaryKM, salaryPerKM, salary);
+
+                console.log('Setting Total Driver Salary:', calculatedSalary);
+                setTotalDriverSalary(calculatedSalary);
+            } else {
+                console.error('Driver not found:', selectedDriver);
+            }
+        }
+    }, [selectedDriver, totalDriverDistance, drivers]);
+    // ----------------------------------------
+    const calculateTotalSalary = (salary, totalDistance, basicSalaryKM, salaryPerKM) => {
+        const numericBasicSalary = Number(salary) || 0;
+        const numericTotalDistance = Number(totalDistance) || 0;
+        const numericKmValueNumeric = Number(basicSalaryKM) || 0;
+        const numericPerKmValueNumeric = Number(salaryPerKM) || 0;
+        console.log('numericBasicSalary', numericBasicSalary);
+        console.log('numericTotalDistance', numericTotalDistance);
+
+        console.log('numericKmValueNumeric', numericKmValueNumeric);
+
+        console.log('numericPerKmValueNumeric', numericPerKmValueNumeric);
+
+        if (numericTotalDistance > numericKmValueNumeric) {
+            console.log('numericBasicSalaryy', numericTotalDistance - numericKmValueNumeric);
+
+            return numericBasicSalary + (numericTotalDistance - numericKmValueNumeric) * numericPerKmValueNumeric;
+        } else {
+            return numericBasicSalary;
+        }
+    };
+
+    useEffect(() => {
+        if (drivers.length > 0) {
+            const totalDistances = drivers.map((driver) => {
+                return { driverId: driver.id, totalDistance: distance };
+            });
+            console.log('Total Distances:', totalDistances);
+
+            const totalSalaries = drivers.map((driver) => {
+                return parseFloat(calculateTotalSalary(serviceDetails.salary, distance, serviceDetails.basicSalaryKM, serviceDetails.salaryPerKM).toFixed(2));
+            });
+
+            const totalSalary = totalSalaries.reduce((acc, salary) => salary, 0);
+            console.log('totalSalary', totalSalary);
+
+            setTotalDistances(totalDistances); // Set totalDistances state
+            setTotalSalary(totalSalary);
+            setUpdatedTotalSalary(totalSalary);
+        }
+    }, [drivers, serviceDetails, distance]);
 
     const renderServiceVehicle = (serviceVehicle, serviceType) => {
         if (serviceVehicle && serviceVehicle[serviceType]) {
@@ -522,10 +656,10 @@ const WithoutMapBooking = () => {
         const seconds = date.getSeconds().toString().padStart(2, '0');
         const ampm = hours >= 12 ? 'PM' : 'AM';
         const formattedHours = (hours % 12 || 12).toString().padStart(2, '0');
-    
+
         return `${day}/${month}/${year}, ${formattedHours}:${minutes}:${seconds} ${ampm}`;
     };
-    
+
     const addOrUpdateItem = async () => {
         if (validateForm()) {
             try {
@@ -533,20 +667,34 @@ const WithoutMapBooking = () => {
                 const driverName = selectedDriverObject ? selectedDriverObject.driverName : '';
                 const currentDate = new Date();
                 const dateTime = formatDate(currentDate); // Use the formatted date
-    
+
                 let finalFileNumber = '';
-    
+
                 if (company === 'self') {
                     finalFileNumber = `PMNA${bookingId}`;
                 } else if (company === 'rsa') {
                     finalFileNumber = fileNumber;
                 }
+                   // Parse the pickupLocation name to extract lat and lng
+            let pickupLat = '';
+            let pickupLng = '';
+            if (pickupLocation && pickupLocation.name) {
+                const parts = pickupLocation.name.split(',').map(part => part.trim());
+                if (parts.length >= 4) {
+                    pickupLat = parts[2];
+                    pickupLng = parts[3];
+                }
+            }
                 const bookingData = {
                     ...bookingDetails,
                     driver: driverName,
                     totalSalary: totalSalary,
-                    pickupLocation: pickupLocation,
-                    dropoffLocation: dropoffLocation,
+                    pickupLocation: {
+                        ...pickupLocation,
+                        lat: pickupLat,
+                        lng: pickupLng
+                    },         
+                               dropoffLocation: dropoffLocation,
                     status: 'booking added',
                     dateTime: dateTime, // Use the formatted date
                     bookingId: `${bookingId}`,
@@ -554,19 +702,21 @@ const WithoutMapBooking = () => {
                     comments: comments || '',
                     totalDistance: totalDistance,
                     distance: distance,
-    
+
                     baseLocation: baseLocation || '',
                     showroomLocation: showroomLocation,
-                    Location: Location || '',
                     company: company || '',
                     customerName: customerName || '',
+                    totalDriverDistance:totalDriverDistance || '',
                     totalDriverSalary: totalDriverSalary || '',
-    
+
                     mobileNumber: mobileNumber || '',
                     phoneNumber: phoneNumber || '',
                     vehicleType: vehicleType || '',
                     serviceType: serviceType || '',
                     serviceVehicle: serviceVehicle || '',
+                    serviceCategory: serviceCategory || '',
+
                     vehicleModel: vehicleModel || '',
                     vehicleSection: vehicleSection || '',
                     vehicleNumber: vehicleNumber || '',
@@ -582,7 +732,7 @@ const WithoutMapBooking = () => {
                     bookingData.editedTime = formatDate(new Date());
                 }
                 console.log('Data to be added/updated:', bookingData); // Log the data before adding or updating
-    
+
                 if (editData) {
                     const docRef = doc(db, 'bookings', editData.id);
                     await updateDoc(docRef, bookingData);
@@ -592,14 +742,14 @@ const WithoutMapBooking = () => {
                     console.log('Document written with ID: ', docRef.id);
                     console.log('Document added');
                 }
-    
+
                 navigate('/bookings/newbooking');
             } catch (e) {
                 console.error('Error adding/updating document: ', e);
             }
         }
     };
-    
+
     return (
         <div className="p-1 flex-1 mt-4 mx-24 shadow-lg rounded-lg bg-lightblue-100" style={{ background: 'lightblue' }}>
             <div className="flex justify-end w-full mb-4">
@@ -641,7 +791,7 @@ const WithoutMapBooking = () => {
                     </div>
                     {company === 'rsa' && (
                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-                            <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', width: '33%', marginBottom: '0', color: '#333' }}>
+                            <label htmlFor="selectedCompany" style={{ marginRight: '0.5rem', marginLeft: '0.5rem', marginBottom: '0', color: '#333' }}>
                                 Select Company
                             </label>
                             <select
@@ -673,6 +823,7 @@ const WithoutMapBooking = () => {
                             <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
                                 File Number
                             </label>
+                            <div className='search-box ltr:mr-2 rtl:ml-2  mb-0"' style={{width:"100%"}}>
                             <input
                                 id="fileNumber"
                                 type="text"
@@ -682,12 +833,14 @@ const WithoutMapBooking = () => {
                                 value={`PMNA${bookingId}`}
                                 readOnly
                             />
+                            </div>
                         </div>
                     ) : (
                         <div className="flex items-center mt-4">
                             <label htmlFor="fileNumber" className="mr-2 ml-2 w-1/3 mb-0 text-gray-800 font-semibold">
                                 File Number
                             </label>
+                            <div className='search-box ltr:mr-2 rtl:ml-2  mb-0"' style={{width:"100%"}}>
                             <input
                                 id="fileNumber"
                                 type="text"
@@ -697,16 +850,140 @@ const WithoutMapBooking = () => {
                                 value={fileNumber}
                                 onChange={(e) => handleInputChange('fileNumber', e.target.value)}
                             />
+                            </div>
                         </div>
+                        
                     )}
 
-                    <div className="flex items-center mt-4">
+                    <div style={{ width: '100%' }}>
+                          
+                        <div>
+                            <div className="flex items-center mt-4">
+                                <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Pickup Location
+                                </label>
+                                <div className="search-box ltr:mr-2 rtl:ml-2  mb-0" style={{width:"100%"}}>
+                                    <input
+                                        className="form-input flex-1"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            fontSize: '1rem',
+                                            outline: 'none',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        }}
+                                        type="text"
+                                        placeholder="Pickup Location"
+                                        onChange={handleLocationChange}
+                                        value={manualInput}
+                                    />
+                                </div>
+                               
+                                <a
+                                    href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin />
+                                </a>
+                            </div>
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Start Location
+                                </label>
+                                <div className='search-box ltr:mr-2 rtl:ml-2  mb-0"'  style={{width:"100%"}}>
+                                <input
+                                    id="baseLocation"
+                                    type="text"
+                                    name="baseLocation"
+                                    className="form-input flex-1"
+                                    placeholder="select start location"
+                                    value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '5px',
+                                        fontSize: '1rem',
+                                        outline: 'none',
+                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    }}
+                                    readOnly
+                                    onClick={openModal1}
+                                />
+                                </div>
+                                <button
+                                    onClick={openModal1}
+                                    style={{
+                                        borderRadius: '40px',
+                                        background: 'transparent',
+                                        color: 'blue',
+                                        marginLeft: '10px',
+                                        padding: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
+                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
+                                </button>
+                            </div>
+
+                            {isModalOpen1 && (
+                                <div
+                                    className="modal"
+                                    style={{
+                                        position: 'fixed',
+                                        zIndex: 1,
+                                        left: 0,
+                                        top: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        overflow: 'auto',
+                                        // backgroundColor: 'rgb(0,0,0)',
+                                        backgroundColor: 'rgba(0,0,0,0.4)',
+                                    }}
+                                >
+                                   
+                                        <div className="modal-body">
+                                            <BaseLocationWithout onClose={closeModal1} setBaseLocation={setBaseLocation} />
+                                        </div>
+                                       
+                                </div>
+                            )}
+                            <div className="flex items-center mt-4">
                         <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Showrooms
+                            Service Center
                         </label>
                         {showrooms.length > 0 && (
-                            <Select
-                                id="showrooms"
+                            
+                            <Select className='w-full'  
+                                                         
+                             id="showrooms"
                                 name="showrooms"
                                 value={showrooms.find((option) => option.value === showroomLocation)}
                                 options={showrooms.map((show) => ({
@@ -734,6 +1011,7 @@ const WithoutMapBooking = () => {
                                 }}
                             />
                         )}
+                        
                         <button
                             onClick={() => setShowShowroomModal(true)}
                             style={{
@@ -753,94 +1031,9 @@ const WithoutMapBooking = () => {
                             <IconPlus />
                         </button>
                     </div>
-                    <div style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px', background: 'white', padding: '10px', borderRadius: '10px' }}> {showroomLocation}</div>
-                    {showShowroomModal && <ShowroomModal onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
-                    <div style={{ width: '100%' }}>
-                          
-                        <div>
-                            <div className="flex items-center mt-4">
-                                <label htmlFor="pickupLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Pickup Location
-                                </label>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    <input
-                                        className="form-input flex-1"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        type="text"
-                                        placeholder="Pickup Location"
-                                        onChange={handleLocationChange}
-                                        value={manualInput}
-                                    />
-                                </div>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    <input
-                                        className="form-input flex-1"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        type="text"
-                                        placeholder="Latitude"
-                                        value={pickupLocation && pickupLocation.lat ? pickupLocation.lat : ''}
-                                        onChange={(e) => handleManualChange('lat', e.target.value)}
-                                    />
-                                </div>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    <input
-                                        className="form-input flex-1"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            fontSize: '1rem',
-                                            outline: 'none',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        }}
-                                        type="text"
-                                        placeholder="Longitude"
-                                        value={pickupLocation && pickupLocation.lng ? pickupLocation.lng : ''}
-                                        onChange={(e) => handleManualChange('lng', e.target.value)}
-                                    />
-                                </div>
-                                <a
-                                    href={`https://www.google.co.in/maps/@${pickupLocation?.lat || '11.0527369'},${pickupLocation?.lng || '76.0747136'},15z?entry=ttu`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        borderRadius: '40px',
-                                        background: 'transparent',
-                                        color: 'blue',
-                                        marginLeft: '10px',
-                                        padding: '10px',
-                                        border: 'none',
-                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                                        cursor: 'pointer',
-                                        transition: 'background 0.3s ease',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <IconMapPin />
-                                </a>
-                            </div>
-
+                    <div style={{ fontSize: '1.1em', fontWeight: 'bold', color: '#333', marginTop: '10px', background: 'white', padding: '19px', borderRadius: '4px',marginLeft:"24%" }}> {showroomLocation}</div>
+                    {showShowroomModal && <ShowroomModalWithout onClose={() => setShowShowroomModal(false)} updateShowroomLocation={updateShowroomLocation} />}
+                   
                             <div className="flex items-center mt-4">
                                 <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Dropoff Location
@@ -923,132 +1116,7 @@ const WithoutMapBooking = () => {
                                     <IconMapPin />
                                 </a>
                             </div>
-                            <div className="mt-4 flex items-center">
-                                <label htmlFor="baseLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Start Location
-                                </label>
-                                <input
-                                    id="baseLocation"
-                                    type="text"
-                                    name="baseLocation"
-                                    className="form-input flex-1"
-                                    placeholder="select start location"
-                                    value={baseLocation ? `${baseLocation.name} , ${baseLocation.lat} , ${baseLocation.lng}` : ''}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
-                                    readOnly
-                                />
-                                <button
-                                    onClick={openModal1}
-                                    style={{
-                                        borderRadius: '40px',
-                                        background: 'transparent',
-                                        color: 'blue',
-                                        marginLeft: '10px',
-                                        padding: '10px',
-                                        border: 'none',
-                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                                        cursor: 'pointer',
-                                        transition: 'background 0.3s ease',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                    onMouseOver={(e) => (e.currentTarget.style.background = 'lightblue')}
-                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <IconMapPin style={{ color: '#FF6347', fontSize: '1.5rem' }} />
-                                </button>
-                            </div>
-
-                            {isModalOpen1 && (
-                                <div
-                                    className="modal"
-                                    style={{
-                                        position: 'fixed',
-                                        zIndex: 1,
-                                        left: 0,
-                                        top: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        overflow: 'auto',
-                                        // backgroundColor: 'rgb(0,0,0)',
-                                        backgroundColor: 'rgba(0,0,0,0.4)',
-                                    }}
-                                >
-                                    <div
-                                        className="modal-content"
-                                        style={{
-                                            backgroundColor: '#fefefe',
-                                            margin: '15% auto',
-                                            padding: '20px',
-                                            border: '1px solid #888',
-                                            width: '80%',
-                                            boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-                                            borderRadius: '10px',
-                                        }}
-                                    >
-                                        <div
-                                            className="modal-header"
-                                            style={{
-                                                display: 'flex',
-                                                justifyContent: 'flex-end',
-                                                borderBottom: '1px solid #eee',
-                                                paddingBottom: '10px',
-                                            }}
-                                        >
-                                            <span
-                                                className="close"
-                                                onClick={closeModal1}
-                                                style={{
-                                                    color: '#aaa',
-                                                    fontSize: '28px',
-                                                    fontWeight: 'bold',
-                                                    cursor: 'pointer',
-                                                    transition: '0.3s',
-                                                }}
-                                            >
-                                                &times;
-                                            </span>
-                                        </div>
-                                        <div className="modal-body" >
-                                            <BaseLocationWithout  onClose={closeModal1} setBaseLocation={setBaseLocation} />
-                                        </div>
-                                        <div
-                                            className="modal-footer"
-                                            style={{
-                                                padding: '10px',
-                                                borderTop: '1px solid #eee',
-                                                textAlign: 'right',
-                                            }}
-                                        >
-                                            <button
-                                                onClick={closeModal1}
-                                                style={{
-                                                    padding: '10px 20px',
-                                                    border: 'none',
-                                                    borderRadius: '5px',
-                                                    background: '#f44336',
-                                                    color: '#fff',
-                                                    cursor: 'pointer',
-                                                    transition: 'background 0.3s ease',
-                                                }}
-                                                onMouseOver={(e) => (e.currentTarget.style.background = '#d32f2f')}
-                                                onMouseOut={(e) => (e.currentTarget.style.background = '#f44336')}
-                                            >
-                                                Close
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                           
                         </div>
                     </div>
                     <div className="mt-4 flex items-center">
@@ -1071,8 +1139,6 @@ const WithoutMapBooking = () => {
                             }}
                             onChange={(e) => handleInputChange('distance', e.target.value)}
                             value={distance}
-                            readOnly={!manualDistance}
-                            onClick={() => setManualDistance(true)}
                         />
                     </div>
                     <div className="flex items-center mt-4">
@@ -1271,14 +1337,16 @@ const WithoutMapBooking = () => {
                 {selectedDriver && selectedDriverData && (
                     <React.Fragment>
                         <div>
-                            <VehicleSection
-                                showroomLocation={showroomLocation}
-                                totalSalary={totalSalary}
-                                onUpdateTotalSalary={handleUpdatedTotalSalary}
-                                insuranceAmountBody={insuranceAmountBody}
-                                adjustValueCallback={handleAdjustValueChange}
-                            />
-
+                        <VehicleSection
+                            totalSalary={totalSalary}
+                            onUpdateTotalSalary={handleUpdateTotalSalary}
+                            insuranceAmountBody={insuranceAmountBody}
+                            onInsuranceAmountBodyChange={handleInsuranceAmountBodyChange}
+                            onServiceCategoryChange={handleServiceCategoryChange}
+                        />
+  <div>
+                Selected Service Category: {availableServices}
+            </div>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Total Amount without insurance
@@ -1302,21 +1370,7 @@ const WithoutMapBooking = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="mt-4 flex items-center">
-                                <label htmlFor="insuranceAmountBody" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                                    Insurance Amount Body
-                                </label>
-                                <div className="form-input flex-1">
-                                    <input
-                                        id="insuranceAmountBody"
-                                        type="text"
-                                        name="insuranceAmountBody"
-                                        className="w-full"
-                                        value={insuranceAmountBody}
-                                        onChange={(e) => handleInputChange('insuranceAmountBody', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                          
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Payable Amount (with insurance)
@@ -1340,6 +1394,7 @@ const WithoutMapBooking = () => {
                                     />
                                 </div>
                             </div>
+                         
                         </div>
                     </React.Fragment>
                 )}
@@ -1369,8 +1424,32 @@ const WithoutMapBooking = () => {
                     />
                 </div>
                 <div className="mt-4 flex items-center" style={{ width: '100%' }}>
+                    <label htmlFor="totalDriverDistance" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                       Total Driver Distance
+                    </label>
+                    <input
+                        id="totalDriverDistance"
+                        type="text"
+                        name="totalDriverDistance"
+                        className="form-input flex-1"
+                        placeholder="Enter Driver Distance"
+                        value={totalDriverDistance}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }}
+                        onChange={(e) => handleInputChange('totalDriverDistance', e.target.value)}
+                    />
+                </div>
+                {totalDriverDistance && (
+                <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="totalDriverSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                    Driver Salary
+                        Driver Salary
                     </label>
                     <input
                         id="totalDriverSalary"
@@ -1391,6 +1470,7 @@ const WithoutMapBooking = () => {
                         onChange={(e) => handleInputChange('totalDriverSalary', e.target.value)}
                     />
                 </div>
+            )}
                 <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="customerName" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Customer Name
@@ -1486,28 +1566,36 @@ const WithoutMapBooking = () => {
                     />
                 </div>
                 <div className="mt-4 flex items-center" style={{ width: '100%' }}>
-                    <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                        Vehicle Type(2 or 3 or 4 wheeler)
-                    </label>
-                    <input
-                        id="vehicleType"
-                        type="text"
-                        name="vehicleType"
-                        className="form-input flex-1"
-                        placeholder="Enter vehicle Type"
-                        value={vehicleType}
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }}
-                        onChange={(e) => handleInputChange('vehicleType', e.target.value)}
-                    />
-                </div>
+    <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+        Vehicle Type (2 or 3 or 4 wheeler)
+    </label>
+    <select
+        id="vehicleType"
+        name="vehicleType"
+        className="form-select flex-1"
+        value={vehicleType}
+        style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '5px',
+            fontSize: '1rem',
+            outline: 'none',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }}
+        onChange={(e) => handleInputChange('vehicleType', e.target.value)}
+    >
+        <option value="">Select vehicle type</option>
+        <option value="2">2 Wheeler</option>
+        <option value="3">3 Wheeler</option>
+        <option value="4">4 Wheeler</option>
+        <option value="5">5 Wheeler</option>
+        <option value="6">6 Wheeler</option>
+        <option value="7">7 Wheeler</option>
+        <option value="8">8 Wheeler</option>
+    </select>
+</div>
+
                 <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Brand Name

@@ -64,6 +64,7 @@ const NewBooking = () => {
     }, [searchTerm, recordsData]);
 
     const handleEdit = (rowData: RecordData) => {
+        console.log(rowData)
         navigate(`/bookings/booking/${rowData.id}`, { state: { editData: rowData } });
     };
 

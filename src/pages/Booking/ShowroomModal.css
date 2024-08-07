@@ -45,4 +45,12 @@
   .btn-primary:hover {
     background-color: #0056b3;
   }
-  
+  .icon-button {
+    margin-left: 8px;
+    color: #1976d2; /* Adjust color as needed */
+    transition: color 0.3s;
+
+    &:hover {
+        color: #1565c0; /* Adjust hover color as needed */
+    }
+}

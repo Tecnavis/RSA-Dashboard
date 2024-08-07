@@ -122,8 +122,13 @@ const BaseLocationModal = ({ onClose, setBaseLocation, pickupLocation }) => {
       }
     };
 
-    const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
+    const filteredItems = items
+    .filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+        const distanceA = distances[a.id]?.distance || Infinity; // Use Infinity for items without a calculated distance
+        const distanceB = distances[b.id]?.distance || Infinity;
+        return distanceA - distanceB; // Sort by distance
+    });
     const handleSelect = (item) => {
         setBaseLocation(item); // Update the base location in the parent component
         onClose(); // Close the modal

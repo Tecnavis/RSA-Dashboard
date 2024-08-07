@@ -264,6 +264,14 @@ const ViewMore = () => {
                         <td className="p-2">{bookingDetails.driver}</td>
                     </tr>
                     <tr>
+                        <td className="bg-gray-100 p-2 font-semibold">Driver Total Distance:</td>
+                        <td className="p-2">{bookingDetails.totalDriverDistance}</td>
+                    </tr>
+                    <tr>
+                        <td className="bg-gray-100 p-2 font-semibold">Driver Salary:</td>
+                        <td className="p-2">{bookingDetails.totalDriverSalary}</td>
+                    </tr>
+                    <tr>
                         <td className="bg-gray-100 p-2 font-semibold">Customer Vehicle Number :</td>
                         <td className="p-2">{bookingDetails.vehicleNumber}</td>
                     </tr>
