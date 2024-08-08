@@ -80,7 +80,6 @@ const MapBooking = () => {
     const [totalDriverSalary, setTotalDriverSalary] = useState(0);
 
     const [pickupLocation, setPickupLocation] = useState('');
-    console.log(pickupLocation);
     const [dropoffLocation, setDropoffLocation] = useState('');
     const [pickupOptions, setPickupOptions] = useState([]);
     const [pickupCoords, setPickupCoords] = useState({ lat: undefined, lng: undefined });
@@ -114,26 +113,13 @@ const MapBooking = () => {
     const [formattedLegDistances, setFormattedLegDistances] = useState('');
     const [availableServices, setAvailableServices] = useState('');
     const convertLocationToString = (location) => {
-        if (typeof location === 'object' && location !== null) {
-            const { lat, lng, name } = location;
-            if (typeof name === 'string') {
-                return `${name.split(', ')[0]}, ${lat}, ${lng}`;
-            } else {
-                console.warn('Unexpected location format:', location);
-                return `${lat}, ${lng}`; // Return a fallback value if name is not a string
-            }
+        if (location && typeof location === 'object' && location.lat && location.lng && location.name) {
+            return `${location.name}`;
         }
-        console.warn('Location is not an object:', location);
+        console.warn('Location is not an object or missing required properties:', location);
         return location;
     };
     
-    
-    const formatLegDistances = (legDistances) => {
-        const formattedLegs = legDistances.map((distance, index) => `Leg ${index + 1}: ${distance} KM`).join(', ');
-        const totalDistance = legDistances.reduce((sum, distance) => sum + distance, 0);
-        return `${formattedLegs}. Total Distance: ${totalDistance} KM`;
-    };
-
     useEffect(() => {
         if (state && state.editData) {
             const editData = state.editData;
@@ -156,30 +142,28 @@ const MapBooking = () => {
             setVehicleSection(editData.vehicleSection || '');
             setShowroomLocation(editData.showroomLocation || '');
             setDistance(editData.distance || '');
-            console.log('editData.distance', editData.distance);
+            console.log("editData.distance", editData.distance);
+            
             setSelectedDriver(editData.selectedDriver || '');
             setBaseLocation(editData.baseLocation || '');
             setShowrooms(editData.showrooms || []);
+            
             const formattedPickupLocation = convertLocationToString(editData.pickupLocation);
+            console.log("formattedPickupLocation", formattedPickupLocation);
             setPickupLocation(formattedPickupLocation || '');
+            
             setTotalDriverDistance(editData.totalDriverDistance || '');
             setAvailableServices(editData.availableServices || '');
-
             setShowRooms(editData.showRooms || '');
-
             setUpdatedTotalSalary(editData.updatedTotalSalary || '');
-            // setLegDistances(editData.legDistances || []);
-            console.log('editData.legDistances', editData.legDistances);
-
-            const formattedLegDistances = formatLegDistances(editData.legDistances || []);
-            setDistance(formattedLegDistances); // Set the formatted leg distances to distance
-
+            setDistance(editData.distance || '');
             setServiceType(editData.serviceType || '');
             setTotalSalary(editData.totalSalary || 0);
             setDropoffLocation(editData.dropoffLocation || '');
             setSelectedCompany(editData.selectedCompany || '');
         }
     }, [state]);
+    
     useEffect(() => {
         const now = new Date();
         const formattedDateTime = now.toLocaleString();
@@ -243,19 +227,7 @@ const MapBooking = () => {
         }
     }, [company, db]);
 
-    useEffect(() => {
-        const db = getFirestore();
-        const showroomsRef = collection(db, 'showroom');
-        const unsubscribe = onSnapshot(showroomsRef, (snapshot) => {
-            const showRoomsData = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setShowrooms(showRoomsData);
-        });
-
-        return () => unsubscribe();
-    }, []);
+  
     const handleUpdatedTotalSalary = (newTotalSalary) => {
         setUpdatedTotalSalary(newTotalSalary);
     };
@@ -305,18 +277,36 @@ const MapBooking = () => {
     const handleInputChange = (field, value) => {
         switch (field) {
             case 'showroomLocation':
+                console.log('Setting showroomLocation:', value);
                 setShowroomLocation(value);
-                const selectedShowroom = showRooms.find((show) => show.Location === value);
+    
+                // Find the selected showroom based on the selected value
+                const selectedShowroom = showrooms.find((show) => show.value === value);
+                console.log('Selected Showroom:', selectedShowroom);
+    
                 if (selectedShowroom) {
+                    console.log('Found showroom:', selectedShowroom.value);
+                    console.log('Setting insuranceAmountBody to:', selectedShowroom.insuranceAmountBody);
                     setInsuranceAmountBody(selectedShowroom.insuranceAmountBody);
+    
+                    console.log('Setting dropoffLocation to:', {
+                        name: selectedShowroom.value,
+                        lat: selectedShowroom.locationLatLng.lat,
+                        lng: selectedShowroom.locationLatLng.lng,
+                    });
                     setDropoffLocation({
-                        name: selectedShowroom.Location,
+                        name: selectedShowroom.value,
                         lat: selectedShowroom.locationLatLng.lat,
                         lng: selectedShowroom.locationLatLng.lng,
                     });
                 } else {
+                    console.log('No showroom found, resetting values');
                     setInsuranceAmountBody('');
-                    setDropoffLocation('');
+                    setDropoffLocation({
+                        name: '',
+                        lat: null,
+                        lng: null,
+                    });
                 }
                 break;
             case 'totalSalary':
@@ -459,7 +449,26 @@ const MapBooking = () => {
     const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
+    useEffect(() => {
+        const fetchShowroomOptions = async () => {
+            try {
+                const db = getFirestore();
+                const serviceCollection = collection(db, 'showroom');
+                const serviceSnapshot = await getDocs(serviceCollection);
+                const servicesList = serviceSnapshot.docs.map(doc => ({
+                    value: doc.data().Location, // Assuming 'Location' is a unique identifier
+                    label: doc.data().Location,
+                    insuranceAmountBody: doc.data().insuranceAmountBody, // Make sure to include this
+                    locationLatLng: doc.data().locationLatLng // Make sure to include this
+                }));
+                setShowrooms(servicesList);
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
+        };
 
+        fetchShowroomOptions();
+    }, []);
     useEffect(() => {
         const fetchServiceTypes = async () => {
             try {
@@ -587,14 +596,14 @@ const MapBooking = () => {
                         const leg = route.legs[0];
                         console.log('Leg:', leg);
 
-                        const distanceInfo = {
+                        const distanceInf = {
                             id,
                             distance: leg.distance !== undefined ? (leg.distance / 1000).toFixed(2) : null, // Convert to km and format
                             duration: formatDuration(leg.duration !== undefined ? leg.duration : null), // Convert to readable format
                         };
 
-                        console.log('Distance info:', distanceInfo);
-                        return distanceInfo;
+                        console.log('Distance infooo:', distanceInf);
+                        return distanceInf;
                     } else {
                         console.error('No legs found in the route:', route);
                         return { id, distance: null, duration: null };
@@ -829,7 +838,7 @@ const MapBooking = () => {
                 const currentDate = new Date();
                 const dateTime = formatDate(currentDate); // Use the formatted date
                 const formattedPickupLocation = formatLocation(pickupLocation);
-                const formattedLegDistances = formatLegDistances(legDistances);
+                // const formattedLegDistances = formatLegDistances(legDistances);
 
                 if (company === 'self') {
                     finalFileNumber = `PMNA${bookingId}`;
@@ -874,7 +883,6 @@ const MapBooking = () => {
                     updatedTotalSalary: updatedTotalSalary || '',
                     insuranceAmount: insuranceAmountBody || '',
                     paymentStatus: 'Not Paid',
-                    ...formattedLegDistances,
                 };
                 if (editData) {
                     bookingData.newStatus = 'Edited by Admin';
@@ -994,7 +1002,7 @@ const MapBooking = () => {
 
             console.log('Setting pickup location...');
             setPickupLocation(`${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
-            console.log('Pickup location:', `${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
+            console.log('Pickup locationonon:', `${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
 
             console.log('Base location before check:', baseLocation);
             if (baseLocation) {
@@ -1025,7 +1033,7 @@ const MapBooking = () => {
         try {
             console.log('Calculating total distance...');
             console.log('Base locationnnn:', base);
-            console.log('Pickup locationnnn:', pickup);
+            console.log('Pickup locationnnnn:', pickup);
             console.log('Dropoff locationnn:', dropoff);
 
             const distances = await Promise.all([
@@ -1034,14 +1042,15 @@ const MapBooking = () => {
                 getDistanceAndDuration(dropoff, base, 'dropoff_to_base'),
             ]);
 
-            console.log('Distances:', distances);
+            console.log('Distancesccg:', distances);
 
             const totalDistance = distances.reduce((acc, cur) => acc + (cur.distance ? parseFloat(cur.distance) : 0), 0);
             console.log('Total distance calculated:', totalDistance);
     
             const newTotalDistance = totalDistance.toFixed(2);
             console.log('Total distance set:', newTotalDistance);
-    
+            console.log("pickupLocationdistance",distance);
+
             setDistance(newTotalDistance);
     
         } catch (error) {
@@ -1371,27 +1380,41 @@ const MapBooking = () => {
                                     }}
                                 >
                                     <Autocomplete
-                                        value={{ label: pickupLocation }}
-                                        onInputChange={(event, newInputValue) => {
-                                            console.log('Input change:', newInputValue);
-                                            setPickupLocation(newInputValue);
-                                            if (newInputValue) {
-                                                getAutocompleteResults(newInputValue, setPickupOptions);
-                                            } else {
-                                                setPickupOptions([]);
-                                            }
-                                        }}
-                                        onChange={(event, newValue) => {
-                                            console.log('Autocomplete onChange event:', event);
-                                            console.log('Autocomplete onChange newValue:', newValue);
-                                            handlePickupChange(newValue);
-                                        }}
-                                        sx={{ background:"white",width: '100%',border:'20px'}}
-                                        options={pickupOptions}
-                                        getOptionLabel={(option) => option.label}
-                                        isOptionEqualToValue={(option, value) => option.label === value.label}
-                                        renderInput={(params) => <TextField {...params} label="Pickup Location" variant="outlined" />}
-                                    />
+    value={{ label: pickupLocation }}
+    onInputChange={(event, newInputValue) => {
+        console.log('Input change event:', event);
+        console.log('New input value:', newInputValue);
+
+        setPickupLocation(newInputValue);
+        if (newInputValue) {
+            console.log('Fetching autocomplete results for:', newInputValue);
+            getAutocompleteResults(newInputValue, setPickupOptions);
+        } else {
+            console.log('Clearing pickup options');
+            setPickupOptions([]);
+        }
+    }}
+    onChange={(event, newValue) => {
+        console.log('Autocomplete onChange event:', event);
+        console.log('Autocomplete onChange newValue:', newValue);
+        handlePickupChange(newValue);
+    }}
+    sx={{ background:"white", width: '100%', border: '20px' }}
+    options={pickupOptions}
+    getOptionLabel={(option) => {
+        console.log('Get option label:', option);
+        return option.label;
+    }}
+    isOptionEqualToValue={(option, value) => {
+        console.log('Checking if option is equal to value:', option, value);
+        return option.label === value.label;
+    }}
+    renderInput={(params) => {
+        console.log('Rendering input with params:', params);
+        return <TextField {...params} label="Pickup Location" variant="outlined" />;
+    }}
+/>
+
 
                                     {pickupCoords.lat !== undefined && pickupCoords.lng !== undefined && <Typography>{`Pickup Location Lat/Lng: ${pickupCoords.lat}, ${pickupCoords.lng}`}</Typography>}
                                 </Box>
@@ -1464,41 +1487,38 @@ const MapBooking = () => {
                                        
                                 </div>
                             )}
- <div className="flex items-center mt-4">
-                        <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                            Service Center
-                        </label>
-                        {showrooms.length > 0 && (
-                            
-                            <Select className='w-full'                               
-                             id="showrooms"
-                                name="showrooms"
-                                value={showrooms.find((option) => option.value === showroomLocation)}
-                                options={showrooms.map((show) => ({
-                                    value: show.Location,
-                                    label: show.Location,
-                                }))}
-                                onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption.value)}
-                                isSearchable={true}
-                                placeholder="Select showroom"
-                                styles={{
-                                    control: (provided) => ({
-                                        ...provided,
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '5px',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }),
-                                    placeholder: (provided) => ({
-                                        ...provided,
-                                        fontSize: '1rem',
-                                    }),
-                                }}
-                            />
-                        )}
+    <div className="flex items-center mt-4">
+                            <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                Service Center
+            </label>
+            {showrooms.length > 0 && (
+                <Select
+                    className="w-full"
+                    id="showrooms"
+                    name="showrooms"
+                    value={showrooms.find(option => option.value === showroomLocation) || null}
+                    options={showrooms}
+                    onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption ? selectedOption.value : '')}
+                    isSearchable={true}
+                    placeholder="Select showroom"
+                    styles={{
+                        control: (provided) => ({
+                            ...provided,
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        }),
+                        placeholder: (provided) => ({
+                            ...provided,
+                            fontSize: '1rem',
+                        }),
+                    }}
+                />
+            )}
                         <button
                             onClick={() => setShowShowroomModal(true)}
                             style={{
@@ -1976,14 +1996,12 @@ const MapBooking = () => {
                 </div>
                 <div className="mt-4 flex items-center" style={{ width: '100%' }}>
                     <label htmlFor="vehicleType" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                        Vehicle Type(2 or 3 or 4 wheeler)
+                        Vehicle Type (2 or 3 or 4 wheeler)
                     </label>
-                    <input
+                    <select
                         id="vehicleType"
-                        type="text"
                         name="vehicleType"
-                        className="form-input flex-1"
-                        placeholder="Enter vehicle Type"
+                        className="form-select flex-1"
                         value={vehicleType}
                         style={{
                             width: '100%',
@@ -1995,7 +2013,16 @@ const MapBooking = () => {
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                         }}
                         onChange={(e) => handleInputChange('vehicleType', e.target.value)}
-                    />
+                    >
+                        <option value="">Select vehicle type</option>
+                        <option value="2">2 Wheeler</option>
+                        <option value="3">3 Wheeler</option>
+                        <option value="4">4 Wheeler</option>
+                        <option value="5">5 Wheeler</option>
+                        <option value="6">6 Wheeler</option>
+                        <option value="7">7 Wheeler</option>
+                        <option value="8">8 Wheeler</option>
+                    </select>
                 </div>
                 <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="vehicleModel" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
