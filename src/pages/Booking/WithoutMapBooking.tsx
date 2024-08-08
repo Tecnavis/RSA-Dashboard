@@ -1388,7 +1388,21 @@ const WithoutMapBooking = () => {
                                     />
                                 </div>
                             </div>
-
+                            <div className="mt-4 flex items-center">
+                                <label htmlFor="insuranceAmountBody" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Insurance Amount Body
+                                </label>
+                                <div className="form-input flex-1">
+                                    <input
+                                        id="insuranceAmountBody"
+                                        type="text"
+                                        name="insuranceAmountBody"
+                                        className="w-full"
+                                        value={insuranceAmountBody}
+                                        onChange={(e) => handleInputChange('insuranceAmountBody', e.target.value)}
+                                    />
+                                </div>
+                            </div>
                             <div className="mt-4 flex items-center">
                                 <label htmlFor="updatedTotalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                                     Payable Amount (with insurance)
