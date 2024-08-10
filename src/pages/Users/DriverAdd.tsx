@@ -27,6 +27,7 @@ const DriverAdd = () => {
 
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const [advancePayment, setAdvancePayment] = useState('0');
+
     const storage = getStorage();
     const [serviceOptions, setServiceOptions] = useState([]);
 

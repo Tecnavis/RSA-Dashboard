@@ -1,4 +1,3 @@
-import { collection, doc, getDoc, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import React, { useState, useEffect, useRef } from 'react';
 
 const VehicleSection = ({
@@ -25,55 +24,18 @@ const VehicleSection = ({
     const adjustmentApplied = useRef(false);
 console.log("insuranceAmountBodyvehicle",showroomLocation)
 //    ------------------------------------------------------------
-const db = getFirestore();
-
 useEffect(() => {
-    const fetchInsuranceAmountBody = async () => {
-        try {
-            console.log("Fetching insuranceAmountBody for showroomLocation:", showroomLocation);
+        let newTotalSalary = totalSalary;
 
-            // Query the collection for a document where the 'Location' field matches showroomLocation
-            const showroomQuery = query(
-                collection(db, 'showroom'),
-                where('Location', '==', showroomLocation.trim())
-            );
-            
-            const querySnapshot = await getDocs(showroomQuery);
-
-            if (!querySnapshot.empty) {
-                // Assuming there's only one matching document
-                const showroomSnap = querySnapshot.docs[0];
-                const showroomData = showroomSnap.data();
-                const insuranceAmountBody = showroomData.insuranceAmountBody || 0;
-
-                console.log("Fetched insuranceAmountBody:", insuranceAmountBody);
-
-                setShowRoom(prevShowRoom => ({
-                    ...prevShowRoom,
-                    insuranceAmountBody: insuranceAmountBody,
-                }));
-
-                let newTotalSalary = totalSalary;
-
-                if (showRoom.availableServices === 'Body Shop' && showRoom.insurance === 'insurance') {
-                    newTotalSalary -= parseFloat(insuranceAmountBody);
-                }
-
-                if (newTotalSalary !== updatedTotalSalary) {
-                    setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-                    onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-                }
-            } else {
-                console.log("No such document!");
-            }
-        } catch (error) {
-            console.error("Error fetching insurance amount:", error);
+        if (showRoom.availableServices === 'Body Shop' && showRoom.insurance === 'insurance') {
+            newTotalSalary -= parseFloat(insuranceAmountBody || 0);
         }
-    };
 
-    fetchInsuranceAmountBody();
-}, [showroomLocation, totalSalary, showRoom.availableServices, showRoom.insurance, updatedTotalSalary, onUpdateTotalSalary]);
-
+        if (newTotalSalary !== updatedTotalSalary) {
+            setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+            onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+        }
+    }, [totalSalary, insuranceAmountBody, showRoom.availableServices, showRoom.insurance]);
     useEffect(() => {
         if (bodyShope !== showRoom.insurance) {
             setShowRoom(prevShowRoom => ({

@@ -209,9 +209,9 @@ const WithoutMapBooking = () => {
     const handleUpdatedTotalSalary = (newTotalSalary) => {
         setUpdatedTotalSalary(newTotalSalary);
     };
-    const handleUpdateTotalSalary = (newTotalSalary) => {
-        console.log("newTotalSalary",newTotalSalary)
-        setUpdatedTotalSalary(newTotalSalary);
+    const handleUpdateTotalSalary = (newTotaSalary) => {
+        console.log("newTotalSalary",newTotaSalary)
+        setUpdatedTotalSalary(newTotaSalary);
     };
 
     const handleInsuranceAmountBodyChange = (amount) => {

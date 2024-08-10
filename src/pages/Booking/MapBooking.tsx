@@ -107,7 +107,6 @@ const MapBooking = () => {
   const [errors, setErrors] = useState({});
     const [serviceCategory, setServiceCategory] = useState('');
     const [legDistances, setLegDistances] = useState([]);
-    const [formattedLegDistances, setFormattedLegDistances] = useState('');
     const [availableServices, setAvailableServices] = useState('');
     const [adjustValue, setAdjustValue] = useState('');
 const [bodyShope, setBodyShope]= useState('');
