@@ -1,54 +1,106 @@
+import { collection, doc, getDoc, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import React, { useState, useEffect, useRef } from 'react';
 
-const VehicleSection = ({ totalSalary, onUpdateTotalSalary, insuranceAmountBody, onInsuranceAmountBodyChange, onServiceCategoryChange }) => {
+const VehicleSection = ({
+    showroomLocation,
+    totalSalary,
+    onUpdateTotalSalary,
+    insuranceAmountBody,
+    onInsuranceAmountBodyChange,
+    serviceCategory,
+    onServiceCategoryChange,
+    onAdjustValueChange,
+    adjustValue,
+    onInsuranceChange,
+    bodyShope,
+}) => {
     const [showRoom, setShowRoom] = useState({
-        availableServices: '',
+        availableServices: serviceCategory || '',
         hasInsurance: '',
         insuranceAmount: '',
-        insurance: '',
-        insuranceAmountBody: '',
+        insurance: bodyShope || '', // Initialize insurance with bodyShope
+        insuranceAmountBody: insuranceAmountBody || 0,
     });
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(totalSalary);
-    const [adjustValue, setAdjustValue] = useState('');
     const adjustmentApplied = useRef(false);
+console.log("insuranceAmountBodyvehicle",showroomLocation)
+//    ------------------------------------------------------------
+const db = getFirestore();
+
+useEffect(() => {
+    const fetchInsuranceAmountBody = async () => {
+        try {
+            console.log("Fetching insuranceAmountBody for showroomLocation:", showroomLocation);
+
+            // Query the collection for a document where the 'Location' field matches showroomLocation
+            const showroomQuery = query(
+                collection(db, 'showroom'),
+                where('Location', '==', showroomLocation.trim())
+            );
+            
+            const querySnapshot = await getDocs(showroomQuery);
+
+            if (!querySnapshot.empty) {
+                // Assuming there's only one matching document
+                const showroomSnap = querySnapshot.docs[0];
+                const showroomData = showroomSnap.data();
+                const insuranceAmountBody = showroomData.insuranceAmountBody || 0;
+
+                console.log("Fetched insuranceAmountBody:", insuranceAmountBody);
+
+                setShowRoom(prevShowRoom => ({
+                    ...prevShowRoom,
+                    insuranceAmountBody: insuranceAmountBody,
+                }));
+
+                let newTotalSalary = totalSalary;
+
+                if (showRoom.availableServices === 'Body Shop' && showRoom.insurance === 'insurance') {
+                    newTotalSalary -= parseFloat(insuranceAmountBody);
+                }
+
+                if (newTotalSalary !== updatedTotalSalary) {
+                    setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+                    onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
+                }
+            } else {
+                console.log("No such document!");
+            }
+        } catch (error) {
+            console.error("Error fetching insurance amount:", error);
+        }
+    };
+
+    fetchInsuranceAmountBody();
+}, [showroomLocation, totalSalary, showRoom.availableServices, showRoom.insurance, updatedTotalSalary, onUpdateTotalSalary]);
 
     useEffect(() => {
-        if (!adjustmentApplied.current) {
-            let newTotalSalary = totalSalary;
-            console.log("newTotalSalary", newTotalSalary);
-
-            // Adjust the total salary based on insurance amount if necessary
-            if (showRoom.availableServices === 'Body Shop') {
-                if (showRoom.insurance === 'insurance') {
-                    newTotalSalary -= (insuranceAmountBody ? parseFloat(insuranceAmountBody) : 0);
-                }
-            }
-
-            if (newTotalSalary !== updatedTotalSalary) {
-                setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-                onUpdateTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-            }
+        if (bodyShope !== showRoom.insurance) {
+            setShowRoom(prevShowRoom => ({
+                ...prevShowRoom,
+                insurance: bodyShope, // <-- Update insurance field with bodyShope
+            }));
         }
-    }, [totalSalary, insuranceAmountBody, showRoom.availableServices, showRoom.insurance, updatedTotalSalary, onUpdateTotalSalary]);
+    }, [bodyShope]);
+    useEffect(() => {
+        if (serviceCategory !== showRoom.availableServices) {
+            setShowRoom(prevShowRoom => ({
+                ...prevShowRoom,
+                availableServices: serviceCategory,
+            }));
+        }
+    }, [serviceCategory]);
 
     const handleServiceChange = (e) => {
         const { value } = e.target;
-        console.log("Selected service value:", value); // Log the selected service value
+        setShowRoom(prevShowRoom => ({
+            ...prevShowRoom,
+            availableServices: value,
+            insurance: '',
+        }));
 
-        setShowRoom((prevShowRoom) => {
-            const updatedShowRoom = {
-                ...prevShowRoom,
-                availableServices: value,
-                insurance: '', // Reset insurance selection when changing service category
-            };
-            console.log("Updated show room state:", updatedShowRoom); // Log the updated show room state
-            return updatedShowRoom;
-        });
-
-        // Call the callback only if the selected service is "Body Shop"
-        if (value === "Body Shop") {
-            console.log("Calling onServiceCategoryChange with value:", value); // Log the value before calling the callback
-            onServiceCategoryChange(value); // Call the callback function with the new service category
+        if (value === 'Body Shop') {
+            onServiceCategoryChange(value);
         }
     };
 
@@ -58,24 +110,26 @@ const VehicleSection = ({ totalSalary, onUpdateTotalSalary, insuranceAmountBody,
             ...prevShowRoom,
             insurance: value,
         }));
+        onInsuranceChange(value); 
+
     };
 
     const handleInsuranceAmountChange = (e) => {
         const { value } = e.target;
-        setShowRoom((prevShowRoom) => ({
+        setShowRoom(prevShowRoom => ({
             ...prevShowRoom,
             insuranceAmount: value,
         }));
-        onInsuranceAmountBodyChange(value); // Call the callback function with new insurance amount
+        onInsuranceAmountBodyChange(value); 
     };
 
     const handleAdjustValueChange = (e) => {
         const { value } = e.target;
-        setAdjustValue(value);
+        onAdjustValueChange(value); // Call the callback function passed from the parent
     };
-
     const applyAdjustment = () => {
         const adjustedSalary = parseFloat(adjustValue);
+
         if (adjustedSalary > updatedTotalSalary) {
             setUpdatedTotalSalary(adjustedSalary);
             onUpdateTotalSalary(adjustedSalary);
@@ -161,7 +215,7 @@ const VehicleSection = ({ totalSalary, onUpdateTotalSalary, insuranceAmountBody,
                         </label>
                         {showRoom.insurance === 'insurance' && (
                             <div className="mt-2" style={{ marginTop: '10px', fontSize: '0.9em' }}>
-                                <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Insurance Amount(for newly added showrooms(Optional)):</label>
+                                <label style={{ marginRight: '10px', fontSize: '1em', color: '#333' }}>Insurance Amount (for newly added showrooms (Optional)):</label>
                                 <input
                                     type="number"
                                     name="insuranceAmount"

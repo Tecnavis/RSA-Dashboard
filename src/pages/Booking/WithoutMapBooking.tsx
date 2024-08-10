@@ -28,9 +28,7 @@ const WithoutMapBooking = () => {
         setBookingId(newBookingId);
     }, []);
     const [updatedTotalSalary, setUpdatedTotalSalary] = useState(0);
-
     const [companies, setCompanies] = useState([]);
-
     const [bookingDetails, setBookingDetails] = useState({
         company: '',
         fileNumber: '',
@@ -61,9 +59,7 @@ const WithoutMapBooking = () => {
     const [vehicleType, setVehicleType] = useState('');
     const [totalDriverSalary, setTotalDriverSalary] = useState('');
     const [totalDriverDistance, setTotalDriverDistance] = useState('');
-
     const [serviceCategory, setServiceCategory] = useState('');
-
     const [company, setCompany] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
@@ -99,48 +95,50 @@ const WithoutMapBooking = () => {
     const [disableFields, setDisableFields] = useState(false); // State to control field disabling
     const [totalDistance, setTotalDistance] = useState([]);
     const [totalDistances, setTotalDistances] = useState([]);
-
     const [errors, setErrors] = useState({});
+    const [adjustValue, setAdjustValue] = useState('');
+    const [bodyShope, setBodyShope]= useState('');
+
     useEffect(() => {
         if (state && state.editData) {
-            console.log("first")
-            console.log("state.editData",state.editData)
+            console.log('first');
+            console.log('state.editData', state.editData);
             const editData = state.editData;
             setEditData(editData);
             setBookingId(editData.bookingId || '');
             setTrappedLocation(editData.trappedLocation || '');
             setInsuranceAmountBody(editData.insuranceAmountBody || '');
-            console.log('Insurance Amount Body:state', editData.insuranceAmountBody);
+            setBodyShope(editData.bodyShope || '');
             setComments(editData.comments || '');
             setFileNumber(editData.fileNumber || '');
             setCompany(editData.company || '');
             setTotalDriverSalary(editData.totalDriverSalary || '');
             setTotalDriverDistance(editData.totalDriverDistance || '');
-
             setCustomerName(editData.customerName || '');
             setPhoneNumber(editData.phoneNumber || '');
             setVehicleType(editData.vehicleType || '');
             setServiceCategory(editData.serviceCategory || '');
             setAvailableServices(editData.availableServices || '');
-
             setMobileNumber(editData.mobileNumber || '');
             setVehicleNumber(editData.vehicleNumber || '');
             setServiceVehicle(editData.serviceVehicle || '');
             setVehicleModel(editData.vehicleModel || '');
             setVehicleSection(editData.vehicleSection || '');
             setShowroomLocation(editData.showroomLocation || '');
-
             setDistance(editData.distance || '');
             setSelectedDriver(editData.selectedDriver || '');
             setBaseLocation(editData.baseLocation || '');
             setPickupLocation(editData.pickupLocation || '');
             setUpdatedTotalSalary(editData.updatedTotalSalary || '');
             console.log('updatedTotalSalaryyy', editData.updatedTotalSalary);
-
             setServiceType(editData.serviceType || '');
-            setTotalSalary(editData.totalSalary || 0);
+            setAdjustValue(editData.adjustValue || '');
+            console.log("editData.adjustValue",editData.adjustValue)
+
+                        setTotalSalary(editData.totalSalary || 0);
             setDropoffLocation(editData.dropoffLocation || '');
             setSelectedCompany(editData.selectedCompany || '');
+       
             setDisableFields(false);
         }
     }, [state]);
@@ -208,20 +206,31 @@ const WithoutMapBooking = () => {
             fetchCompanies();
         }
     }, [company, db]);
-
-   
-    
+    const handleUpdatedTotalSalary = (newTotalSalary) => {
+        setUpdatedTotalSalary(newTotalSalary);
+    };
     const handleUpdateTotalSalary = (newTotalSalary) => {
+        console.log("newTotalSalary",newTotalSalary)
         setUpdatedTotalSalary(newTotalSalary);
     };
 
     const handleInsuranceAmountBodyChange = (amount) => {
+        console.log("firstamount",amount)
         setInsuranceAmountBody(amount);
-    };
 
-    const handleServiceCategoryChange = (service) => {
-        setAvailableServices(service);
     };
+    const handleAdjustValueChange = (newAdjustValue) => {
+        console.log('Adjust Valuee:', newAdjustValue);
+        setAdjustValue(newAdjustValue);
+    };
+    const handleServiceCategoryChange = (service) => {
+        setServiceCategory(service);
+    };
+    const handleBodyInsuranceChange =(insurance) =>{
+        console.log("firstinsurance",insurance)
+    setBodyShope(insurance)
+    }
+ 
     useEffect(() => {
         if (selectedDriver) {
             const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
@@ -237,25 +246,22 @@ const WithoutMapBooking = () => {
         }
     }, [selectedDriver, serviceType, drivers]);
 
-    const handleAdjustValueCallback = (adjustedValue) => {
-        setUpdatedTotalSalary(adjustedValue);
-    };
 
     const handleInputChange = (field, value) => {
         switch (field) {
             case 'showroomLocation':
                 console.log('Setting showroomLocation:', value);
                 setShowroomLocation(value);
-    
+
                 // Find the selected showroom based on the selected value
                 const selectedShowroom = showrooms.find((show) => show.value === value);
                 console.log('Selected Showroom:', selectedShowroom);
-    
+
                 if (selectedShowroom) {
                     console.log('Found showroom:', selectedShowroom.value);
                     console.log('Setting insuranceAmountBody to:', selectedShowroom.insuranceAmountBody);
                     setInsuranceAmountBody(selectedShowroom.insuranceAmountBody);
-    
+
                     console.log('Setting dropoffLocation to:', {
                         name: selectedShowroom.value,
                         lat: selectedShowroom.locationLatLng.lat,
@@ -276,10 +282,11 @@ const WithoutMapBooking = () => {
                     });
                 }
                 break;
-            case 'totalSalary':
-                setTotalSalary(value || 0);
-
-                break;
+                case 'totalSalary':
+                    setTotalSalary(value || 0);
+                    const newCalculatedSalary = value - parseFloat(insuranceAmountBody);
+                    handleUpdatedTotalSalary(newCalculatedSalary);
+                    break;
             case 'serviceCategory':
                 setServiceCategory(value || 0);
 
@@ -288,13 +295,17 @@ const WithoutMapBooking = () => {
                 setAvailableServices(value || 0);
 
                 break;
-
-            case 'insuranceAmountBody':
-                setInsuranceAmountBody(value || 0);
-
-                break;
+                case 'bodyShope':
+                    setBodyShope(value || '');
+                    break;
+                    case 'insuranceAmountBody':
+                        setInsuranceAmountBody(value || 0);
+                        const recalculatedTotalSalary = totalSalary - parseFloat(value);
+                        handleUpdatedTotalSalary(recalculatedTotalSalary);
+                        break;
             case 'adjustValue':
-                handleAdjustValueCallback({ target: { value } });
+                setAdjustValue(value || 0);
+
                 break;
             case 'customerName':
                 setCustomerName(value || '');
@@ -419,18 +430,18 @@ const WithoutMapBooking = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
-    
+
     useEffect(() => {
         const fetchShowroomOptions = async () => {
             try {
                 const db = getFirestore();
                 const serviceCollection = collection(db, 'showroom');
                 const serviceSnapshot = await getDocs(serviceCollection);
-                const servicesList = serviceSnapshot.docs.map(doc => ({
+                const servicesList = serviceSnapshot.docs.map((doc) => ({
                     value: doc.data().Location, // Assuming 'Location' is a unique identifier
                     label: doc.data().Location,
                     insuranceAmountBody: doc.data().insuranceAmountBody, // Make sure to include this
-                    locationLatLng: doc.data().locationLatLng // Make sure to include this
+                    locationLatLng: doc.data().locationLatLng, // Make sure to include this
                 }));
                 setShowrooms(servicesList);
             } catch (error) {
@@ -440,6 +451,8 @@ const WithoutMapBooking = () => {
 
         fetchShowroomOptions();
     }, []);
+
+    // -------------------------------------------------------------------------------------
     // useEffect(() => {
     //     console.log("Current Showroom Location:", showroomLocation);
     //     console.log("Current Showrooms Options:", showrooms.map(show => ({
@@ -504,38 +517,44 @@ const WithoutMapBooking = () => {
                 setDrivers([]);
                 return;
             }
-
+    
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
+    
+                // Fetch deleted driver IDs from localStorage using the correct key
+                const deletedItemIds = JSON.parse(localStorage.getItem('deletedUserIds') || '[]');
+                console.log('Deleted Driver IDs:', deletedItemIds);
+    
                 const filteredDrivers = snapshot.docs
                     .map((doc) => {
                         const driverData = doc.data();
-                        if (!driverData.selectedServices.includes(serviceType)) {
+                        // Only include drivers who have the selected service type and are not deleted
+                        if (!driverData.selectedServices.includes(serviceType) || deletedItemIds.includes(doc.id)) {
                             return null;
                         }
-
+    
                         return {
                             id: doc.id,
                             ...driverData,
                         };
                     })
-                    .filter(Boolean);
-
+                    .filter(Boolean); // Remove null entries
+    
                 setDrivers(filteredDrivers);
-                console.log('firstfilteredDrivers', filteredDrivers);
+                console.log('Filtered Drivers:', filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
         };
-
+    
         if (serviceType && serviceDetails) {
             fetchDrivers().catch(console.error);
         } else {
             setDrivers([]);
         }
     }, [db, serviceType, serviceDetails]);
-
+    
     useEffect(() => {
         const fetchServiceDetails = async () => {
             if (!serviceType) {
@@ -660,7 +679,7 @@ const WithoutMapBooking = () => {
             console.log('totalSalary', totalSalary);
 
             setTotalDistances(totalDistances); // Set totalDistances state
-            setTotalSalary(totalSalary);
+            // setTotalSalary(totalSalary);
             setUpdatedTotalSalary(totalSalary);
         }
     }, [drivers, serviceDetails, distance]);
@@ -700,14 +719,15 @@ const WithoutMapBooking = () => {
                 } else if (company === 'rsa') {
                     finalFileNumber = fileNumber;
                 }
-                // Parse the pickupLocation name to extract lat and lng
+                console.log('Pickup Locationmmm:', pickupLocation);
                 let pickupLat = '';
                 let pickupLng = '';
                 if (pickupLocation && pickupLocation.name) {
                     const parts = pickupLocation.name.split(',').map((part) => part.trim());
-                    if (parts.length >= 4) {
-                        pickupLat = parts[2];
-                        pickupLng = parts[3];
+                    if (parts.length >= 3) {
+                        // Adjusted to 3 to handle case with location, lat, lng
+                        pickupLat = parts[1];
+                        pickupLng = parts[2];
                     }
                 }
                 const bookingData = {
@@ -727,21 +747,21 @@ const WithoutMapBooking = () => {
                     comments: comments || '',
                     totalDistance: totalDistance,
                     distance: distance,
-
                     baseLocation: baseLocation || '',
                     showroomLocation: showroomLocation,
                     company: company || '',
+                    adjustValue:adjustValue || '',
                     customerName: customerName || '',
                     totalDriverDistance: totalDriverDistance || '',
                     totalDriverSalary: totalDriverSalary || '',
-
                     mobileNumber: mobileNumber || '',
                     phoneNumber: phoneNumber || '',
                     vehicleType: vehicleType || '',
+                    bodyShope: bodyShope || '',
+
                     serviceType: serviceType || '',
                     serviceVehicle: serviceVehicle || '',
                     serviceCategory: serviceCategory || '',
-
                     vehicleModel: vehicleModel || '',
                     vehicleSection: vehicleSection || '',
                     vehicleNumber: vehicleNumber || '',
@@ -998,37 +1018,37 @@ const WithoutMapBooking = () => {
                                 </div>
                             )}
                             <div className="flex items-center mt-4">
-                            <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
-                Service Center
-            </label>
-            {showrooms.length > 0 && (
-                <Select
-                    className="w-full"
-                    id="showrooms"
-                    name="showrooms"
-                    value={showrooms.find(option => option.value === showroomLocation) || null}
-                    options={showrooms}
-                    onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption ? selectedOption.value : '')}
-                    isSearchable={true}
-                    placeholder="Select showroom"
-                    styles={{
-                        control: (provided) => ({
-                            ...provided,
-                            width: '100%',
-                            padding: '0.5rem',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        }),
-                        placeholder: (provided) => ({
-                            ...provided,
-                            fontSize: '1rem',
-                        }),
-                    }}
-                />
-            )}
+                                <label htmlFor="showrooms" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                    Service Center
+                                </label>
+                                {showrooms.length > 0 && (
+                                    <Select
+                                        className="w-full"
+                                        id="showrooms"
+                                        name="showrooms"
+                                        value={showrooms.find((option) => option.value === showroomLocation) || null}
+                                        options={showrooms}
+                                        onChange={(selectedOption) => handleInputChange('showroomLocation', selectedOption ? selectedOption.value : '')}
+                                        isSearchable={true}
+                                        placeholder="Select showroom"
+                                        styles={{
+                                            control: (provided) => ({
+                                                ...provided,
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                fontSize: '1rem',
+                                                outline: 'none',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                            }),
+                                            placeholder: (provided) => ({
+                                                ...provided,
+                                                fontSize: '1rem',
+                                            }),
+                                        }}
+                                    />
+                                )}
                                 <button
                                     onClick={() => setShowShowroomModal(true)}
                                     style={{
@@ -1356,13 +1376,18 @@ const WithoutMapBooking = () => {
                 {selectedDriver && selectedDriverData && (
                     <React.Fragment>
                         <div>
-                            <VehicleSection
+                        <VehicleSection
+                    showroomLocation={showroomLocation}
                                 totalSalary={totalSalary}
                                 onUpdateTotalSalary={handleUpdateTotalSalary}
                                 insuranceAmountBody={insuranceAmountBody}
+                                serviceCategory={serviceCategory}
                                 onInsuranceAmountBodyChange={handleInsuranceAmountBodyChange}
                                 onServiceCategoryChange={handleServiceCategoryChange}
-                                setServiceData={serviceCategory}
+                                onAdjustValueChange={handleAdjustValueChange}
+                                adjustValue={adjustValue}
+                                bodyShope={bodyShope}
+                                onInsuranceChange={handleBodyInsuranceChange}
                             />
                             <div>Selected Service Category: {availableServices}</div>
                             <div className="mt-4 flex items-center">

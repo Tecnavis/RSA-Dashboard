@@ -101,25 +101,16 @@ const MapBooking = () => {
     const [selectedCompany, setSelectedCompany] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState('');
     const [manualInput, setManualInput] = useState(pickupLocation ? pickupLocation.name : '');
-    const [manualInput1, setManualInput1] = useState(dropoffLocation ? dropoffLocation.name : '');
     const [disableFields, setDisableFields] = useState(false); // State to control field disabling
     const [pickupDistances, setPickupDistances] = useState([]);
     console.log('totalSalary', totalSalary);
-    const [totalDistance, setTotalDistance] = useState([]);
-    const [totalDistances, setTotalDistances] = useState([]);
-    const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({});
     const [serviceCategory, setServiceCategory] = useState('');
     const [legDistances, setLegDistances] = useState([]);
     const [formattedLegDistances, setFormattedLegDistances] = useState('');
     const [availableServices, setAvailableServices] = useState('');
-    const convertLocationToString = (location) => {
-        if (location && typeof location === 'object' && location.lat && location.lng && location.name) {
-            return `${location.name}`;
-        }
-        console.warn('Location is not an object or missing required properties:', location);
-        return location;
-    };
-    
+    const [adjustValue, setAdjustValue] = useState('');
+const [bodyShope, setBodyShope]= useState('');
     useEffect(() => {
         if (state && state.editData) {
             const editData = state.editData;
@@ -137,21 +128,26 @@ const MapBooking = () => {
             setVehicleNumber(editData.vehicleNumber || '');
             setServiceVehicle(editData.serviceVehicle || '');
             setVehicleType(editData.vehicleType || '');
-
+            setAdjustValue(editData.adjustValue || '');
+            setServiceCategory(editData.serviceCategory || '');
+            setAvailableServices(editData.availableServices || '');
             setVehicleModel(editData.vehicleModel || '');
             setVehicleSection(editData.vehicleSection || '');
             setShowroomLocation(editData.showroomLocation || '');
             setDistance(editData.distance || '');
             console.log("editData.distance", editData.distance);
-            
+            setBodyShope(editData.bodyShope || '');
+            console.log("editData.bodyShope",editData.bodyShope)
             setSelectedDriver(editData.selectedDriver || '');
             setBaseLocation(editData.baseLocation || '');
             setShowrooms(editData.showrooms || []);
-            
-            const formattedPickupLocation = convertLocationToString(editData.pickupLocation);
-            console.log("formattedPickupLocation", formattedPickupLocation);
-            setPickupLocation(formattedPickupLocation || '');
-            
+            if (editData.pickupLocation && typeof editData.pickupLocation === 'object') {
+                const { name, lat, lng } = editData.pickupLocation;
+                setPickupLocation(`${name}, ${lat}, ${lng}`);
+                setPickupCoords({ lat, lng });
+            } else {
+                setPickupLocation(editData.pickupLocation || '');
+            }            
             setTotalDriverDistance(editData.totalDriverDistance || '');
             setAvailableServices(editData.availableServices || '');
             setShowRooms(editData.showRooms || '');
@@ -232,29 +228,7 @@ const MapBooking = () => {
         setUpdatedTotalSalary(newTotalSalary);
     };
 
-    useEffect(() => {
-        let newTotalSalary = totalSalary;
-
-        if (serviceCategory === 'Body Shop' && insuranceAmountBody) {
-            newTotalSalary -= parseFloat(insuranceAmountBody);
-        }
-
-        if (newTotalSalary !== updatedTotalSalary) {
-            setUpdatedTotalSalary(newTotalSalary >= 0 ? newTotalSalary : 0);
-        }
-    }, [totalSalary, insuranceAmountBody, serviceCategory]);
-
-    const handleUpdateTotalSalary = (newTotalSalary) => {
-        setUpdatedTotalSalary(newTotalSalary);
-    };
-
-    const handleInsuranceAmountBodyChange = (amount) => {
-        setInsuranceAmountBody(amount);
-    };
-
-    const handleServiceCategoryChange = (service) => {
-        setAvailableServices(service);
-    };
+   
     useEffect(() => {
         if (selectedDriver) {
             const selectedDriverData = drivers.find((driver) => driver.id === selectedDriver);
@@ -270,10 +244,27 @@ const MapBooking = () => {
         }
     }, [selectedDriver, serviceType, drivers]);
 
-    const handleAdjustValueCallback = (adjustedValue) => {
-        setUpdatedTotalSalary(adjustedValue);
+    const handleUpdateTotalSalary = (newTotalSalary) => {
+        console.log("newTotalSalary",newTotalSalary)
+        setUpdatedTotalSalary(newTotalSalary);
     };
 
+    const handleInsuranceAmountBodyChange = (amount) => {
+        console.log("firstamount",amount)
+        setInsuranceAmountBody(amount);
+
+    };
+    const handleAdjustValueChange = (newAdjustValue) => {
+        console.log('Adjust Valuee:', newAdjustValue);
+        setAdjustValue(newAdjustValue);
+    };
+    const handleServiceCategoryChange = (service) => {
+        setServiceCategory(service);
+    };
+const handleBodyInsuranceChange =(insurance) =>{
+    console.log("firstinsurance",insurance)
+setBodyShope(insurance)
+}
     const handleInputChange = (field, value) => {
         switch (field) {
             case 'showroomLocation':
@@ -320,7 +311,8 @@ const MapBooking = () => {
                 handleUpdatedTotalSalary(recalculatedTotalSalary);
                 break;
             case 'adjustValue':
-                handleAdjustValueCallback({ target: { value } });
+                setAdjustValue(value || '');
+
                 break;
             case 'customerName':
                 setCustomerName(value || '');
@@ -411,7 +403,9 @@ const MapBooking = () => {
             case 'baseLocation':
                 setBaseLocation(value || '');
                 break;
-
+                case 'bodyShope':
+                    setBodyShope(value || '');
+                    break;
             case 'trappedLocation':
                 setDisableFields(value === 'outsideOfRoad'); // Disable fields if trappedLocation is 'outsideOfRoad'
 
@@ -445,7 +439,7 @@ const MapBooking = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
-
+   
     const updateShowroomLocation = (location) => {
         setShowroomLocation(location);
     };
@@ -501,36 +495,44 @@ const MapBooking = () => {
                 setDrivers([]);
                 return;
             }
-
+    
             try {
                 const driversCollection = collection(db, 'driver');
                 const snapshot = await getDocs(driversCollection);
+    
+                // Fetch deleted driver IDs from localStorage using the correct key
+                const deletedItemIds = JSON.parse(localStorage.getItem('deletedUserIds') || '[]');
+                console.log('Deleted Driver IDs:', deletedItemIds);
+    
                 const filteredDrivers = snapshot.docs
                     .map((doc) => {
                         const driverData = doc.data();
-                        if (!driverData.selectedServices.includes(serviceType)) {
+                        // Only include drivers who have the selected service type and are not deleted
+                        if (!driverData.selectedServices.includes(serviceType) || deletedItemIds.includes(doc.id)) {
                             return null;
                         }
-
+    
                         return {
                             id: doc.id,
                             ...driverData,
                         };
                     })
-                    .filter(Boolean);
-
+                    .filter(Boolean); // Remove null entries
+    
                 setDrivers(filteredDrivers);
+                console.log('Filtered Drivers:', filteredDrivers);
             } catch (error) {
                 console.error('Error fetching drivers:', error);
             }
         };
-
+    
         if (serviceType && serviceDetails) {
             fetchDrivers().catch(console.error);
         } else {
             setDrivers([]);
         }
     }, [db, serviceType, serviceDetails]);
+    
 
     useEffect(() => {
         const fetchServiceDetails = async () => {
@@ -650,6 +652,7 @@ const MapBooking = () => {
     };
 
     useEffect(() => {
+        
         const fetchDrivers = async () => {
             console.log('Fetching drivers from Firestore');
             try {
@@ -822,12 +825,6 @@ const MapBooking = () => {
             name: `${name}, ${lat}, ${lng}`,
         };
     };
-    // const formatLegDistances = (legDistances) => {
-    //     return legDistances.reduce((acc, distance, index) => {
-    //         acc[`leg${index + 1}`] = distance;
-    //         return acc;
-    //     }, {});
-    // };
 
     const addOrUpdateItem = async () => {
         if (validateForm()) {
@@ -861,6 +858,8 @@ const MapBooking = () => {
                     totalDistance: distance,
                     distance: distance,
                     showRooms: showroomLocation,
+                    adjustValue:adjustValue || '',
+                    serviceCategory: serviceCategory || '',
 
                     baseLocation: baseLocation || '',
                     showroomLocation: showroomLocation,
@@ -882,6 +881,7 @@ const MapBooking = () => {
                     legDistances: legDistances || '',
                     updatedTotalSalary: updatedTotalSalary || '',
                     insuranceAmount: insuranceAmountBody || '',
+                    bodyShope: bodyShope || '',
                     paymentStatus: 'Not Paid',
                 };
                 if (editData) {
@@ -913,7 +913,7 @@ const MapBooking = () => {
         const keralaCenterLat = 10.8505;
         const keralaCenterLng = 76.2711;
         const radius = 200000;
-
+    
         try {
             console.log(`Fetching autocomplete results for input: ${inputText}`);
             const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete`, {
@@ -925,12 +925,15 @@ const MapBooking = () => {
                 },
             });
             console.log('Autocomplete response:', response.data);
-
+    
             if (response.data && Array.isArray(response.data.predictions)) {
                 const predictionsWithCoords = await Promise.all(
                     response.data.predictions.map(async (prediction, index) => {
                         const placeDetails = await getPlaceDetails(prediction.place_id);
+                        console.log("locationName", placeDetails);
+    
                         const locationName = prediction.description.split(',')[0];
+    
                         return {
                             key: `${prediction.place_id}-${index}`,
                             label: locationName,
@@ -950,6 +953,7 @@ const MapBooking = () => {
             setOptions([]);
         }
     };
+    
     const getPlaceDetails = async (placeId) => {
         try {
             console.log(`Fetching place details for placeId: ${placeId}`);
@@ -981,29 +985,30 @@ const MapBooking = () => {
     const handlePickupChange = (newValue) => {
         console.log('Checking newValue:', newValue);
         console.log('Selected pickup location:', newValue);
-
+    
         const hasLabel = newValue && newValue.label;
         const hasLat = newValue && newValue.lat;
         const hasLng = newValue && newValue.lng;
-
+    
         console.log('newValue exists:', newValue !== undefined && newValue !== null);
         console.log('newValue.label exists:', hasLabel);
         console.log('newValue.lat exists:', hasLat);
         console.log('newValue.lng exists:', hasLng);
-
+    
         if (hasLabel && hasLat && hasLng) {
+            const formattedLocation = `${newValue.label}, ${newValue.lat}, ${newValue.lng}`;
             console.log('Setting pickup location formatted...');
             setPickupLocationFormatted(newValue.label);
             console.log('Pickup location formatted:', newValue.label);
-
+    
             console.log('Setting pickup coordinates...');
             setPickupCoords({ lat: newValue.lat, lng: newValue.lng });
             console.log('Pickup coordinates:', { lat: newValue.lat, lng: newValue.lng });
-
+    
             console.log('Setting pickup location...');
-            setPickupLocation(`${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
-            console.log('Pickup locationonon:', `${newValue.label}, ${newValue.lat}, ${newValue.lng}`);
-
+            setPickupLocation(formattedLocation);
+            console.log('Pickup location:', formattedLocation);
+    
             console.log('Base location before check:', baseLocation);
             if (baseLocation) {
                 console.log('Base location is set in pick:', baseLocation);
@@ -1011,8 +1016,8 @@ const MapBooking = () => {
                     console.log('Dropoff location is set:', dropoffLocation);
                     console.log('Calculating total distance...');
                     console.log('Before calculating distance, baseLocation:', baseLocation);
-
-                    calculateTotalDistance(baseLocation, newValue, dropoffLocation);
+    
+                    calculateTotalDistance(baseLocation, { lat: newValue.lat, lng: newValue.lng }, dropoffLocation);
                 } else {
                     console.log('Dropoff location is not set');
                 }
@@ -1024,11 +1029,11 @@ const MapBooking = () => {
             setPickupCoords({ lat: undefined, lng: undefined });
             setPickupLocationFormatted('');
         }
-
+    
         console.log('Clearing pickup options...');
         setPickupOptions([]);
     };
-
+    
     const calculateTotalDistance = async (base, pickup, dropoff) => {
         try {
             console.log('Calculating total distance...');
@@ -1248,9 +1253,13 @@ const MapBooking = () => {
 
         const driverLocation = selectedDriverData.currentLocation;
         console.log('Driver Location from Selected Driver Data:', driverLocation);
+ const totalDriverDistance = await calculateTotalDriverDistance(driverLocation, pickupLocation, dropoffLocation);
+    console.log('Total Driver Distance (before rounding):', totalDriverDistance);
 
-        const totalDriverDistance = await calculateTotalDriverDistance(driverLocation, pickupLocation, dropoffLocation);
-        console.log('Total Driver Distance:', totalDriverDistance);
+    // Round and fix the totalDriverDistance to 2 decimal places
+    const roundedTotalDriverDistance = parseFloat(totalDriverDistance.toFixed(2));
+    console.log('Total Driver Distance (rounded):', roundedTotalDriverDistance);
+
     };
 
     useEffect(() => {
@@ -1379,7 +1388,7 @@ const MapBooking = () => {
                                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                     }}
                                 >
-                                    <Autocomplete
+                               <Autocomplete
     value={{ label: pickupLocation }}
     onInputChange={(event, newInputValue) => {
         console.log('Input change event:', event);
@@ -1399,7 +1408,7 @@ const MapBooking = () => {
         console.log('Autocomplete onChange newValue:', newValue);
         handlePickupChange(newValue);
     }}
-    sx={{ background:"white", width: '100%', border: '20px' }}
+    sx={{ background: "white", width: '100%', border: '20px' }}
     options={pickupOptions}
     getOptionLabel={(option) => {
         console.log('Get option label:', option);
@@ -1544,10 +1553,10 @@ const MapBooking = () => {
                           
 
                     <div className="flex items-center mt-4">
-                                <label htmlFor="dropoffLocation" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                <label htmlFor="dropoffLocation" className="  mb-0">
                                     Drop off Location
                                 </label>
-                                <div className="search-box ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
+                                <div className="search-box   mb-0" style={{width:"100%"}}>
                                     <input
                                         style={{
                                             width: '100%',
@@ -1810,15 +1819,19 @@ const MapBooking = () => {
                 </div>
                 <React.Fragment>
                     <div>
-                        <VehicleSection
-                            showroomLocation={showroomLocation}
-                            totalSalary={totalSalary}
-                            onUpdateTotalSalary={handleUpdateTotalSalary}
-                            adjustValueCallback={handleAdjustValueCallback}
-                            insuranceAmountBody={insuranceAmountBody}
-                            onInsuranceAmountBodyChange={handleInsuranceAmountBodyChange}
-                            onServiceCategoryChange={handleServiceCategoryChange}
-                        />
+                    <VehicleSection
+                    showroomLocation={showroomLocation}
+                                totalSalary={totalSalary}
+                                onUpdateTotalSalary={handleUpdateTotalSalary}
+                                insuranceAmountBody={insuranceAmountBody}
+                                serviceCategory={serviceCategory}
+                                onInsuranceAmountBodyChange={handleInsuranceAmountBodyChange}
+                                onServiceCategoryChange={handleServiceCategoryChange}
+                                onAdjustValueChange={handleAdjustValueChange}
+                                adjustValue={adjustValue}
+                                bodyShope={bodyShope}
+                                onInsuranceChange={handleBodyInsuranceChange}
+                            />
 
                         <div className="mt-4 flex items-center">
                             <label htmlFor="totalSalary" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
@@ -1884,11 +1897,50 @@ const MapBooking = () => {
                     </div>
                 </React.Fragment>
                 {selectedDriver && (
-                    <div>
-                   <p>Total Driver Salary: {totalDriverSalary}</p>
-                        <p>Total Driver Distance: {totalDriverDistance}</p>
-                    </div>
-                )}
+    <div>
+        <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column' }}>
+            <label htmlFor="totalDriverSalary" style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                Total Driver Salary
+            </label>
+            <input
+                id="totalDriverSalary"
+                type="text"
+                value={totalDriverSalary}
+                readOnly
+                style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+            />
+        </div>
+        <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column' }}>
+            <label htmlFor="totalDriverDistance" style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                Total Driver Distance
+            </label>
+            <input
+                id="totalDriverDistance"
+                type="text"
+                value={totalDriverDistance}
+                readOnly
+                style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+            />
+        </div>
+    </div>
+)}
+
                 <div className="flex items-center mt-4" style={{ width: '100%' }}>
                     <label htmlFor="serviceVehicle" className="ltr:mr-2 rtl:ml-2 w-1/3 mb-0">
                         Service Vehicle Number
